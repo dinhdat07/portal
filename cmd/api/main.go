@@ -15,7 +15,10 @@ import (
 )
 
 func main() {
-	cfg := config.Load()
+	cfg, err := config.Load()
+	if err != nil {
+		log.Fatal(err)
+	}
 
 	db, err := gorm.Open(postgres.Open(cfg.DBUrl), &gorm.Config{})
 	if err != nil {
@@ -31,10 +34,10 @@ func main() {
 
 	r := gin.Default()
 
-	api := r.Group("/api")
+	api := r.Group("/api/v1")
 	{
 		api.POST("/register", userHandler.Register)
 	}
 
-	r.Run(":8080")
+	r.Run(":" + cfg.Port)
 }

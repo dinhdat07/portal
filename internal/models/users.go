@@ -14,9 +14,9 @@ type User struct {
 	FirstName       string    `gorm:"size:100;not null"`
 	LastName        string    `gorm:"size:100;not null"`
 	DOB             *time.Time
-	PasswordHash    *string `gorm:"size:255"`
-	Role            string  `gorm:"size:20;not null"`
-	Status          string  `gorm:"size:30;not null"`
+	PasswordHash    *string    `gorm:"size:255"`
+	Role            UserRole   `gorm:"size:20;not null"`
+	Status          UserStatus `gorm:"size:30;not null"`
 	EmailVerifiedAt *time.Time
 	LastLoginAt     *time.Time
 	CreatedAt       time.Time

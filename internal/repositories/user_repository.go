@@ -35,6 +35,14 @@ func (r *UserRepository) FindByEmail(ctx context.Context, email string) (*models
 	return &user, err
 }
 
+func (r *UserRepository) FindByUsername(ctx context.Context, username string) (*models.User, error) {
+	var user models.User
+	err := r.db.WithContext(ctx).
+		Where("username = ?", username).
+		First(&user).Error
+	return &user, err
+}
+
 func (r *UserRepository) Delete(ctx context.Context, id uuid.UUID) error {
 	return r.db.WithContext(ctx).Delete(&models.User{}, "id = ?", id).Error
 }
