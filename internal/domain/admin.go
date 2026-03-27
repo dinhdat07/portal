@@ -5,7 +5,7 @@ import (
 	"time"
 )
 
-type ListUsersInput struct {
+type UsersFilter struct {
 	Page           int
 	PageSize       int
 	Username       string

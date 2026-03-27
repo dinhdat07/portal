@@ -42,7 +42,7 @@ func (h *AdminHandler) ListUsers(c *gin.Context) {
 		query.PageSize = DEFAULT_PAGE_SIZE
 	}
 
-	input := domain.ListUsersInput{
+	input := domain.UsersFilter{
 		Page:           query.Page,
 		PageSize:       query.PageSize,
 		Username:       query.Username,

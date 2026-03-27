@@ -31,7 +31,9 @@ var (
 	ErrPasswordTooWeak              = errors.New("password is too weak")
 
 	// Validation
-	ErrInvalidInput = errors.New("invalid input")
+	ErrInvalidInput     = errors.New("invalid input")
+	ErrInvalidAction    = errors.New("invalid action for audit log")
+	ErrInvalidTimeRange = errors.New("invalid time range for audit log")
 
 	// System
 	ErrInternalServer = errors.New("internal server error")

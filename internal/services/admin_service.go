@@ -20,7 +20,7 @@ func NewAdminService(repo *repositories.UserRepository) *AdminService {
 	return &AdminService{userRepo: repo}
 }
 
-func (svc *AdminService) ListUsers(ctx context.Context, in domain.ListUsersInput) (*domain.ListUsersResult, error) {
+func (svc *AdminService) ListUsers(ctx context.Context, in domain.UsersFilter) (*domain.ListUsersResult, error) {
 	if in.Role != "" && !in.Role.IsValid() {
 		return nil, ErrInvalidInput
 	}

@@ -87,41 +87,41 @@ func (r *UserRepository) Delete(ctx context.Context, id uuid.UUID, deletedBy uui
 		}).Error
 }
 
-func (r *UserRepository) ListUsers(ctx context.Context, in domain.ListUsersInput) ([]models.User, int64, error) {
+func (r *UserRepository) ListUsers(ctx context.Context, filter domain.UsersFilter) ([]models.User, int64, error) {
 	var user models.User
 
 	db := r.db.WithContext(ctx).Model(&user)
 
 	// build dynamic query
-	if in.IncludeDeleted {
+	if filter.IncludeDeleted {
 		db = db.Unscoped()
 	}
 
-	if in.Username != "" {
-		db = db.Where("username ILIKE ?", "%"+in.Username+"%")
+	if filter.Username != "" {
+		db = db.Where("username ILIKE ?", "%"+filter.Username+"%")
 	}
 
-	if in.Email != "" {
-		db = db.Where("email ILIKE ?", "%"+in.Email+"%")
+	if filter.Email != "" {
+		db = db.Where("email ILIKE ?", "%"+filter.Email+"%")
 	}
 
-	if in.FullName != "" {
+	if filter.FullName != "" {
 		db = db.Where(
 			"CONCAT(first_name, ' ', last_name) ILIKE ?",
-			"%"+in.FullName+"%",
+			"%"+filter.FullName+"%",
 		)
 	}
 
-	if in.Dob != nil {
-		db = db.Where("dob = ?", *in.Dob)
+	if filter.Dob != nil {
+		db = db.Where("dob = ?", *filter.Dob)
 	}
 
-	if in.Role != "" {
-		db = db.Where("role = ?", in.Role)
+	if filter.Role != "" {
+		db = db.Where("role = ?", filter.Role)
 	}
 
-	if in.Status != "" {
-		db = db.Where("status = ?", in.Status)
+	if filter.Status != "" {
+		db = db.Where("status = ?", filter.Status)
 	}
 
 	var total int64
@@ -129,15 +129,14 @@ func (r *UserRepository) ListUsers(ctx context.Context, in domain.ListUsersInput
 		return nil, 0, err
 	}
 
-	offset := (in.Page - 1) * in.PageSize
+	offset := (filter.Page - 1) * filter.PageSize
 	var users []models.User
 
-	if err := db.Offset(offset).Limit(in.PageSize).Find(&users).Error; err != nil {
+	if err := db.Offset(offset).Limit(filter.PageSize).Find(&users).Error; err != nil {
 		return nil, 0, err
 	}
 
 	return users, total, nil
-
 }
 
 func (r *UserRepository) Restore(ctx context.Context, id uuid.UUID) error {
