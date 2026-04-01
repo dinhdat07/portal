@@ -92,14 +92,28 @@ func (svc *UserService) UpdateProfile(ctx context.Context, meta *domain.AuditMet
 		return nil, err
 	}
 
+	changes := map[string]any{}
+
 	// update allowed fields
 	if input.FirstName != nil {
+		changes["first_name"] = map[string]any{
+			"old": user.FirstName,
+			"new": *input.FirstName,
+		}
 		user.FirstName = *input.FirstName
 	}
 	if input.LastName != nil {
+		changes["last_name"] = map[string]any{
+			"old": user.LastName,
+			"new": *input.LastName,
+		}
 		user.LastName = *input.LastName
 	}
 	if input.DOB != nil {
+		changes["dob"] = map[string]any{
+			"old": user.DOB,
+			"new": input.DOB,
+		}
 		user.DOB = input.DOB
 	}
 
@@ -112,6 +126,10 @@ func (svc *UserService) UpdateProfile(ctx context.Context, meta *domain.AuditMet
 		if existing != nil {
 			return nil, ErrUsernameExists
 		}
+		changes["username"] = map[string]any{
+			"old": user.Username,
+			"new": *input.Username,
+		}
 		user.Username = *input.Username
 	}
 
@@ -120,10 +138,18 @@ func (svc *UserService) UpdateProfile(ctx context.Context, meta *domain.AuditMet
 			return ErrInternalServer
 		}
 
-		err := svc.auditLogger.Log(ctx, meta, models.ActionUpdateProfile, actor, user)
+		action := models.ActionUpdateProfile
+		if actor.Role == models.RoleAdmin {
+			action = models.ActionAdminUpdateUser
+		}
+
+		err := svc.auditLogger.LogWithMetadata(ctx, meta, action, actor, user, map[string]any{
+			"changes": changes,
+		})
 		if err != nil {
 			return ErrAuditLogger
 		}
+
 		return nil
 	})
 

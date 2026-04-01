@@ -7,13 +7,14 @@ import (
 	"portal-system/internal/models"
 	"portal-system/internal/repositories"
 
+	appLogger "log"
+
 	"gorm.io/datatypes"
 	"gorm.io/gorm"
 )
 
 type AuditLogService struct {
 	repo *repositories.AuditLogRepository
-	// TODO: add app logger to log when audit logger have error
 }
 
 func NewAuditLogService(repo *repositories.AuditLogRepository) *AuditLogService {
@@ -42,7 +43,11 @@ func (s *AuditLogService) Log(ctx context.Context, meta *domain.AuditMeta, actio
 		log.UserAgent = &meta.UserAgent
 	}
 
-	return s.repo.Create(ctx, log)
+	err := s.repo.Create(ctx, log)
+	if err != nil {
+		appLogger.Println(err)
+	}
+	return err
 }
 
 func (s *AuditLogService) List(ctx context.Context, filter domain.AuditLogFilter) ([]models.AuditLog, int64, error) {
@@ -104,7 +109,12 @@ func (svc *AuditLogService) LogWithMetadata(ctx context.Context, meta *domain.Au
 
 	log.Metadata = metadata
 
-	return svc.repo.Create(ctx, log)
+	err := svc.repo.Create(ctx, log)
+
+	if err != nil {
+		appLogger.Println(err)
+	}
+	return err
 }
 
 func (s *AuditLogService) WithTx(tx *gorm.DB) *AuditLogService {

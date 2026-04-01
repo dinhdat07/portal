@@ -193,13 +193,19 @@ func (svc *AdminService) UpdateRole(ctx context.Context, meta *domain.AuditMeta,
 		return user, nil
 	}
 
+	changes := map[string]any{}
+	changes["role"] = map[string]any{
+		"old": user.Role,
+		"new": role,
+	}
+
 	err = svc.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
 		if err := svc.userRepo.UpdateRole(ctx, id, role); err != nil {
 			return ErrInternalServer
 		}
 		user.Role = role
 
-		if err := svc.auditLogger.Log(ctx, meta, models.ActionAdminAssignRole, actor, user); err != nil {
+		if err := svc.auditLogger.LogWithMetadata(ctx, meta, models.ActionAdminAssignRole, actor, user, changes); err != nil {
 			return ErrAuditLogger
 		}
 
