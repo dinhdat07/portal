@@ -60,10 +60,10 @@ func (s *AuthService) Register(ctx context.Context, meta *domain.AuditMeta, emai
 
 	// transaction, critical
 	err := s.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
-		if err := s.userRepo.Create(ctx, user); err != nil {
+		if err := s.userRepo.WithTx(tx).Create(ctx, user); err != nil {
 			return err
 		}
-		return s.auditLogger.Log(ctx, meta, enum.ActionRegister, nil, user)
+		return s.auditLogger.WithTx(tx).Log(ctx, meta, enum.ActionRegister, nil, user)
 	})
 
 	if err != nil {

@@ -71,10 +71,10 @@ func (svc *UserService) ChangePassword(ctx context.Context, meta *domain.AuditMe
 	}
 
 	err = svc.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
-		if err := svc.userRepo.UpdatePassword(ctx, id, string(hashed)); err != nil {
+		if err := svc.userRepo.WithTx(tx).UpdatePassword(ctx, id, string(hashed)); err != nil {
 			return ErrInternalServer
 		}
-		if err := svc.auditLogger.Log(ctx, meta, enum.ActionChangePassword, user, user); err != nil {
+		if err := svc.auditLogger.WithTx(tx).Log(ctx, meta, enum.ActionChangePassword, user, user); err != nil {
 			return ErrAuditLogger
 		}
 		return nil
@@ -121,7 +121,7 @@ func (svc *UserService) UpdateProfile(ctx context.Context, meta *domain.AuditMet
 	// check duplicate username
 	if input.Username != nil && *input.Username != user.Username {
 		existing, err := svc.userRepo.FindByUsername(ctx, *input.Username)
-		if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
+		if err != nil {
 			return nil, err
 		}
 		if existing != nil {
@@ -135,7 +135,7 @@ func (svc *UserService) UpdateProfile(ctx context.Context, meta *domain.AuditMet
 	}
 
 	err = svc.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
-		if err := svc.userRepo.Update(ctx, user); err != nil {
+		if err := svc.userRepo.WithTx(tx).Update(ctx, user); err != nil {
 			return ErrInternalServer
 		}
 
@@ -144,7 +144,7 @@ func (svc *UserService) UpdateProfile(ctx context.Context, meta *domain.AuditMet
 			action = enum.ActionAdminUpdateUser
 		}
 
-		err := svc.auditLogger.LogWithMetadata(ctx, meta, action, actor, user, map[string]any{
+		err := svc.auditLogger.WithTx(tx).LogWithMetadata(ctx, meta, action, actor, user, map[string]any{
 			"changes": changes,
 		})
 		if err != nil {

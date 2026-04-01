@@ -95,12 +95,12 @@ func (svc *AdminService) CreateUser(ctx context.Context, meta *domain.AuditMeta,
 	}
 
 	err = svc.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
-		err := svc.userRepo.Create(ctx, user)
+		err := svc.userRepo.WithTx(tx).Create(ctx, user)
 		if err != nil {
 			return ErrInternalServer
 		}
 
-		if err := svc.auditLogger.Log(ctx, meta, enum.ActionAdminCreateUser, actor, user); err != nil {
+		if err := svc.auditLogger.WithTx(tx).Log(ctx, meta, enum.ActionAdminCreateUser, actor, user); err != nil {
 			return ErrAuditLogger
 		}
 		return nil
@@ -119,7 +119,7 @@ func (svc *AdminService) DeleteUser(ctx context.Context, meta *domain.AuditMeta,
 	}
 
 	err = svc.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
-		if err := svc.userRepo.Delete(ctx, userID, actor.ID); err != nil {
+		if err := svc.userRepo.WithTx(tx).Delete(ctx, userID, actor.ID); err != nil {
 			return ErrInternalServer
 		}
 
@@ -128,7 +128,7 @@ func (svc *AdminService) DeleteUser(ctx context.Context, meta *domain.AuditMeta,
 		user.DeletedBy = &actor.ID
 		user.Status = enum.StatusDeleted
 
-		if err := svc.auditLogger.Log(ctx, meta, enum.ActionAdminDeleteUser, actor, user); err != nil {
+		if err := svc.auditLogger.WithTx(tx).Log(ctx, meta, enum.ActionAdminDeleteUser, actor, user); err != nil {
 			return ErrAuditLogger
 		}
 		return nil
@@ -155,7 +155,7 @@ func (svc *AdminService) RestoreUser(ctx context.Context, meta *domain.AuditMeta
 	}
 
 	err = svc.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
-		if err := svc.userRepo.Restore(ctx, userID); err != nil {
+		if err := svc.userRepo.WithTx(tx).Restore(ctx, userID); err != nil {
 			return ErrInternalServer
 		}
 
@@ -163,7 +163,7 @@ func (svc *AdminService) RestoreUser(ctx context.Context, meta *domain.AuditMeta
 		user.DeletedBy = nil
 		user.Status = enum.StatusActive
 
-		if err := svc.auditLogger.Log(ctx, meta, enum.ActionAdminRestoreUser, actor, user); err != nil {
+		if err := svc.auditLogger.WithTx(tx).Log(ctx, meta, enum.ActionAdminRestoreUser, actor, user); err != nil {
 			return ErrAuditLogger
 		}
 
@@ -201,12 +201,12 @@ func (svc *AdminService) UpdateRole(ctx context.Context, meta *domain.AuditMeta,
 	}
 
 	err = svc.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
-		if err := svc.userRepo.UpdateRole(ctx, id, role); err != nil {
+		if err := svc.userRepo.WithTx(tx).UpdateRole(ctx, id, role); err != nil {
 			return ErrInternalServer
 		}
 		user.Role = role
 
-		if err := svc.auditLogger.LogWithMetadata(ctx, meta, enum.ActionAdminAssignRole, actor, user, changes); err != nil {
+		if err := svc.auditLogger.WithTx(tx).LogWithMetadata(ctx, meta, enum.ActionAdminAssignRole, actor, user, changes); err != nil {
 			return ErrAuditLogger
 		}
 

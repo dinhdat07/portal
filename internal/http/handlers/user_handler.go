@@ -2,7 +2,6 @@ package handlers
 
 import (
 	"errors"
-	"log"
 	"net/http"
 	"portal-system/internal/domain"
 	"portal-system/internal/dto"
@@ -28,7 +27,6 @@ func (h *UserHandler) GetMyProfile(c *gin.Context) {
 		c.JSON(http.StatusUnauthorized, gin.H{
 			"error": "unauthorized",
 		})
-		log.Print(err)
 		return
 	}
 
