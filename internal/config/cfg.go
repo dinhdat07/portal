@@ -9,10 +9,13 @@ import (
 )
 
 type Config struct {
-	DBUrl        string
-	JWTSecret    string
-	JWTAccessTTL int
-	Port         string
+	DBUrl         string
+	JWTSecret     string
+	JWTAccessTTL  int
+	Port          string
+	Env           string
+	AdminEmail    string
+	AdminPassword string
 }
 
 func Load() (*Config, error) {
@@ -25,9 +28,12 @@ func Load() (*Config, error) {
 	ttl, _ := strconv.Atoi(ttlStr)
 
 	return &Config{
-		DBUrl:        os.Getenv("DB_URL"),
-		JWTSecret:    os.Getenv("JWT_SECRET"),
-		JWTAccessTTL: ttl,
-		Port:         os.Getenv("PORT"),
+		DBUrl:         os.Getenv("DB_URL"),
+		JWTSecret:     os.Getenv("JWT_SECRET"),
+		JWTAccessTTL:  ttl,
+		Port:          os.Getenv("PORT"),
+		Env:           os.Getenv("ENV"),
+		AdminEmail:    os.Getenv("ADMIN_EMAIL"),
+		AdminPassword: os.Getenv("ADMIN_PASSWORD"),
 	}, nil
 }

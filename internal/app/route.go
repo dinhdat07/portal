@@ -28,7 +28,7 @@ func setupRouter(authHandler *handlers.AuthHandler, userHandler *handlers.UserHa
 			me := users.Group("/me")
 			{
 				me.GET("", userHandler.GetMyProfile)
-				me.GET("", userHandler.UpdateProfile)
+				me.PUT("", userHandler.UpdateProfile)
 				me.PUT("/change-password", userHandler.ChangeMyPassword)
 
 			}
