@@ -1,4 +1,4 @@
-package models
+package enum
 
 type ActionName string
 

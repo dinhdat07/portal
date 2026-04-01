@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"portal-system/internal/domain"
+	"portal-system/internal/domain/enum"
 	"portal-system/internal/models"
 	"portal-system/internal/repositories"
 
@@ -21,7 +22,7 @@ func NewAuditLogService(repo *repositories.AuditLogRepository) *AuditLogService 
 	return &AuditLogService{repo: repo}
 }
 
-func (s *AuditLogService) Log(ctx context.Context, meta *domain.AuditMeta, action models.ActionName, actor *models.User, target *models.User) error {
+func (s *AuditLogService) Log(ctx context.Context, meta *domain.AuditMeta, action enum.ActionName, actor *models.User, target *models.User) error {
 	log := &models.AuditLog{Action: action}
 
 	if actor != nil {
@@ -73,7 +74,7 @@ func (s *AuditLogService) List(ctx context.Context, filter domain.AuditLogFilter
 	return logs, total, nil
 }
 
-func (svc *AuditLogService) LogWithMetadata(ctx context.Context, meta *domain.AuditMeta, action models.ActionName, actor *models.User, target *models.User, data map[string]any) error {
+func (svc *AuditLogService) LogWithMetadata(ctx context.Context, meta *domain.AuditMeta, action enum.ActionName, actor *models.User, target *models.User, data map[string]any) error {
 	var metadata *datatypes.JSON
 	if data != nil {
 		b, err := json.Marshal(data)

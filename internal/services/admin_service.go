@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"portal-system/internal/domain"
+	"portal-system/internal/domain/enum"
 	"portal-system/internal/models"
 	"portal-system/internal/repositories"
 	"time"
@@ -57,7 +58,7 @@ func (svc *AdminService) ListUsers(ctx context.Context, meta *domain.AuditMeta, 
 	svc.auditLogger.LogWithMetadata(
 		ctx,
 		meta,
-		models.ActionAdminSearchUser,
+		enum.ActionAdminSearchUser,
 		actor,
 		nil,
 		logMeta,
@@ -85,7 +86,7 @@ func (svc *AdminService) CreateUser(ctx context.Context, meta *domain.AuditMeta,
 		DOB:          in.DOB,
 		PasswordHash: nil,
 		Role:         "user",
-		Status:       models.StatusPending,
+		Status:       enum.StatusPending,
 	}
 
 	err := svc.userRepo.Create(ctx, user)
@@ -99,7 +100,7 @@ func (svc *AdminService) CreateUser(ctx context.Context, meta *domain.AuditMeta,
 			return ErrInternalServer
 		}
 
-		if err := svc.auditLogger.Log(ctx, meta, models.ActionAdminCreateUser, actor, user); err != nil {
+		if err := svc.auditLogger.Log(ctx, meta, enum.ActionAdminCreateUser, actor, user); err != nil {
 			return ErrAuditLogger
 		}
 		return nil
@@ -125,9 +126,9 @@ func (svc *AdminService) DeleteUser(ctx context.Context, meta *domain.AuditMeta,
 		now := time.Now()
 		user.DeletedAt = gorm.DeletedAt{Time: now, Valid: true}
 		user.DeletedBy = &actor.ID
-		user.Status = models.StatusDeleted
+		user.Status = enum.StatusDeleted
 
-		if err := svc.auditLogger.Log(ctx, meta, models.ActionAdminDeleteUser, actor, user); err != nil {
+		if err := svc.auditLogger.Log(ctx, meta, enum.ActionAdminDeleteUser, actor, user); err != nil {
 			return ErrAuditLogger
 		}
 		return nil
@@ -160,9 +161,9 @@ func (svc *AdminService) RestoreUser(ctx context.Context, meta *domain.AuditMeta
 
 		user.DeletedAt = gorm.DeletedAt{}
 		user.DeletedBy = nil
-		user.Status = models.StatusActive
+		user.Status = enum.StatusActive
 
-		if err := svc.auditLogger.Log(ctx, meta, models.ActionAdminRestoreUser, actor, user); err != nil {
+		if err := svc.auditLogger.Log(ctx, meta, enum.ActionAdminRestoreUser, actor, user); err != nil {
 			return ErrAuditLogger
 		}
 
@@ -176,7 +177,7 @@ func (svc *AdminService) RestoreUser(ctx context.Context, meta *domain.AuditMeta
 	return user, nil
 }
 
-func (svc *AdminService) UpdateRole(ctx context.Context, meta *domain.AuditMeta, actor *models.User, id uuid.UUID, role models.UserRole) (*models.User, error) {
+func (svc *AdminService) UpdateRole(ctx context.Context, meta *domain.AuditMeta, actor *models.User, id uuid.UUID, role enum.UserRole) (*models.User, error) {
 	if !role.IsValid() {
 		return nil, ErrInvalidInput
 	}
@@ -205,7 +206,7 @@ func (svc *AdminService) UpdateRole(ctx context.Context, meta *domain.AuditMeta,
 		}
 		user.Role = role
 
-		if err := svc.auditLogger.LogWithMetadata(ctx, meta, models.ActionAdminAssignRole, actor, user, changes); err != nil {
+		if err := svc.auditLogger.LogWithMetadata(ctx, meta, enum.ActionAdminAssignRole, actor, user, changes); err != nil {
 			return ErrAuditLogger
 		}
 

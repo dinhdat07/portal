@@ -7,9 +7,10 @@ import (
 	"time"
 
 	"portal-system/internal/domain"
+	"portal-system/internal/domain/enum"
 	"portal-system/internal/models"
+	"portal-system/internal/platform/token"
 	"portal-system/internal/repositories"
-	"portal-system/internal/token"
 
 	"github.com/google/uuid"
 	"golang.org/x/crypto/bcrypt"
@@ -62,7 +63,7 @@ func (s *AuthService) Register(ctx context.Context, meta *domain.AuditMeta, emai
 		if err := s.userRepo.Create(ctx, user); err != nil {
 			return err
 		}
-		return s.auditLogger.Log(ctx, meta, models.ActionRegister, nil, user)
+		return s.auditLogger.Log(ctx, meta, enum.ActionRegister, nil, user)
 	})
 
 	if err != nil {
@@ -105,7 +106,7 @@ func (s *AuthService) LogIn(ctx context.Context, meta *domain.AuditMeta, identif
 	}
 
 	// best-effort
-	s.auditLogger.Log(ctx, meta, models.ActionLogin, user, nil)
+	s.auditLogger.Log(ctx, meta, enum.ActionLogin, user, nil)
 
 	return &domain.LoginResult{
 		AccessToken: token,

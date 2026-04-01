@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"portal-system/internal/domain"
+	"portal-system/internal/domain/enum"
 	"portal-system/internal/models"
 	"portal-system/internal/repositories"
 
@@ -31,8 +32,8 @@ func (svc *UserService) GetProfile(ctx context.Context, meta *domain.AuditMeta, 
 		return nil, err
 	}
 
-	if actor.Role == models.RoleAdmin {
-		svc.auditLogger.Log(ctx, meta, models.ActionAdminViewUser, actor, user)
+	if actor.Role == enum.RoleAdmin {
+		svc.auditLogger.Log(ctx, meta, enum.ActionAdminViewUser, actor, user)
 	}
 
 	return user, nil
@@ -73,7 +74,7 @@ func (svc *UserService) ChangePassword(ctx context.Context, meta *domain.AuditMe
 		if err := svc.userRepo.UpdatePassword(ctx, id, string(hashed)); err != nil {
 			return ErrInternalServer
 		}
-		if err := svc.auditLogger.Log(ctx, meta, models.ActionChangePassword, user, user); err != nil {
+		if err := svc.auditLogger.Log(ctx, meta, enum.ActionChangePassword, user, user); err != nil {
 			return ErrAuditLogger
 		}
 		return nil
@@ -138,9 +139,9 @@ func (svc *UserService) UpdateProfile(ctx context.Context, meta *domain.AuditMet
 			return ErrInternalServer
 		}
 
-		action := models.ActionUpdateProfile
-		if actor.Role == models.RoleAdmin {
-			action = models.ActionAdminUpdateUser
+		action := enum.ActionUpdateProfile
+		if actor.Role == enum.RoleAdmin {
+			action = enum.ActionAdminUpdateUser
 		}
 
 		err := svc.auditLogger.LogWithMetadata(ctx, meta, action, actor, user, map[string]any{

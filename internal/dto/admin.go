@@ -1,7 +1,7 @@
 package dto
 
 import (
-	"portal-system/internal/models"
+	"portal-system/internal/domain/enum"
 	"portal-system/internal/types"
 )
 
@@ -23,7 +23,7 @@ type CreateUserRequest struct {
 	FirstName string          `json:"first_name" binding:"required max=100"`
 	LastName  string          `json:"last_name" binding:"required max=100"`
 	DOB       *types.DateOnly `json:"dob,omitempty" binding:"required"`
-	Role      models.UserRole `json:"role" binding:"required"`
+	Role      enum.UserRole   `json:"role" binding:"required"`
 }
 
 type UpdateUserRequest struct {
@@ -34,5 +34,5 @@ type UpdateUserRequest struct {
 }
 
 type UpdateRoleRequest struct {
-	Role models.UserRole `json:"role" binding:"required"`
+	Role enum.UserRole `json:"role" binding:"required"`
 }

@@ -1,6 +1,7 @@
 package domain
 
 import (
+	"portal-system/internal/domain/enum"
 	"portal-system/internal/models"
 	"time"
 )
@@ -12,8 +13,8 @@ type UsersFilter struct {
 	Email          string
 	FullName       string
 	Dob            *time.Time
-	Role           models.UserRole
-	Status         models.UserStatus
+	Role           enum.UserRole
+	Status         enum.UserStatus
 	IncludeDeleted bool
 }
 
@@ -30,7 +31,7 @@ type CreateUserInput struct {
 	FirstName string
 	LastName  string
 	DOB       *time.Time
-	Role      models.UserRole
+	Role      enum.UserRole
 }
 
 type UpdateUserInput struct {

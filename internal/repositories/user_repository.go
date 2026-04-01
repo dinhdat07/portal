@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"portal-system/internal/domain"
+	"portal-system/internal/domain/enum"
 	"portal-system/internal/models"
 
 	"github.com/google/uuid"
@@ -83,7 +84,7 @@ func (r *UserRepository) Delete(ctx context.Context, id uuid.UUID, deletedBy uui
 		Updates(map[string]interface{}{
 			"deleted_at": time.Now(),
 			"deleted_by": deletedBy,
-			"status":     models.StatusDeleted,
+			"status":     enum.StatusDeleted,
 		}).Error
 }
 
@@ -147,11 +148,11 @@ func (r *UserRepository) Restore(ctx context.Context, id uuid.UUID) error {
 		Updates(map[string]interface{}{
 			"deleted_at": nil,
 			"deleted_by": nil,
-			"status":     models.StatusActive,
+			"status":     enum.StatusActive,
 		}).Error
 }
 
-func (r *UserRepository) UpdateRole(ctx context.Context, id uuid.UUID, role models.UserRole) error {
+func (r *UserRepository) UpdateRole(ctx context.Context, id uuid.UUID, role enum.UserRole) error {
 	return r.db.WithContext(ctx).
 		Model(&models.User{}).
 		Where("id = ?", id).

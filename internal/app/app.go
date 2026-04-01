@@ -3,11 +3,11 @@ package app
 import (
 	"fmt"
 	"portal-system/internal/config"
-	"portal-system/internal/handlers"
+	"portal-system/internal/http/handlers"
 	"portal-system/internal/models"
+	"portal-system/internal/platform/token"
 	"portal-system/internal/repositories"
 	"portal-system/internal/services"
-	"portal-system/internal/token"
 
 	"github.com/gin-gonic/gin"
 	"gorm.io/driver/postgres"

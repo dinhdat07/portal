@@ -3,6 +3,7 @@ package handlers
 import (
 	"errors"
 	"portal-system/internal/domain"
+	"portal-system/internal/domain/enum"
 	"portal-system/internal/models"
 
 	"github.com/gin-gonic/gin"
@@ -55,7 +56,7 @@ func getActorFromGin(c *gin.Context) (*models.User, error) {
 		return nil, errors.New("invalid email type")
 	}
 
-	role, ok := roleValue.(models.UserRole)
+	role, ok := roleValue.(enum.UserRole)
 	if !ok {
 		return nil, errors.New("invalid role type")
 	}

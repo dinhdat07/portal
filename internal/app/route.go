@@ -1,10 +1,10 @@
 package app
 
 import (
-	"portal-system/internal/handlers"
-	"portal-system/internal/middleware"
-	"portal-system/internal/models"
-	"portal-system/internal/token"
+	"portal-system/internal/domain/enum"
+	"portal-system/internal/http/handlers"
+	"portal-system/internal/http/middleware"
+	"portal-system/internal/platform/token"
 
 	"github.com/gin-gonic/gin"
 )
@@ -35,7 +35,7 @@ func setupRouter(authHandler *handlers.AuthHandler, userHandler *handlers.UserHa
 		}
 
 		admin := protected.Group("/admin")
-		admin.Use(middleware.RequireRole(models.RoleAdmin))
+		admin.Use(middleware.RequireRole(enum.RoleAdmin))
 		{
 			users := admin.Group("/users")
 			{

@@ -4,8 +4,8 @@ import (
 	"errors"
 	"net/http"
 	"portal-system/internal/domain"
+	"portal-system/internal/domain/enum"
 	"portal-system/internal/dto"
-	"portal-system/internal/models"
 	"portal-system/internal/services"
 	"time"
 
@@ -61,8 +61,8 @@ func (h *AdminHandler) ListUsers(c *gin.Context) {
 		Email:          query.Email,
 		FullName:       query.FullName,
 		Dob:            dob,
-		Role:           models.UserRole(query.Role),
-		Status:         models.UserStatus(query.Status),
+		Role:           enum.UserRole(query.Role),
+		Status:         enum.UserStatus(query.Status),
 		IncludeDeleted: includeDeleted,
 	}
 

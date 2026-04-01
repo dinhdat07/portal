@@ -2,7 +2,7 @@ package middleware
 
 import (
 	"net/http"
-	"portal-system/internal/token"
+	"portal-system/internal/platform/token"
 	"strings"
 
 	"github.com/gin-gonic/gin"

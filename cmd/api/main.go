@@ -3,12 +3,12 @@ package main
 import (
 	"log"
 	"portal-system/internal/app"
-	"portal-system/internal/util"
+	"portal-system/internal/platform/logger"
 )
 
 // Run with: go run github.com/air-verse/air@latest
 func main() {
-	util.InitLogger()
+	logger.InitLogger()
 	application, err := app.New()
 	if err != nil {
 		log.Fatal(err)
