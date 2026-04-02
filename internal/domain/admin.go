@@ -30,7 +30,6 @@ type CreateUserInput struct {
 	Username  string
 	FirstName string
 	LastName  string
-	Password  string
 	DOB       *time.Time
 	Role      enum.UserRole
 }

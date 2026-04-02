@@ -10,7 +10,6 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
 )
 
@@ -92,11 +91,6 @@ func (svc *AdminService) CreateUser(ctx context.Context, meta *domain.AuditMeta,
 		return nil, ErrUsernameExists
 	}
 
-	hash, err := bcrypt.GenerateFromPassword([]byte(in.Password), bcrypt.DefaultCost)
-	if err != nil {
-		return nil, ErrInternalServer
-	}
-	hashStr := string(hash)
 	now := time.Now()
 
 	user := &models.User{
@@ -105,7 +99,6 @@ func (svc *AdminService) CreateUser(ctx context.Context, meta *domain.AuditMeta,
 		FirstName:       in.FirstName,
 		LastName:        in.LastName,
 		DOB:             in.DOB,
-		PasswordHash:    &hashStr,
 		Role:            in.Role,
 		Status:          enum.StatusActive,
 		EmailVerifiedAt: &now,

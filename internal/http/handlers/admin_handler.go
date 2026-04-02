@@ -132,7 +132,6 @@ func (h *AdminHandler) CreateUser(c *gin.Context) {
 		Username:  req.Username,
 		FirstName: req.FirstName,
 		LastName:  req.LastName,
-		Password:  req.Password,
 		Role:      req.Role,
 	}
 	if req.DOB != nil {
