@@ -325,7 +325,7 @@ paths:
               $ref: '#/components/schemas/AdminCreateUserRequest'
       responses:
         '201':
-          description: User created, verification email sent
+          description: User created
           content:
             application/json:
               schema:
@@ -394,7 +394,7 @@ paths:
           description: Conflict
 
   /admin/users/{userId}/delete:
-    put:
+    delete:
       tags: [Admin]
       summary: Soft delete user
       operationId: adminDeleteUser
@@ -602,6 +602,7 @@ components:
         - username
         - first_name
         - last_name
+        - password
         - dob
         - password
       properties:
@@ -618,6 +619,11 @@ components:
         last_name:
           type: string
           maxLength: 100
+        password:
+          type: string
+          format: password
+          minLength: 8
+          maxLength: 255
         dob:
           type: string
           format: date
@@ -750,6 +756,7 @@ components:
         - username
         - first_name
         - last_name
+        - password
         - dob
         - role
       properties:
@@ -766,6 +773,11 @@ components:
         last_name:
           type: string
           maxLength: 100
+        password:
+          type: string
+          format: password
+          minLength: 8
+          maxLength: 255
         dob:
           type: string
           format: date
