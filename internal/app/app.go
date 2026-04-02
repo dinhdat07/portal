@@ -6,6 +6,7 @@ import (
 	"portal-system/internal/domain/enum"
 	"portal-system/internal/http/handlers"
 	"portal-system/internal/models"
+	"portal-system/internal/platform/email"
 	"portal-system/internal/platform/token"
 	"portal-system/internal/repositories"
 	"portal-system/internal/services"
@@ -39,13 +40,21 @@ func New() (*App, error) {
 		return nil, err
 	}
 
+	// email service
+	smtpCfg, err := config.LoadSMTPConfig()
+	if err != nil {
+		return nil, err
+	}
+	emailService := email.NewSMTPEmailService(*smtpCfg)
+
 	// init
 	tokenManager := token.New(cfg.JWTSecret, cfg.JWTAccessTTL)
 	userRepo := repositories.NewUserRepository(db)
 	auditLogRepo := repositories.NewAuditLogRepository(db)
+	tokenRepo := repositories.NewUserTokenRepository(db)
 
 	auditLogService := services.NewAuditLogService(auditLogRepo)
-	authService := services.NewAuthService(db, userRepo, tokenManager, auditLogService)
+	authService := services.NewAuthService(db, userRepo, tokenRepo, tokenManager, auditLogService, emailService, cfg.FrontEndUrl)
 	userService := services.NewUserService(db, userRepo, auditLogService)
 	adminService := services.NewAdminService(db, userRepo, auditLogService)
 
@@ -73,8 +82,7 @@ func seedAdmin(db *gorm.DB, cfg *config.Config) error {
 	err := db.Where("email = ?", cfg.AdminEmail).First(&existing).Error
 	if err == nil {
 		return nil
-	}
-	if err != nil && err != gorm.ErrRecordNotFound {
+	} else if err != gorm.ErrRecordNotFound {
 		return err
 	}
 

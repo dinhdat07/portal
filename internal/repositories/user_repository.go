@@ -168,6 +168,18 @@ func (r *UserRepository) UpdateRole(ctx context.Context, id uuid.UUID, role enum
 		Update("role", role).Error
 }
 
+func (r *UserRepository) MarkEmailVerified(ctx context.Context, id uuid.UUID) error {
+	now := time.Now().UTC()
+
+	return r.db.WithContext(ctx).
+		Model(&models.User{}).
+		Where("id = ?", id).
+		Updates(map[string]interface{}{
+			"email_verified_at": &now,
+			"status":            enum.StatusActive,
+		}).Error
+}
+
 func (r *UserRepository) WithTx(tx *gorm.DB) *UserRepository {
 	return NewUserRepository(tx)
 }

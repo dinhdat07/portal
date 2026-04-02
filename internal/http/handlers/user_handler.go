@@ -93,7 +93,6 @@ func (h *UserHandler) ChangeMyPassword(c *gin.Context) {
 			})
 		case errors.Is(err, services.ErrPasswordConfirmationMismatch),
 			errors.Is(err, services.ErrNewPasswordMustBeDifferent),
-			errors.Is(err, services.ErrPasswordTooWeak),
 			errors.Is(err, services.ErrInvalidInput):
 			c.JSON(http.StatusBadRequest, gin.H{
 				"error": err.Error(),

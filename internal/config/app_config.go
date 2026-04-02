@@ -16,6 +16,8 @@ type Config struct {
 	Env           string
 	AdminEmail    string
 	AdminPassword string
+	ApiBaseUrl    string
+	FrontEndUrl   string
 }
 
 func Load() (*Config, error) {
@@ -35,5 +37,7 @@ func Load() (*Config, error) {
 		Env:           os.Getenv("ENV"),
 		AdminEmail:    os.Getenv("ADMIN_EMAIL"),
 		AdminPassword: os.Getenv("ADMIN_PASSWORD"),
+		ApiBaseUrl:    os.Getenv("API_BASE_URL"),
+		FrontEndUrl:   os.Getenv("FRONTEND_BASE_URL"),
 	}, nil
 }

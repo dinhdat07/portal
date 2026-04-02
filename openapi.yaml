@@ -48,27 +48,27 @@ paths:
           description: Email or username already exists / email is blacklisted
 
   /auth/verify-email:
-    get:
+    post:
       tags: [Auth]
       summary: Verify email by token
       operationId: verifyEmail
-      parameters:
-        - in: query
-          name: token
-          required: true
-          schema:
-            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/VerifyEmailRequest'
       responses:
         '200':
           description: Email verified successfully
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/AuthMessageResponse'
+                $ref: '#/components/schemas/VerifyEmailResponse'
         '400':
           description: Invalid or expired token
         '409':
-          description: Token already used or revoked
+          description: User is not qualified for verification (e.g. already verified, deleted)
 
   /auth/resend-verification:
     post:
@@ -96,6 +96,30 @@ paths:
       tags: [Auth]
       summary: Set password using verification or reset token
       operationId: setPassword
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SetPasswordRequest'
+      responses:
+        '200':
+          description: Password set successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthMessageResponse'
+        '400':
+          description: Invalid token or password
+        '409':
+          description: Token expired, revoked, or already used
+
+    
+  /auth/reset-password:
+    post:
+      tags: [Auth]
+      summary: Reset password when forget password using verification or reset token
+      operationId: resetPassword
       requestBody:
         required: true
         content:
@@ -557,6 +581,8 @@ components:
       enum:
         - REGISTER
         - VERIFY_EMAIL
+        - RESEND_VERIFICATION
+        - SET_PASSWORD
         - LOGIN
         - LOGOUT
         - UPDATE_PROFILE
@@ -577,6 +603,7 @@ components:
         - first_name
         - last_name
         - dob
+        - password
       properties:
         email:
           type: string
@@ -594,7 +621,16 @@ components:
         dob:
           type: string
           format: date
-
+        password:
+          type: string
+          format: password
+    VerifyEmailRequest:
+      type: object
+      required:
+        - token
+      properties:
+        token:
+          type: string
     ResendVerificationRequest:
       type: object
       required:

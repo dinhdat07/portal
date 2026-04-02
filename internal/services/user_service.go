@@ -7,6 +7,7 @@ import (
 	"portal-system/internal/domain/enum"
 	"portal-system/internal/models"
 	"portal-system/internal/repositories"
+	"strings"
 
 	"github.com/google/uuid"
 	"golang.org/x/crypto/bcrypt"
@@ -46,6 +47,11 @@ func (svc *UserService) ChangePassword(ctx context.Context, meta *domain.AuditMe
 			return ErrUnauthorized
 		}
 		return err
+	}
+
+	if strings.TrimSpace(newPassword) == "" ||
+		strings.TrimSpace(confirm) == "" {
+		return ErrInvalidInput
 	}
 
 	//check nil before compare to avoid panic

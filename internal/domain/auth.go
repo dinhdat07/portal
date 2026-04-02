@@ -9,3 +9,9 @@ type LoginResult struct {
 	ExpiresIn   int
 	User        *models.User
 }
+
+type SetPasswordInput struct {
+	Token           string
+	Password        string
+	ConfirmPassword string
+}

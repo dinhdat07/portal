@@ -13,6 +13,14 @@ services:
       - "5433:5432"
     volumes:
       - postgres_portal_data:/var/lib/postgresql/data
+  
+  mailhog:
+    image: mailhog/mailhog:latest
+    container_name: portal_mailhog
+    restart: unless-stopped
+    ports:
+      - "1025:1025" 
+      - "8025:8025" # Web UI
 
 volumes:
   postgres_portal_data:

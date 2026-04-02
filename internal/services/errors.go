@@ -28,7 +28,7 @@ var (
 	ErrIncorrectPassword            = errors.New("current password incorrect")
 	ErrPasswordConfirmationMismatch = errors.New("password confirmation does not match")
 	ErrNewPasswordMustBeDifferent   = errors.New("new password must be different from current password")
-	ErrPasswordTooWeak              = errors.New("password is too weak")
+	ErrPasswordAlreadySet           = errors.New("password already set")
 
 	// Validation
 	ErrInvalidInput     = errors.New("invalid input")
@@ -36,6 +36,9 @@ var (
 	ErrInvalidTimeRange = errors.New("invalid time range for audit log")
 
 	// System
-	ErrInternalServer = errors.New("internal server error")
-	ErrAuditLogger    = errors.New("cannot log this action")
+	ErrInternalServer         = errors.New("internal server error")
+	ErrInvalidToken           = errors.New("token is not valid")
+	ErrAuditLogger            = errors.New("cannot log this action")
+	ErrSendVerificationEmail  = errors.New("cannot send verification email")
+	ErrSendResetPasswordEmail = errors.New("cannot send reset password email")
 )

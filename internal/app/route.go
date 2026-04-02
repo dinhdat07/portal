@@ -18,6 +18,11 @@ func setupRouter(authHandler *handlers.AuthHandler, userHandler *handlers.UserHa
 	{
 		auth.POST("/register", authHandler.RegisterUser)
 		auth.POST("/login", authHandler.LogIn)
+		auth.POST("/verify-email", authHandler.VerifyEmail)
+		auth.POST("/resend-verification", authHandler.ResendVerification)
+		auth.POST("/set-password", authHandler.SetPassword)
+		auth.POST("/reset-password", authHandler.ResetPassword)
+		auth.POST("/forgot-password", authHandler.ForgotPassword)
 	}
 
 	protected := api.Group("/")

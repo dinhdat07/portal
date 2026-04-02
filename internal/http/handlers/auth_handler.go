@@ -3,6 +3,8 @@ package handlers
 import (
 	"errors"
 	"net/http"
+	"portal-system/internal/domain"
+	"portal-system/internal/domain/enum"
 	"portal-system/internal/dto"
 	"portal-system/internal/services"
 
@@ -102,5 +104,203 @@ func (h *AuthHandler) LogIn(c *gin.Context) {
 		TokenType:   "Bearer",
 		ExpiresIn:   result.ExpiresIn,
 		User:        dto.ToUserResponse(result.User),
+	})
+}
+
+func (h *AuthHandler) VerifyEmail(c *gin.Context) {
+	req := &dto.VerifyEmailRequest{}
+	if err := c.ShouldBindJSON(req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "invalid input",
+		})
+		return
+	}
+
+	meta := getAuditMetaFromGin(c)
+	err := h.service.VerifyEmail(c.Request.Context(), meta, req.Token, enum.TokenTypeEmailVerification)
+
+	if err != nil {
+		switch {
+		case errors.Is(err, services.ErrInvalidToken):
+			c.JSON(http.StatusBadRequest, gin.H{
+				"message": "Invalid or expired token",
+			})
+		case errors.Is(err, services.ErrUserAlreadyDeleted), errors.Is(err, services.ErrUserNotFound):
+			c.JSON(http.StatusConflict, gin.H{
+				"message": "User already deleted",
+			})
+		default:
+			c.JSON(http.StatusInternalServerError, gin.H{
+				"message": "Internal server error",
+			})
+		}
+		return
+	}
+
+	c.JSON(http.StatusCreated, dto.AuthMessageResponse{
+		Message: "email verification successful",
+	})
+
+}
+
+func (h *AuthHandler) ResendVerification(c *gin.Context) {
+	req := &dto.ResendVerificationRequest{}
+	if err := c.ShouldBindJSON(req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "invalid input",
+		})
+		return
+	}
+
+	meta := getAuditMetaFromGin(c)
+
+	if err := h.service.ResendVerification(c.Request.Context(), meta, req.Email, enum.TokenTypeEmailVerification); err != nil {
+		switch {
+		case errors.Is(err, services.ErrInvalidToken):
+			c.JSON(http.StatusBadRequest, gin.H{
+				"message": "Invalid or expired token",
+			})
+		case errors.Is(err, services.ErrUserAlreadyDeleted), errors.Is(err, services.ErrUserNotFound):
+			c.JSON(http.StatusConflict, gin.H{
+				"message": "User already deleted",
+			})
+		default:
+			c.JSON(http.StatusInternalServerError, gin.H{
+				"message": "Internal server error",
+			})
+		}
+		return
+	}
+
+	c.JSON(http.StatusCreated, dto.AuthMessageResponse{
+		Message: "resend verification successfully",
+	})
+
+}
+
+func (h *AuthHandler) SetPassword(c *gin.Context) {
+	req := &dto.SetPasswordRequest{}
+	if err := c.ShouldBindJSON(req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "invalid input",
+		})
+		return
+	}
+
+	meta := getAuditMetaFromGin(c)
+
+	input := &domain.SetPasswordInput{
+		Token:           req.Token,
+		Password:        req.Password,
+		ConfirmPassword: req.ConfirmPassword,
+	}
+	err := h.service.SetPassword(c.Request.Context(), meta, input, enum.TokenTypePasswordSet)
+
+	if err != nil {
+		switch {
+		case errors.Is(err, services.ErrInvalidToken), errors.Is(err, services.ErrInvalidInput):
+			c.JSON(http.StatusBadRequest, gin.H{
+				"message": "invalid or expired token",
+			})
+		case errors.Is(err, services.ErrUserAlreadyDeleted), errors.Is(err, services.ErrUserNotFound):
+			c.JSON(http.StatusConflict, gin.H{
+				"message": "user not found or already deleted",
+			})
+
+		case errors.Is(err, services.ErrPasswordConfirmationMismatch),
+			errors.Is(err, services.ErrPasswordAlreadySet):
+			c.JSON(http.StatusBadRequest, gin.H{
+				"error": err.Error(),
+			})
+		default:
+			c.JSON(http.StatusInternalServerError, gin.H{
+				"error": "cannot set password",
+			})
+		}
+		return
+	}
+
+	c.JSON(http.StatusCreated, dto.AuthMessageResponse{
+		Message: "email verification and password set successful",
+	})
+
+}
+
+func (h *AuthHandler) ResetPassword(c *gin.Context) {
+	req := &dto.SetPasswordRequest{}
+	if err := c.ShouldBindJSON(req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "invalid input",
+		})
+		return
+	}
+
+	meta := getAuditMetaFromGin(c)
+
+	input := &domain.SetPasswordInput{
+		Token:           req.Token,
+		Password:        req.Password,
+		ConfirmPassword: req.ConfirmPassword,
+	}
+
+	err := h.service.ResetPassword(
+		c.Request.Context(),
+		meta,
+		input,
+		enum.TokenTypePasswordReset,
+	)
+	if err != nil {
+		switch {
+		case errors.Is(err, services.ErrInvalidToken),
+			errors.Is(err, services.ErrInvalidInput):
+			c.JSON(http.StatusBadRequest, gin.H{
+				"message": "invalid or expired token",
+			})
+
+		case errors.Is(err, services.ErrUserAlreadyDeleted),
+			errors.Is(err, services.ErrUserNotFound):
+			c.JSON(http.StatusConflict, gin.H{
+				"message": "user not found or already deleted",
+			})
+
+		case errors.Is(err, services.ErrPasswordConfirmationMismatch):
+			c.JSON(http.StatusBadRequest, gin.H{
+				"error": err.Error(),
+			})
+
+		default:
+			c.JSON(http.StatusInternalServerError, gin.H{
+				"error": "cannot reset password",
+			})
+		}
+		return
+	}
+
+	c.JSON(http.StatusOK, dto.AuthMessageResponse{
+		Message: "password reset successful",
+	})
+}
+
+func (h *AuthHandler) ForgotPassword(c *gin.Context) {
+	req := &dto.ForgotPasswordRequest{}
+	if err := c.ShouldBindJSON(req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "invalid input",
+		})
+		return
+	}
+
+	meta := getAuditMetaFromGin(c)
+
+	err := h.service.ForgotPassword(c.Request.Context(), meta, req.Email)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": "cannot process forgot password",
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, dto.AuthMessageResponse{
+		Message: "If the account exists, a password reset email has been sent",
 	})
 }
