@@ -248,6 +248,10 @@ func (svc *AdminService) UpdateRole(ctx context.Context, meta *domain.AuditMeta,
 		return nil, err
 	}
 
+	if actor.ID != user.ID && user.Role == enum.RoleAdmin {
+		return nil, ErrForbidden
+	}
+
 	if user.Role == role {
 		return user, nil
 	}

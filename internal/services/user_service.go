@@ -99,6 +99,10 @@ func (svc *UserService) UpdateProfile(ctx context.Context, meta *domain.AuditMet
 		return nil, err
 	}
 
+	if actor.ID != user.ID && user.Role == enum.RoleAdmin {
+		return nil, ErrForbidden
+	}
+
 	changes := map[string]any{}
 
 	// update allowed fields
