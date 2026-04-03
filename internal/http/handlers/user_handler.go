@@ -106,7 +106,7 @@ func (h *UserHandler) ChangeMyPassword(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, dto.AuthMessageResponse{Message: "password changed successfully"})
+	c.JSON(http.StatusOK, dto.AuthMessageResponse{Message: "Password changed successfully"})
 
 }
 

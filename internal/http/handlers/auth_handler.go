@@ -48,7 +48,7 @@ func (h *AuthHandler) RegisterUser(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusCreated, dto.AuthMessageResponse{
-		Message: "registration successful",
+		Message: "Registration successful",
 	})
 
 }
@@ -123,22 +123,22 @@ func (h *AuthHandler) VerifyEmail(c *gin.Context) {
 		switch {
 		case errors.Is(err, services.ErrInvalidToken):
 			c.JSON(http.StatusBadRequest, gin.H{
-				"message": "Invalid or expired token",
+				"message": "invalid or expired token",
 			})
 		case errors.Is(err, services.ErrUserAlreadyDeleted), errors.Is(err, services.ErrUserNotFound):
 			c.JSON(http.StatusConflict, gin.H{
-				"message": "User already deleted",
+				"message": "user already deleted",
 			})
 		default:
 			c.JSON(http.StatusInternalServerError, gin.H{
-				"message": "Internal server error",
+				"message": "internal server error",
 			})
 		}
 		return
 	}
 
 	c.JSON(http.StatusCreated, dto.AuthMessageResponse{
-		Message: "email verification successful",
+		Message: "Email verification successful",
 	})
 
 }
@@ -158,22 +158,22 @@ func (h *AuthHandler) ResendVerification(c *gin.Context) {
 		switch {
 		case errors.Is(err, services.ErrInvalidToken):
 			c.JSON(http.StatusBadRequest, gin.H{
-				"message": "Invalid or expired token",
+				"message": "invalid or expired token",
 			})
 		case errors.Is(err, services.ErrUserAlreadyDeleted), errors.Is(err, services.ErrUserNotFound):
 			c.JSON(http.StatusConflict, gin.H{
-				"message": "User already deleted",
+				"message": "user already deleted",
 			})
 		default:
 			c.JSON(http.StatusInternalServerError, gin.H{
-				"message": "Internal server error",
+				"message": "internal server error",
 			})
 		}
 		return
 	}
 
 	c.JSON(http.StatusCreated, dto.AuthMessageResponse{
-		Message: "resend verification successfully",
+		Message: "Resend verification successfully",
 	})
 
 }
@@ -221,7 +221,7 @@ func (h *AuthHandler) SetPassword(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusCreated, dto.AuthMessageResponse{
-		Message: "email verification and password set successful",
+		Message: "Email verification and password set successful",
 	})
 
 }
@@ -277,7 +277,7 @@ func (h *AuthHandler) ResetPassword(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, dto.AuthMessageResponse{
-		Message: "password reset successful",
+		Message: "Password reset successful",
 	})
 }
 

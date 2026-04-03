@@ -117,20 +117,24 @@ func (s *AuthService) LogIn(ctx context.Context, meta *domain.AuditMeta, identif
 	} else {
 		user, err = s.userRepo.FindByUsername(ctx, identifier)
 	}
-	if err != nil {
+	if err != nil || user == nil {
 		return nil, ErrInvalidCredentials
+	}
+
+	if user.PasswordHash == nil || *user.PasswordHash == "" {
+		return nil, ErrAccountNotVerified
 	}
 
 	if err := bcrypt.CompareHashAndPassword([]byte(*user.PasswordHash), []byte(password)); err != nil {
 		return nil, ErrInvalidCredentials
 	}
 
-	if user.DeletedAt.Valid {
-		return nil, ErrAccountDeleted
-	}
-
 	if user.EmailVerifiedAt == nil {
 		return nil, ErrAccountNotVerified
+	}
+
+	if user.DeletedAt.Valid {
+		return nil, ErrAccountDeleted
 	}
 
 	token, err := s.tokenManager.Generate(user.ID, user.Role, user.Email, user.Username)
