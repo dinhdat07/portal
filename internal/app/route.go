@@ -9,15 +9,16 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func setupRouter(authHandler *handlers.AuthHandler, userHandler *handlers.UserHandler, adminHandler *handlers.AdminHandler, tokenManager *token.Manager) *gin.Engine {
+func setupRouter(authHandler *handlers.AuthHandler, userHandler *handlers.UserHandler, adminHandler *handlers.AdminHandler, tokenManager *token.Manager, authCookieName string) *gin.Engine {
 	r := gin.Default()
 	api := r.Group("/api/v1")
-	authMiddleware := middleware.JWTAuth(tokenManager)
+	authMiddleware := middleware.JWTAuth(tokenManager, authCookieName)
 
 	auth := api.Group("/auth")
 	{
 		auth.POST("/register", authHandler.RegisterUser)
 		auth.POST("/login", authHandler.LogIn)
+		auth.POST("/logout", authHandler.LogOut)
 		auth.POST("/verify-email", authHandler.VerifyEmail)
 		auth.POST("/resend-verification", authHandler.ResendVerification)
 		auth.POST("/set-password", authHandler.SetPassword)

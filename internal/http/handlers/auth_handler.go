@@ -3,20 +3,60 @@ package handlers
 import (
 	"errors"
 	"net/http"
+	"portal-system/internal/config"
 	"portal-system/internal/domain"
 	"portal-system/internal/domain/enum"
 	"portal-system/internal/dto"
 	"portal-system/internal/services"
+	"strings"
 
 	"github.com/gin-gonic/gin"
 )
 
 type AuthHandler struct {
 	service *services.AuthService
+	config  *config.Config
 }
 
-func NewAuthHandler(service *services.AuthService) *AuthHandler {
-	return &AuthHandler{service: service}
+func NewAuthHandler(service *services.AuthService, cfg *config.Config) *AuthHandler {
+	return &AuthHandler{service: service, config: cfg}
+}
+
+func parseSameSite(value string) http.SameSite {
+	switch strings.ToLower(strings.TrimSpace(value)) {
+	case "strict":
+		return http.SameSiteStrictMode
+	case "none":
+		return http.SameSiteNoneMode
+	default:
+		return http.SameSiteLaxMode
+	}
+}
+
+func (h *AuthHandler) setAuthCookie(c *gin.Context, token string, maxAge int) {
+	c.SetSameSite(parseSameSite(h.config.AuthCookieSameSite))
+	c.SetCookie(
+		h.config.AuthCookieName,
+		token,
+		maxAge,
+		"/",
+		h.config.AuthCookieDomain,
+		h.config.AuthCookieSecure,
+		true,
+	)
+}
+
+func (h *AuthHandler) clearAuthCookie(c *gin.Context) {
+	c.SetSameSite(parseSameSite(h.config.AuthCookieSameSite))
+	c.SetCookie(
+		h.config.AuthCookieName,
+		"",
+		-1,
+		"/",
+		h.config.AuthCookieDomain,
+		h.config.AuthCookieSecure,
+		true,
+	)
 }
 
 func (h *AuthHandler) RegisterUser(c *gin.Context) {
@@ -99,12 +139,17 @@ func (h *AuthHandler) LogIn(c *gin.Context) {
 		}
 	}
 
+	h.setAuthCookie(c, result.AccessToken, result.ExpiresIn)
+
 	c.JSON(http.StatusOK, dto.LoginResponse{
-		AccessToken: result.AccessToken,
-		TokenType:   "Bearer",
-		ExpiresIn:   result.ExpiresIn,
-		User:        dto.ToUserResponse(result.User),
+		ExpiresIn: result.ExpiresIn,
+		User:      dto.ToUserResponse(result.User),
 	})
+}
+
+func (h *AuthHandler) LogOut(c *gin.Context) {
+	h.clearAuthCookie(c)
+	c.JSON(http.StatusOK, dto.AuthMessageResponse{Message: "Logged out"})
 }
 
 func (h *AuthHandler) VerifyEmail(c *gin.Context) {

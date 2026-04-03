@@ -8,23 +8,31 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func JWTAuth(manager *token.Manager) gin.HandlerFunc {
+func JWTAuth(manager *token.Manager, authCookieName string) gin.HandlerFunc {
 	return func(c *gin.Context) {
+		tokenString := ""
 		auth := c.GetHeader("Authorization")
 
-		if auth == "" {
+		if auth != "" {
+			parts := strings.Split(auth, " ")
+			if len(parts) == 2 && parts[0] == "Bearer" {
+				tokenString = parts[1]
+			}
+		}
+
+		if tokenString == "" {
+			cookieToken, err := c.Cookie(authCookieName)
+			if err == nil {
+				tokenString = cookieToken
+			}
+		}
+
+		if tokenString == "" {
 			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "missing token"})
 			return
 		}
 
-		parts := strings.Split(auth, " ")
-		if len(parts) != 2 || parts[0] != "Bearer" {
-			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "invalid token"})
-			return
-		}
-
 		// use manager parser to parse tokenstring for authorize
-		tokenString := parts[1]
 		claims, err := manager.Parse(tokenString)
 		if err != nil {
 			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{

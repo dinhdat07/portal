@@ -58,10 +58,10 @@ func New() (*App, error) {
 	userService := services.NewUserService(db, userRepo, auditLogService)
 	adminService := services.NewAdminService(db, userRepo, tokenRepo, auditLogService, emailService, cfg.FrontEndUrl)
 
-	authHandler := handlers.NewAuthHandler(authService)
+	authHandler := handlers.NewAuthHandler(authService, cfg)
 	userHandler := handlers.NewUserHandler(userService)
 	adminHandler := handlers.NewAdminHandler(adminService, userService)
-	router := setupRouter(authHandler, userHandler, adminHandler, tokenManager)
+	router := setupRouter(authHandler, userHandler, adminHandler, tokenManager, cfg.AuthCookieName)
 
 	if cfg.Env == "development" {
 		if err := seedAdmin(db, cfg); err != nil {
