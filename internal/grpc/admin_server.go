@@ -5,6 +5,7 @@ import (
 	adminv1 "portal-system/gen/go/admin/v1"
 	commonv1 "portal-system/gen/go/common/v1"
 	"portal-system/internal/domain"
+	"portal-system/internal/domain/constants"
 	mappers "portal-system/internal/grpc/mapper"
 	"portal-system/internal/services"
 	"time"
@@ -12,6 +13,7 @@ import (
 	"github.com/google/uuid"
 	"google.golang.org/grpc/codes"
 	gstatus "google.golang.org/grpc/status"
+	"google.golang.org/protobuf/types/known/emptypb"
 )
 
 const (
@@ -23,14 +25,23 @@ const (
 
 type AdminServer struct {
 	adminv1.UnimplementedAdminServiceServer
-	adminService services.AdminService
-	userService  services.UserService
+	adminService      services.AdminService
+	userService       services.UserService
+	roleService       services.RoleService
+	permissionService services.PermissionService
 }
 
-func NewAdminServer(adminService services.AdminService, userService services.UserService) *AdminServer {
+func NewAdminServer(
+	adminService services.AdminService,
+	userService services.UserService,
+	roleService services.RoleService,
+	permissionService services.PermissionService,
+) *AdminServer {
 	return &AdminServer{
-		adminService: adminService,
-		userService:  userService,
+		adminService:      adminService,
+		userService:       userService,
+		roleService:       roleService,
+		permissionService: permissionService,
 	}
 }
 
@@ -80,11 +91,8 @@ func (s *AdminServer) ListUsers(ctx context.Context, req *adminv1.ListUsersReque
 		}
 		filter.Dob = &dob
 	}
-	if req.Role != nil {
-		roleCode, ok := mappers.RoleCodeFromPB(req.GetRole())
-		if !ok {
-			return nil, gstatus.Error(codes.InvalidArgument, "invalid role code")
-		}
+	if req.RoleCode != nil {
+		roleCode := constants.RoleCode(req.GetRoleCode())
 		filter.RoleCode = &roleCode
 	}
 	if req.Status != nil {
@@ -116,12 +124,6 @@ func (s *AdminServer) CreateUser(ctx context.Context, req *adminv1.CreateUserReq
 
 	meta := getAuditFromCtx(ctx)
 
-	roleCode, ok := mappers.RoleCodeFromPB(req.GetRole())
-	if !ok {
-
-		return nil, gstatus.Error(codes.InvalidArgument, "invalid role code")
-	}
-
 	dob, err := time.Parse(dateLayout, req.GetDob())
 	if err != nil {
 		return nil, gstatus.Error(codes.InvalidArgument, "invalid dob format, expected YYYY-MM-DD")
@@ -132,7 +134,7 @@ func (s *AdminServer) CreateUser(ctx context.Context, req *adminv1.CreateUserReq
 		Username:  req.GetUsername(),
 		FirstName: req.GetFirstName(),
 		LastName:  req.GetLastName(),
-		RoleCode:  roleCode,
+		RoleCode:  constants.RoleCode(req.GetRoleCode()),
 		DOB:       &dob,
 	}
 
@@ -277,13 +279,8 @@ func (s *AdminServer) UpdateUserRole(ctx context.Context, req *adminv1.UpdateUse
 		return nil, err
 	}
 
-	roleCode, ok := mappers.RoleCodeFromPB(req.GetRole())
-	if !ok {
-		return nil, gstatus.Error(codes.InvalidArgument, "invalid role code")
-	}
-
 	meta := getAuditFromCtx(ctx)
-	user, err := s.adminService.UpdateRole(ctx, meta, actor, userID, roleCode)
+	user, err := s.adminService.UpdateRole(ctx, meta, actor, userID, constants.RoleCode(req.GetRoleCode()))
 	if err != nil {
 		return nil, mappers.MapError(err)
 	}
@@ -291,15 +288,163 @@ func (s *AdminServer) UpdateUserRole(ctx context.Context, req *adminv1.UpdateUse
 	return mappers.UserModelToPB(user), nil
 }
 
-func parseUserID(id string) (uuid.UUID, error) {
-	if id == "" {
-		return uuid.Nil, gstatus.Error(codes.InvalidArgument, "user_id is required")
-	}
-
-	userID, err := uuid.Parse(id)
+func (s *AdminServer) ListRoles(ctx context.Context, _ *emptypb.Empty) (*adminv1.ListRolesResponse, error) {
+	_, err := getActorFromCtx(ctx)
 	if err != nil {
-		return uuid.Nil, gstatus.Error(codes.InvalidArgument, "invalid user_id")
+		return nil, err
 	}
 
-	return userID, nil
+	roles, err := s.roleService.ListRoles(ctx)
+	if err != nil {
+		return nil, mappers.MapError(err)
+	}
+
+	return mappers.RolesToPB(roles), nil
+}
+
+func (s *AdminServer) CreateRole(ctx context.Context, req *adminv1.CreateRoleRequest) (*commonv1.Role, error) {
+	if req == nil {
+		return nil, gstatus.Error(codes.InvalidArgument, "request is required")
+	}
+
+	actor, err := getActorFromCtx(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	meta := getAuditFromCtx(ctx)
+	role, err := s.roleService.CreateRole(ctx, meta, actor, domain.CreateRoleInput{
+		Code: constants.RoleCode(req.GetCode()),
+		Name: req.GetName(),
+	})
+	if err != nil {
+		return nil, mappers.MapError(err)
+	}
+
+	return mappers.RoleModelToPB(role), nil
+}
+
+func (s *AdminServer) DeleteRole(ctx context.Context, req *adminv1.DeleteRoleRequest) (*commonv1.MessageResponse, error) {
+	if req == nil {
+		return nil, gstatus.Error(codes.InvalidArgument, "request is required")
+	}
+
+	actor, err := getActorFromCtx(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	roleID, err := parseRoleID(req.GetRoleId())
+	if err != nil {
+		return nil, err
+	}
+
+	var replacementRoleID *uuid.UUID
+	if req.ReplacementRoleId != nil {
+		replacementID, err := parseRoleID(req.GetReplacementRoleId())
+		if err != nil {
+			return nil, gstatus.Error(codes.InvalidArgument, "invalid replacement_role_id")
+		}
+		replacementRoleID = &replacementID
+	}
+
+	meta := getAuditFromCtx(ctx)
+	if err := s.roleService.DeleteRole(ctx, meta, actor, roleID, replacementRoleID); err != nil {
+		return nil, mappers.MapError(err)
+	}
+
+	return &commonv1.MessageResponse{Message: "role deleted successfully"}, nil
+}
+
+func (s *AdminServer) AssignPermissionToRole(ctx context.Context, req *adminv1.AssignPermissionToRoleRequest) (*commonv1.MessageResponse, error) {
+	if req == nil {
+		return nil, gstatus.Error(codes.InvalidArgument, "request is required")
+	}
+
+	actor, err := getActorFromCtx(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	roleID, err := parseRoleID(req.GetRoleId())
+	if err != nil {
+		return nil, err
+	}
+	permissionID, err := parsePermissionID(req.GetPermissionId())
+	if err != nil {
+		return nil, err
+	}
+
+	meta := getAuditFromCtx(ctx)
+	if err := s.roleService.AssignPermission(ctx, meta, actor, roleID, permissionID); err != nil {
+		return nil, mappers.MapError(err)
+	}
+
+	return &commonv1.MessageResponse{Message: "permission assigned successfully"}, nil
+}
+
+func (s *AdminServer) RemovePermissionFromRole(ctx context.Context, req *adminv1.RemovePermissionFromRoleRequest) (*commonv1.MessageResponse, error) {
+	if req == nil {
+		return nil, gstatus.Error(codes.InvalidArgument, "request is required")
+	}
+
+	actor, err := getActorFromCtx(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	roleID, err := parseRoleID(req.GetRoleId())
+	if err != nil {
+		return nil, err
+	}
+	permissionID, err := parsePermissionID(req.GetPermissionId())
+	if err != nil {
+		return nil, err
+	}
+
+	meta := getAuditFromCtx(ctx)
+	if err := s.roleService.RemovePermission(ctx, meta, actor, roleID, permissionID); err != nil {
+		return nil, mappers.MapError(err)
+	}
+
+	return &commonv1.MessageResponse{Message: "permission removed successfully"}, nil
+}
+
+func (s *AdminServer) ListPermissions(ctx context.Context, _ *emptypb.Empty) (*adminv1.ListPermissionsResponse, error) {
+	_, err := getActorFromCtx(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	perms, err := s.permissionService.ListPermission(ctx)
+	if err != nil {
+		return nil, mappers.MapError(err)
+	}
+
+	return mappers.PermissionsToPB(perms), nil
+}
+
+func parseUserID(id string) (uuid.UUID, error) {
+	return parseUUIDField(id, "user_id")
+}
+
+func parseRoleID(id string) (uuid.UUID, error) {
+	return parseUUIDField(id, "role_id")
+}
+
+func parsePermissionID(id string) (uuid.UUID, error) {
+	return parseUUIDField(id, "permission_id")
+}
+
+func parseUUIDField(id string, field string) (uuid.UUID, error) {
+	if id == "" {
+		return uuid.Nil, gstatus.Error(codes.InvalidArgument, field+" is required")
+	}
+
+	parsedID, err := uuid.Parse(id)
+	if err != nil {
+		return uuid.Nil, gstatus.Error(codes.InvalidArgument, "invalid "+field)
+	}
+
+	return parsedID, nil
 }

@@ -66,12 +66,18 @@ func buildGRPCMethodPermissions() map[string]constants.PermissionCode {
 		userv1.UserService_ChangeMyPassword_FullMethodName: constants.PermProfileChangePassword,
 
 		// admin user management
-		adminv1.AdminService_ListUsers_FullMethodName:      constants.PermUserList,
-		adminv1.AdminService_CreateUser_FullMethodName:     constants.PermUserCreate,
-		adminv1.AdminService_GetUserDetail_FullMethodName:  constants.PermUserReadDetail,
-		adminv1.AdminService_UpdateUser_FullMethodName:     constants.PermUserUpdate,
-		adminv1.AdminService_DeleteUser_FullMethodName:     constants.PermUserDelete,
-		adminv1.AdminService_RestoreUser_FullMethodName:    constants.PermUserRestore,
-		adminv1.AdminService_UpdateUserRole_FullMethodName: constants.PermUserRoleUpdate,
+		adminv1.AdminService_ListUsers_FullMethodName:                constants.PermUserList,
+		adminv1.AdminService_CreateUser_FullMethodName:               constants.PermUserCreate,
+		adminv1.AdminService_GetUserDetail_FullMethodName:            constants.PermUserReadDetail,
+		adminv1.AdminService_UpdateUser_FullMethodName:               constants.PermUserUpdate,
+		adminv1.AdminService_DeleteUser_FullMethodName:               constants.PermUserDelete,
+		adminv1.AdminService_RestoreUser_FullMethodName:              constants.PermUserRestore,
+		adminv1.AdminService_UpdateUserRole_FullMethodName:           constants.PermUserRoleUpdate,
+		adminv1.AdminService_ListRoles_FullMethodName:                constants.PermRoleList,
+		adminv1.AdminService_CreateRole_FullMethodName:               constants.PermRoleCreate,
+		adminv1.AdminService_DeleteRole_FullMethodName:               constants.PermRoleDelete,
+		adminv1.AdminService_AssignPermissionToRole_FullMethodName:   constants.PermRoleAssignPermission,
+		adminv1.AdminService_RemovePermissionFromRole_FullMethodName: constants.PermRoleRemovePermission,
+		adminv1.AdminService_ListPermissions_FullMethodName:          constants.PermPermissionList,
 	}
 }

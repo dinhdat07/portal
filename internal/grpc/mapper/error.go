@@ -26,7 +26,8 @@ func MapError(err error) error {
 		errors.Is(err, services.ErrIncorrectPassword),
 		errors.Is(err, services.ErrPasswordConfirmationMismatch),
 		errors.Is(err, services.ErrNewPasswordMustBeDifferent),
-		errors.Is(err, services.ErrPasswordAlreadySet):
+		errors.Is(err, services.ErrPasswordAlreadySet),
+		errors.Is(err, services.ErrInvalidReplacementRole):
 		return gstatus.Error(codes.InvalidArgument, err.Error())
 
 	case errors.Is(err, services.ErrUnauthorized),
@@ -40,14 +41,21 @@ func MapError(err error) error {
 	case errors.Is(err, services.ErrUserNotFound):
 		return gstatus.Error(codes.NotFound, err.Error())
 
+	case errors.Is(err, services.ErrRoleNotFound),
+		errors.Is(err, services.ErrPermissionNotFound):
+		return gstatus.Error(codes.NotFound, err.Error())
+
 	case errors.Is(err, services.ErrEmailExists),
-		errors.Is(err, services.ErrUsernameExists):
+		errors.Is(err, services.ErrUsernameExists),
+		errors.Is(err, services.ErrRoleCodeExists):
 		return gstatus.Error(codes.AlreadyExists, err.Error())
 
 	case errors.Is(err, services.ErrAccountNotVerified),
 		errors.Is(err, services.ErrAccountDeleted),
 		errors.Is(err, services.ErrUserAlreadyDeleted),
-		errors.Is(err, services.ErrUserNotDeleted):
+		errors.Is(err, services.ErrUserNotDeleted),
+		errors.Is(err, services.ErrRoleInUse),
+		errors.Is(err, services.ErrCannotModifySystemRole):
 		return gstatus.Error(codes.FailedPrecondition, err.Error())
 
 	default:

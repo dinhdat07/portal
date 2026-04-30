@@ -10,10 +10,12 @@ import (
 
 type Services struct {
 	// services
-	AuditLog services.AuditLogger
-	Auth     services.AuthService
-	User     services.UserService
-	Admin    services.AdminService
+	AuditLog   services.AuditLogger
+	Auth       services.AuthService
+	User       services.UserService
+	Admin      services.AdminService
+	Role       services.RoleService
+	Permission services.PermissionService
 
 	// auth layer
 	Authenticator *auth.Authenticator
@@ -65,6 +67,16 @@ func newServices(
 		FrontendURL:  cfg.FrontEndUrl,
 	})
 
+	roleService := services.NewRoleService(services.RoleServiceDeps{
+		RoleRepo:       repos.RoleRepo,
+		PermissionRepo: repos.PermissionRepo,
+		UserRepo:       repos.UserRepo,
+		TxManager:      repos.TxManager,
+		AuditLogger:    auditLogService,
+	})
+
+	permissionService := services.NewPermissionService(repos.PermissionRepo)
+
 	// auth layer
 	authenticator := auth.NewAuthenticator(
 		infra.TokenManager,
@@ -76,10 +88,12 @@ func newServices(
 	authorizer := auth.NewAuthorizer()
 
 	return &Services{
-		AuditLog: auditLogService,
-		Auth:     authService,
-		User:     userService,
-		Admin:    adminService,
+		AuditLog:   auditLogService,
+		Auth:       authService,
+		User:       userService,
+		Admin:      adminService,
+		Role:       roleService,
+		Permission: permissionService,
 
 		Authenticator: authenticator,
 		Authorizer:    authorizer,

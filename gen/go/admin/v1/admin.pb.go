@@ -11,6 +11,7 @@ import (
 	_ "google.golang.org/genproto/googleapis/api/annotations"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
+	emptypb "google.golang.org/protobuf/types/known/emptypb"
 	v1 "portal-system/gen/go/common/v1"
 	reflect "reflect"
 	sync "sync"
@@ -32,7 +33,7 @@ type ListUsersRequest struct {
 	Email          *string                `protobuf:"bytes,4,opt,name=email,proto3,oneof" json:"email,omitempty"`
 	FullName       *string                `protobuf:"bytes,5,opt,name=full_name,json=fullName,proto3,oneof" json:"full_name,omitempty"`
 	Dob            *string                `protobuf:"bytes,6,opt,name=dob,proto3,oneof" json:"dob,omitempty"`
-	Role           *v1.RoleCode           `protobuf:"varint,7,opt,name=role,proto3,enum=portal.common.v1.RoleCode,oneof" json:"role,omitempty"`
+	RoleCode       *string                `protobuf:"bytes,7,opt,name=role_code,json=roleCode,proto3,oneof" json:"role_code,omitempty"`
 	Status         *v1.UserStatus         `protobuf:"varint,8,opt,name=status,proto3,enum=portal.common.v1.UserStatus,oneof" json:"status,omitempty"`
 	IncludeDeleted bool                   `protobuf:"varint,9,opt,name=include_deleted,json=includeDeleted,proto3" json:"include_deleted,omitempty"`
 	unknownFields  protoimpl.UnknownFields
@@ -111,11 +112,11 @@ func (x *ListUsersRequest) GetDob() string {
 	return ""
 }
 
-func (x *ListUsersRequest) GetRole() v1.RoleCode {
-	if x != nil && x.Role != nil {
-		return *x.Role
+func (x *ListUsersRequest) GetRoleCode() string {
+	if x != nil && x.RoleCode != nil {
+		return *x.RoleCode
 	}
-	return v1.RoleCode(0)
+	return ""
 }
 
 func (x *ListUsersRequest) GetStatus() v1.UserStatus {
@@ -191,7 +192,7 @@ type CreateUserRequest struct {
 	FirstName     string                 `protobuf:"bytes,3,opt,name=first_name,json=firstName,proto3" json:"first_name,omitempty"`
 	LastName      string                 `protobuf:"bytes,4,opt,name=last_name,json=lastName,proto3" json:"last_name,omitempty"`
 	Dob           string                 `protobuf:"bytes,5,opt,name=dob,proto3" json:"dob,omitempty"`
-	Role          v1.RoleCode            `protobuf:"varint,6,opt,name=role,proto3,enum=portal.common.v1.RoleCode" json:"role,omitempty"`
+	RoleCode      string                 `protobuf:"bytes,6,opt,name=role_code,json=roleCode,proto3" json:"role_code,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -261,11 +262,11 @@ func (x *CreateUserRequest) GetDob() string {
 	return ""
 }
 
-func (x *CreateUserRequest) GetRole() v1.RoleCode {
+func (x *CreateUserRequest) GetRoleCode() string {
 	if x != nil {
-		return x.Role
+		return x.RoleCode
 	}
-	return v1.RoleCode(0)
+	return ""
 }
 
 type GetUserDetailRequest struct {
@@ -479,7 +480,7 @@ func (x *RestoreUserRequest) GetUserId() string {
 type UpdateUserRoleRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	UserId        string                 `protobuf:"bytes,1,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
-	Role          v1.RoleCode            `protobuf:"varint,2,opt,name=role,proto3,enum=portal.common.v1.RoleCode" json:"role,omitempty"`
+	RoleCode      string                 `protobuf:"bytes,2,opt,name=role_code,json=roleCode,proto3" json:"role_code,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -521,18 +522,314 @@ func (x *UpdateUserRoleRequest) GetUserId() string {
 	return ""
 }
 
-func (x *UpdateUserRoleRequest) GetRole() v1.RoleCode {
+func (x *UpdateUserRoleRequest) GetRoleCode() string {
 	if x != nil {
-		return x.Role
+		return x.RoleCode
 	}
-	return v1.RoleCode(0)
+	return ""
+}
+
+type ListRolesResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Data          []*v1.Role             `protobuf:"bytes,1,rep,name=data,proto3" json:"data,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ListRolesResponse) Reset() {
+	*x = ListRolesResponse{}
+	mi := &file_admin_v1_admin_proto_msgTypes[8]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListRolesResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListRolesResponse) ProtoMessage() {}
+
+func (x *ListRolesResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_admin_v1_admin_proto_msgTypes[8]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListRolesResponse.ProtoReflect.Descriptor instead.
+func (*ListRolesResponse) Descriptor() ([]byte, []int) {
+	return file_admin_v1_admin_proto_rawDescGZIP(), []int{8}
+}
+
+func (x *ListRolesResponse) GetData() []*v1.Role {
+	if x != nil {
+		return x.Data
+	}
+	return nil
+}
+
+type CreateRoleRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Code          string                 `protobuf:"bytes,1,opt,name=code,proto3" json:"code,omitempty"`
+	Name          string                 `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *CreateRoleRequest) Reset() {
+	*x = CreateRoleRequest{}
+	mi := &file_admin_v1_admin_proto_msgTypes[9]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *CreateRoleRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*CreateRoleRequest) ProtoMessage() {}
+
+func (x *CreateRoleRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_admin_v1_admin_proto_msgTypes[9]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use CreateRoleRequest.ProtoReflect.Descriptor instead.
+func (*CreateRoleRequest) Descriptor() ([]byte, []int) {
+	return file_admin_v1_admin_proto_rawDescGZIP(), []int{9}
+}
+
+func (x *CreateRoleRequest) GetCode() string {
+	if x != nil {
+		return x.Code
+	}
+	return ""
+}
+
+func (x *CreateRoleRequest) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+type DeleteRoleRequest struct {
+	state             protoimpl.MessageState `protogen:"open.v1"`
+	RoleId            string                 `protobuf:"bytes,1,opt,name=role_id,json=roleId,proto3" json:"role_id,omitempty"`
+	ReplacementRoleId *string                `protobuf:"bytes,2,opt,name=replacement_role_id,json=replacementRoleId,proto3,oneof" json:"replacement_role_id,omitempty"`
+	unknownFields     protoimpl.UnknownFields
+	sizeCache         protoimpl.SizeCache
+}
+
+func (x *DeleteRoleRequest) Reset() {
+	*x = DeleteRoleRequest{}
+	mi := &file_admin_v1_admin_proto_msgTypes[10]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *DeleteRoleRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*DeleteRoleRequest) ProtoMessage() {}
+
+func (x *DeleteRoleRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_admin_v1_admin_proto_msgTypes[10]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use DeleteRoleRequest.ProtoReflect.Descriptor instead.
+func (*DeleteRoleRequest) Descriptor() ([]byte, []int) {
+	return file_admin_v1_admin_proto_rawDescGZIP(), []int{10}
+}
+
+func (x *DeleteRoleRequest) GetRoleId() string {
+	if x != nil {
+		return x.RoleId
+	}
+	return ""
+}
+
+func (x *DeleteRoleRequest) GetReplacementRoleId() string {
+	if x != nil && x.ReplacementRoleId != nil {
+		return *x.ReplacementRoleId
+	}
+	return ""
+}
+
+type AssignPermissionToRoleRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	RoleId        string                 `protobuf:"bytes,1,opt,name=role_id,json=roleId,proto3" json:"role_id,omitempty"`
+	PermissionId  string                 `protobuf:"bytes,2,opt,name=permission_id,json=permissionId,proto3" json:"permission_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *AssignPermissionToRoleRequest) Reset() {
+	*x = AssignPermissionToRoleRequest{}
+	mi := &file_admin_v1_admin_proto_msgTypes[11]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *AssignPermissionToRoleRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*AssignPermissionToRoleRequest) ProtoMessage() {}
+
+func (x *AssignPermissionToRoleRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_admin_v1_admin_proto_msgTypes[11]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use AssignPermissionToRoleRequest.ProtoReflect.Descriptor instead.
+func (*AssignPermissionToRoleRequest) Descriptor() ([]byte, []int) {
+	return file_admin_v1_admin_proto_rawDescGZIP(), []int{11}
+}
+
+func (x *AssignPermissionToRoleRequest) GetRoleId() string {
+	if x != nil {
+		return x.RoleId
+	}
+	return ""
+}
+
+func (x *AssignPermissionToRoleRequest) GetPermissionId() string {
+	if x != nil {
+		return x.PermissionId
+	}
+	return ""
+}
+
+type RemovePermissionFromRoleRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	RoleId        string                 `protobuf:"bytes,1,opt,name=role_id,json=roleId,proto3" json:"role_id,omitempty"`
+	PermissionId  string                 `protobuf:"bytes,2,opt,name=permission_id,json=permissionId,proto3" json:"permission_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *RemovePermissionFromRoleRequest) Reset() {
+	*x = RemovePermissionFromRoleRequest{}
+	mi := &file_admin_v1_admin_proto_msgTypes[12]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *RemovePermissionFromRoleRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*RemovePermissionFromRoleRequest) ProtoMessage() {}
+
+func (x *RemovePermissionFromRoleRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_admin_v1_admin_proto_msgTypes[12]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use RemovePermissionFromRoleRequest.ProtoReflect.Descriptor instead.
+func (*RemovePermissionFromRoleRequest) Descriptor() ([]byte, []int) {
+	return file_admin_v1_admin_proto_rawDescGZIP(), []int{12}
+}
+
+func (x *RemovePermissionFromRoleRequest) GetRoleId() string {
+	if x != nil {
+		return x.RoleId
+	}
+	return ""
+}
+
+func (x *RemovePermissionFromRoleRequest) GetPermissionId() string {
+	if x != nil {
+		return x.PermissionId
+	}
+	return ""
+}
+
+type ListPermissionsResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Data          []*v1.Permission       `protobuf:"bytes,1,rep,name=data,proto3" json:"data,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ListPermissionsResponse) Reset() {
+	*x = ListPermissionsResponse{}
+	mi := &file_admin_v1_admin_proto_msgTypes[13]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListPermissionsResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListPermissionsResponse) ProtoMessage() {}
+
+func (x *ListPermissionsResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_admin_v1_admin_proto_msgTypes[13]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListPermissionsResponse.ProtoReflect.Descriptor instead.
+func (*ListPermissionsResponse) Descriptor() ([]byte, []int) {
+	return file_admin_v1_admin_proto_rawDescGZIP(), []int{13}
+}
+
+func (x *ListPermissionsResponse) GetData() []*v1.Permission {
+	if x != nil {
+		return x.Data
+	}
+	return nil
 }
 
 var File_admin_v1_admin_proto protoreflect.FileDescriptor
 
 const file_admin_v1_admin_proto_rawDesc = "" +
 	"\n" +
-	"\x14admin/v1/admin.proto\x12\x0fportal.admin.v1\x1a\x1cgoogle/api/annotations.proto\x1a\x16common/v1/common.proto\x1a\x1bbuf/validate/validate.proto\"\xfa\x03\n" +
+	"\x14admin/v1/admin.proto\x12\x0fportal.admin.v1\x1a\x1cgoogle/api/annotations.proto\x1a\x1bgoogle/protobuf/empty.proto\x1a\x16common/v1/common.proto\x1a\x1bbuf/validate/validate.proto\"\xeb\x03\n" +
 	"\x10ListUsersRequest\x12\x1b\n" +
 	"\x04page\x18\x01 \x01(\x05B\a\xbaH\x04\x1a\x02(\x01R\x04page\x12&\n" +
 	"\tpage_size\x18\x02 \x01(\x05B\t\xbaH\x06\x1a\x04\x18d(\x01R\bpageSize\x12*\n" +
@@ -540,9 +837,8 @@ const file_admin_v1_admin_proto_rawDesc = "" +
 	"\x05email\x18\x04 \x01(\tB\a\xbaH\x04r\x02`\x01H\x01R\x05email\x88\x01\x01\x12,\n" +
 	"\tfull_name\x18\x05 \x01(\tB\n" +
 	"\xbaH\ar\x05\x10\x01\x18\xc8\x01H\x02R\bfullName\x88\x01\x01\x121\n" +
-	"\x03dob\x18\x06 \x01(\tB\x1a\xbaH\x17r\x152\x13^\\d{4}-\\d{2}-\\d{2}$H\x03R\x03dob\x88\x01\x01\x12?\n" +
-	"\x04role\x18\a \x01(\x0e2\x1a.portal.common.v1.RoleCodeB\n" +
-	"\xbaH\a\x82\x01\x04\x10\x01 \x00H\x04R\x04role\x88\x01\x01\x12E\n" +
+	"\x03dob\x18\x06 \x01(\tB\x1a\xbaH\x17r\x152\x13^\\d{4}-\\d{2}-\\d{2}$H\x03R\x03dob\x88\x01\x01\x12+\n" +
+	"\trole_code\x18\a \x01(\tB\t\xbaH\x06r\x04\x10\x01\x182H\x04R\broleCode\x88\x01\x01\x12E\n" +
 	"\x06status\x18\b \x01(\x0e2\x1c.portal.common.v1.UserStatusB\n" +
 	"\xbaH\a\x82\x01\x04\x10\x01 \x00H\x05R\x06status\x88\x01\x01\x12'\n" +
 	"\x0finclude_deleted\x18\t \x01(\bR\x0eincludeDeletedB\v\n" +
@@ -550,21 +846,21 @@ const file_admin_v1_admin_proto_rawDesc = "" +
 	"\x06_emailB\f\n" +
 	"\n" +
 	"_full_nameB\x06\n" +
-	"\x04_dobB\a\n" +
-	"\x05_roleB\t\n" +
+	"\x04_dobB\f\n" +
+	"\n" +
+	"_role_codeB\t\n" +
 	"\a_status\"u\n" +
 	"\x11ListUsersResponse\x12*\n" +
 	"\x04data\x18\x01 \x03(\v2\x16.portal.common.v1.UserR\x04data\x124\n" +
-	"\x04meta\x18\x02 \x01(\v2 .portal.common.v1.PaginationMetaR\x04meta\"\x95\x02\n" +
+	"\x04meta\x18\x02 \x01(\v2 .portal.common.v1.PaginationMetaR\x04meta\"\x81\x02\n" +
 	"\x11CreateUserRequest\x12\x1d\n" +
 	"\x05email\x18\x01 \x01(\tB\a\xbaH\x04r\x02`\x01R\x05email\x12%\n" +
 	"\busername\x18\x02 \x01(\tB\t\xbaH\x06r\x04\x10\x03\x182R\busername\x12(\n" +
 	"\n" +
 	"first_name\x18\x03 \x01(\tB\t\xbaH\x06r\x04\x10\x01\x18dR\tfirstName\x12&\n" +
 	"\tlast_name\x18\x04 \x01(\tB\t\xbaH\x06r\x04\x10\x01\x18dR\blastName\x12,\n" +
-	"\x03dob\x18\x05 \x01(\tB\x1a\xbaH\x17r\x152\x13^\\d{4}-\\d{2}-\\d{2}$R\x03dob\x12:\n" +
-	"\x04role\x18\x06 \x01(\x0e2\x1a.portal.common.v1.RoleCodeB\n" +
-	"\xbaH\a\x82\x01\x04\x10\x01 \x00R\x04role\"9\n" +
+	"\x03dob\x18\x05 \x01(\tB\x1a\xbaH\x17r\x152\x13^\\d{4}-\\d{2}-\\d{2}$R\x03dob\x12&\n" +
+	"\trole_code\x18\x06 \x01(\tB\t\xbaH\x06r\x04\x10\x01\x182R\broleCode\"9\n" +
 	"\x14GetUserDetailRequest\x12!\n" +
 	"\auser_id\x18\x01 \x01(\tB\b\xbaH\x05r\x03\xb0\x01\x01R\x06userId\"\xa3\x02\n" +
 	"\x11UpdateUserRequest\x12!\n" +
@@ -582,11 +878,27 @@ const file_admin_v1_admin_proto_rawDesc = "" +
 	"\x11DeleteUserRequest\x12!\n" +
 	"\auser_id\x18\x01 \x01(\tB\b\xbaH\x05r\x03\xb0\x01\x01R\x06userId\"7\n" +
 	"\x12RestoreUserRequest\x12!\n" +
-	"\auser_id\x18\x01 \x01(\tB\b\xbaH\x05r\x03\xb0\x01\x01R\x06userId\"v\n" +
+	"\auser_id\x18\x01 \x01(\tB\b\xbaH\x05r\x03\xb0\x01\x01R\x06userId\"b\n" +
 	"\x15UpdateUserRoleRequest\x12!\n" +
-	"\auser_id\x18\x01 \x01(\tB\b\xbaH\x05r\x03\xb0\x01\x01R\x06userId\x12:\n" +
-	"\x04role\x18\x02 \x01(\x0e2\x1a.portal.common.v1.RoleCodeB\n" +
-	"\xbaH\a\x82\x01\x04\x10\x01 \x00R\x04role2\xcb\x06\n" +
+	"\auser_id\x18\x01 \x01(\tB\b\xbaH\x05r\x03\xb0\x01\x01R\x06userId\x12&\n" +
+	"\trole_code\x18\x02 \x01(\tB\t\xbaH\x06r\x04\x10\x01\x182R\broleCode\"?\n" +
+	"\x11ListRolesResponse\x12*\n" +
+	"\x04data\x18\x01 \x03(\v2\x16.portal.common.v1.RoleR\x04data\"Q\n" +
+	"\x11CreateRoleRequest\x12\x1d\n" +
+	"\x04code\x18\x01 \x01(\tB\t\xbaH\x06r\x04\x10\x01\x182R\x04code\x12\x1d\n" +
+	"\x04name\x18\x02 \x01(\tB\t\xbaH\x06r\x04\x10\x01\x18dR\x04name\"\x8d\x01\n" +
+	"\x11DeleteRoleRequest\x12!\n" +
+	"\arole_id\x18\x01 \x01(\tB\b\xbaH\x05r\x03\xb0\x01\x01R\x06roleId\x12=\n" +
+	"\x13replacement_role_id\x18\x02 \x01(\tB\b\xbaH\x05r\x03\xb0\x01\x01H\x00R\x11replacementRoleId\x88\x01\x01B\x16\n" +
+	"\x14_replacement_role_id\"q\n" +
+	"\x1dAssignPermissionToRoleRequest\x12!\n" +
+	"\arole_id\x18\x01 \x01(\tB\b\xbaH\x05r\x03\xb0\x01\x01R\x06roleId\x12-\n" +
+	"\rpermission_id\x18\x02 \x01(\tB\b\xbaH\x05r\x03\xb0\x01\x01R\fpermissionId\"s\n" +
+	"\x1fRemovePermissionFromRoleRequest\x12!\n" +
+	"\arole_id\x18\x01 \x01(\tB\b\xbaH\x05r\x03\xb0\x01\x01R\x06roleId\x12-\n" +
+	"\rpermission_id\x18\x02 \x01(\tB\b\xbaH\x05r\x03\xb0\x01\x01R\fpermissionId\"K\n" +
+	"\x17ListPermissionsResponse\x120\n" +
+	"\x04data\x18\x01 \x03(\v2\x1c.portal.common.v1.PermissionR\x04data2\xf5\f\n" +
 	"\fAdminService\x12o\n" +
 	"\tListUsers\x12!.portal.admin.v1.ListUsersRequest\x1a\".portal.admin.v1.ListUsersResponse\"\x1b\x82\xd3\xe4\x93\x02\x15\x12\x13/api/v1/admin/users\x12h\n" +
 	"\n" +
@@ -597,7 +909,15 @@ const file_admin_v1_admin_proto_rawDesc = "" +
 	"\n" +
 	"DeleteUser\x12\".portal.admin.v1.DeleteUserRequest\x1a\x16.portal.common.v1.User\",\x82\xd3\xe4\x93\x02&*$/api/v1/admin/users/{user_id}/delete\x12|\n" +
 	"\vRestoreUser\x12#.portal.admin.v1.RestoreUserRequest\x1a\x16.portal.common.v1.User\"0\x82\xd3\xe4\x93\x02*:\x01*\x1a%/api/v1/admin/users/{user_id}/restore\x12\x7f\n" +
-	"\x0eUpdateUserRole\x12&.portal.admin.v1.UpdateUserRoleRequest\x1a\x16.portal.common.v1.User\"-\x82\xd3\xe4\x93\x02':\x01*\x1a\"/api/v1/admin/users/{user_id}/roleB'Z%portal-system/gen/go/admin/v1;adminv1b\x06proto3"
+	"\x0eUpdateUserRole\x12&.portal.admin.v1.UpdateUserRoleRequest\x1a\x16.portal.common.v1.User\"-\x82\xd3\xe4\x93\x02':\x01*\x1a\"/api/v1/admin/users/{user_id}/role\x12d\n" +
+	"\tListRoles\x12\x16.google.protobuf.Empty\x1a\".portal.admin.v1.ListRolesResponse\"\x1b\x82\xd3\xe4\x93\x02\x15\x12\x13/api/v1/admin/roles\x12h\n" +
+	"\n" +
+	"CreateRole\x12\".portal.admin.v1.CreateRoleRequest\x1a\x16.portal.common.v1.Role\"\x1e\x82\xd3\xe4\x93\x02\x18:\x01*\"\x13/api/v1/admin/roles\x12z\n" +
+	"\n" +
+	"DeleteRole\x12\".portal.admin.v1.DeleteRoleRequest\x1a!.portal.common.v1.MessageResponse\"%\x82\xd3\xe4\x93\x02\x1f*\x1d/api/v1/admin/roles/{role_id}\x12\xae\x01\n" +
+	"\x16AssignPermissionToRole\x12..portal.admin.v1.AssignPermissionToRoleRequest\x1a!.portal.common.v1.MessageResponse\"A\x82\xd3\xe4\x93\x02;\x1a9/api/v1/admin/roles/{role_id}/permissions/{permission_id}\x12\xb2\x01\n" +
+	"\x18RemovePermissionFromRole\x120.portal.admin.v1.RemovePermissionFromRoleRequest\x1a!.portal.common.v1.MessageResponse\"A\x82\xd3\xe4\x93\x02;*9/api/v1/admin/roles/{role_id}/permissions/{permission_id}\x12v\n" +
+	"\x0fListPermissions\x12\x16.google.protobuf.Empty\x1a(.portal.admin.v1.ListPermissionsResponse\"!\x82\xd3\xe4\x93\x02\x1b\x12\x19/api/v1/admin/permissionsB'Z%portal-system/gen/go/admin/v1;adminv1b\x06proto3"
 
 var (
 	file_admin_v1_admin_proto_rawDescOnce sync.Once
@@ -611,47 +931,67 @@ func file_admin_v1_admin_proto_rawDescGZIP() []byte {
 	return file_admin_v1_admin_proto_rawDescData
 }
 
-var file_admin_v1_admin_proto_msgTypes = make([]protoimpl.MessageInfo, 8)
+var file_admin_v1_admin_proto_msgTypes = make([]protoimpl.MessageInfo, 14)
 var file_admin_v1_admin_proto_goTypes = []any{
-	(*ListUsersRequest)(nil),      // 0: portal.admin.v1.ListUsersRequest
-	(*ListUsersResponse)(nil),     // 1: portal.admin.v1.ListUsersResponse
-	(*CreateUserRequest)(nil),     // 2: portal.admin.v1.CreateUserRequest
-	(*GetUserDetailRequest)(nil),  // 3: portal.admin.v1.GetUserDetailRequest
-	(*UpdateUserRequest)(nil),     // 4: portal.admin.v1.UpdateUserRequest
-	(*DeleteUserRequest)(nil),     // 5: portal.admin.v1.DeleteUserRequest
-	(*RestoreUserRequest)(nil),    // 6: portal.admin.v1.RestoreUserRequest
-	(*UpdateUserRoleRequest)(nil), // 7: portal.admin.v1.UpdateUserRoleRequest
-	(v1.RoleCode)(0),              // 8: portal.common.v1.RoleCode
-	(v1.UserStatus)(0),            // 9: portal.common.v1.UserStatus
-	(*v1.User)(nil),               // 10: portal.common.v1.User
-	(*v1.PaginationMeta)(nil),     // 11: portal.common.v1.PaginationMeta
+	(*ListUsersRequest)(nil),                // 0: portal.admin.v1.ListUsersRequest
+	(*ListUsersResponse)(nil),               // 1: portal.admin.v1.ListUsersResponse
+	(*CreateUserRequest)(nil),               // 2: portal.admin.v1.CreateUserRequest
+	(*GetUserDetailRequest)(nil),            // 3: portal.admin.v1.GetUserDetailRequest
+	(*UpdateUserRequest)(nil),               // 4: portal.admin.v1.UpdateUserRequest
+	(*DeleteUserRequest)(nil),               // 5: portal.admin.v1.DeleteUserRequest
+	(*RestoreUserRequest)(nil),              // 6: portal.admin.v1.RestoreUserRequest
+	(*UpdateUserRoleRequest)(nil),           // 7: portal.admin.v1.UpdateUserRoleRequest
+	(*ListRolesResponse)(nil),               // 8: portal.admin.v1.ListRolesResponse
+	(*CreateRoleRequest)(nil),               // 9: portal.admin.v1.CreateRoleRequest
+	(*DeleteRoleRequest)(nil),               // 10: portal.admin.v1.DeleteRoleRequest
+	(*AssignPermissionToRoleRequest)(nil),   // 11: portal.admin.v1.AssignPermissionToRoleRequest
+	(*RemovePermissionFromRoleRequest)(nil), // 12: portal.admin.v1.RemovePermissionFromRoleRequest
+	(*ListPermissionsResponse)(nil),         // 13: portal.admin.v1.ListPermissionsResponse
+	(v1.UserStatus)(0),                      // 14: portal.common.v1.UserStatus
+	(*v1.User)(nil),                         // 15: portal.common.v1.User
+	(*v1.PaginationMeta)(nil),               // 16: portal.common.v1.PaginationMeta
+	(*v1.Role)(nil),                         // 17: portal.common.v1.Role
+	(*v1.Permission)(nil),                   // 18: portal.common.v1.Permission
+	(*emptypb.Empty)(nil),                   // 19: google.protobuf.Empty
+	(*v1.MessageResponse)(nil),              // 20: portal.common.v1.MessageResponse
 }
 var file_admin_v1_admin_proto_depIdxs = []int32{
-	8,  // 0: portal.admin.v1.ListUsersRequest.role:type_name -> portal.common.v1.RoleCode
-	9,  // 1: portal.admin.v1.ListUsersRequest.status:type_name -> portal.common.v1.UserStatus
-	10, // 2: portal.admin.v1.ListUsersResponse.data:type_name -> portal.common.v1.User
-	11, // 3: portal.admin.v1.ListUsersResponse.meta:type_name -> portal.common.v1.PaginationMeta
-	8,  // 4: portal.admin.v1.CreateUserRequest.role:type_name -> portal.common.v1.RoleCode
-	8,  // 5: portal.admin.v1.UpdateUserRoleRequest.role:type_name -> portal.common.v1.RoleCode
-	0,  // 6: portal.admin.v1.AdminService.ListUsers:input_type -> portal.admin.v1.ListUsersRequest
-	2,  // 7: portal.admin.v1.AdminService.CreateUser:input_type -> portal.admin.v1.CreateUserRequest
-	3,  // 8: portal.admin.v1.AdminService.GetUserDetail:input_type -> portal.admin.v1.GetUserDetailRequest
-	4,  // 9: portal.admin.v1.AdminService.UpdateUser:input_type -> portal.admin.v1.UpdateUserRequest
-	5,  // 10: portal.admin.v1.AdminService.DeleteUser:input_type -> portal.admin.v1.DeleteUserRequest
-	6,  // 11: portal.admin.v1.AdminService.RestoreUser:input_type -> portal.admin.v1.RestoreUserRequest
-	7,  // 12: portal.admin.v1.AdminService.UpdateUserRole:input_type -> portal.admin.v1.UpdateUserRoleRequest
-	1,  // 13: portal.admin.v1.AdminService.ListUsers:output_type -> portal.admin.v1.ListUsersResponse
-	10, // 14: portal.admin.v1.AdminService.CreateUser:output_type -> portal.common.v1.User
-	10, // 15: portal.admin.v1.AdminService.GetUserDetail:output_type -> portal.common.v1.User
-	10, // 16: portal.admin.v1.AdminService.UpdateUser:output_type -> portal.common.v1.User
-	10, // 17: portal.admin.v1.AdminService.DeleteUser:output_type -> portal.common.v1.User
-	10, // 18: portal.admin.v1.AdminService.RestoreUser:output_type -> portal.common.v1.User
-	10, // 19: portal.admin.v1.AdminService.UpdateUserRole:output_type -> portal.common.v1.User
-	13, // [13:20] is the sub-list for method output_type
-	6,  // [6:13] is the sub-list for method input_type
-	6,  // [6:6] is the sub-list for extension type_name
-	6,  // [6:6] is the sub-list for extension extendee
-	0,  // [0:6] is the sub-list for field type_name
+	14, // 0: portal.admin.v1.ListUsersRequest.status:type_name -> portal.common.v1.UserStatus
+	15, // 1: portal.admin.v1.ListUsersResponse.data:type_name -> portal.common.v1.User
+	16, // 2: portal.admin.v1.ListUsersResponse.meta:type_name -> portal.common.v1.PaginationMeta
+	17, // 3: portal.admin.v1.ListRolesResponse.data:type_name -> portal.common.v1.Role
+	18, // 4: portal.admin.v1.ListPermissionsResponse.data:type_name -> portal.common.v1.Permission
+	0,  // 5: portal.admin.v1.AdminService.ListUsers:input_type -> portal.admin.v1.ListUsersRequest
+	2,  // 6: portal.admin.v1.AdminService.CreateUser:input_type -> portal.admin.v1.CreateUserRequest
+	3,  // 7: portal.admin.v1.AdminService.GetUserDetail:input_type -> portal.admin.v1.GetUserDetailRequest
+	4,  // 8: portal.admin.v1.AdminService.UpdateUser:input_type -> portal.admin.v1.UpdateUserRequest
+	5,  // 9: portal.admin.v1.AdminService.DeleteUser:input_type -> portal.admin.v1.DeleteUserRequest
+	6,  // 10: portal.admin.v1.AdminService.RestoreUser:input_type -> portal.admin.v1.RestoreUserRequest
+	7,  // 11: portal.admin.v1.AdminService.UpdateUserRole:input_type -> portal.admin.v1.UpdateUserRoleRequest
+	19, // 12: portal.admin.v1.AdminService.ListRoles:input_type -> google.protobuf.Empty
+	9,  // 13: portal.admin.v1.AdminService.CreateRole:input_type -> portal.admin.v1.CreateRoleRequest
+	10, // 14: portal.admin.v1.AdminService.DeleteRole:input_type -> portal.admin.v1.DeleteRoleRequest
+	11, // 15: portal.admin.v1.AdminService.AssignPermissionToRole:input_type -> portal.admin.v1.AssignPermissionToRoleRequest
+	12, // 16: portal.admin.v1.AdminService.RemovePermissionFromRole:input_type -> portal.admin.v1.RemovePermissionFromRoleRequest
+	19, // 17: portal.admin.v1.AdminService.ListPermissions:input_type -> google.protobuf.Empty
+	1,  // 18: portal.admin.v1.AdminService.ListUsers:output_type -> portal.admin.v1.ListUsersResponse
+	15, // 19: portal.admin.v1.AdminService.CreateUser:output_type -> portal.common.v1.User
+	15, // 20: portal.admin.v1.AdminService.GetUserDetail:output_type -> portal.common.v1.User
+	15, // 21: portal.admin.v1.AdminService.UpdateUser:output_type -> portal.common.v1.User
+	15, // 22: portal.admin.v1.AdminService.DeleteUser:output_type -> portal.common.v1.User
+	15, // 23: portal.admin.v1.AdminService.RestoreUser:output_type -> portal.common.v1.User
+	15, // 24: portal.admin.v1.AdminService.UpdateUserRole:output_type -> portal.common.v1.User
+	8,  // 25: portal.admin.v1.AdminService.ListRoles:output_type -> portal.admin.v1.ListRolesResponse
+	17, // 26: portal.admin.v1.AdminService.CreateRole:output_type -> portal.common.v1.Role
+	20, // 27: portal.admin.v1.AdminService.DeleteRole:output_type -> portal.common.v1.MessageResponse
+	20, // 28: portal.admin.v1.AdminService.AssignPermissionToRole:output_type -> portal.common.v1.MessageResponse
+	20, // 29: portal.admin.v1.AdminService.RemovePermissionFromRole:output_type -> portal.common.v1.MessageResponse
+	13, // 30: portal.admin.v1.AdminService.ListPermissions:output_type -> portal.admin.v1.ListPermissionsResponse
+	18, // [18:31] is the sub-list for method output_type
+	5,  // [5:18] is the sub-list for method input_type
+	5,  // [5:5] is the sub-list for extension type_name
+	5,  // [5:5] is the sub-list for extension extendee
+	0,  // [0:5] is the sub-list for field type_name
 }
 
 func init() { file_admin_v1_admin_proto_init() }
@@ -661,13 +1001,14 @@ func file_admin_v1_admin_proto_init() {
 	}
 	file_admin_v1_admin_proto_msgTypes[0].OneofWrappers = []any{}
 	file_admin_v1_admin_proto_msgTypes[4].OneofWrappers = []any{}
+	file_admin_v1_admin_proto_msgTypes[10].OneofWrappers = []any{}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_admin_v1_admin_proto_rawDesc), len(file_admin_v1_admin_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   8,
+			NumMessages:   14,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

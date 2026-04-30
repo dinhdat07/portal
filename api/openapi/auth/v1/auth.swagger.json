@@ -477,14 +477,22 @@
         }
       }
     },
-    "v1RoleCode": {
-      "type": "string",
-      "enum": [
-        "ROLE_CODE_UNSPECIFIED",
-        "ROLE_CODE_USER",
-        "ROLE_CODE_ADMIN"
-      ],
-      "default": "ROLE_CODE_UNSPECIFIED"
+    "v1RoleSummary": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "code": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "isSystem": {
+          "type": "boolean"
+        }
+      }
     },
     "v1SetPasswordRequest": {
       "type": "object",
@@ -522,7 +530,7 @@
           "type": "string"
         },
         "role": {
-          "$ref": "#/definitions/v1RoleCode"
+          "$ref": "#/definitions/v1RoleSummary"
         },
         "status": {
           "$ref": "#/definitions/v1UserStatus"

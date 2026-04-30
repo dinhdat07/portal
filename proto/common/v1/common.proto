@@ -6,17 +6,32 @@ option go_package = "portal-system/gen/go/common/v1;commonv1";
 
 import "google/protobuf/timestamp.proto";
 
-enum RoleCode {
-  ROLE_CODE_UNSPECIFIED = 0;
-  ROLE_CODE_USER = 1;
-  ROLE_CODE_ADMIN = 2;
-}
-
 enum UserStatus {
   USER_STATUS_UNSPECIFIED = 0;
   USER_STATUS_PENDING_VERIFICATION = 1;
   USER_STATUS_ACTIVE = 2;
   USER_STATUS_DELETED = 3;
+}
+
+message Permission {
+  string id = 1;
+  string code = 2;
+  string name = 3;
+}
+
+message Role {
+  string id = 1;
+  string code = 2;
+  string name = 3;
+  bool is_system = 4;
+  repeated Permission permissions = 5;
+}
+
+message RoleSummary {
+  string id = 1;
+  string code = 2;
+  string name = 3;
+  bool is_system = 4;
 }
 
 message MessageResponse {
@@ -36,7 +51,7 @@ message User {
   string first_name = 4;
   string last_name = 5;
   optional string dob = 6;
-  RoleCode role = 7;
+  RoleSummary role = 7;
   UserStatus status = 8;
   optional google.protobuf.Timestamp email_verified_at = 9;
   optional google.protobuf.Timestamp last_login_at = 10;

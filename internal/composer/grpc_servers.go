@@ -12,6 +12,6 @@ func newGRPCServers(svcs *Services) *GRPCServers {
 	return &GRPCServers{
 		Auth:  portalgrpc.NewAuthServer(svcs.Auth),
 		User:  portalgrpc.NewUserServer(svcs.User),
-		Admin: portalgrpc.NewAdminServer(svcs.Admin, svcs.User),
+		Admin: portalgrpc.NewAdminServer(svcs.Admin, svcs.User, svcs.Role, svcs.Permission),
 	}
 }

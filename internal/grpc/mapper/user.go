@@ -2,7 +2,6 @@ package mappers
 
 import (
 	commonv1 "portal-system/gen/go/common/v1"
-	"portal-system/internal/domain/constants"
 	"portal-system/internal/domain/enum"
 	"portal-system/internal/models"
 
@@ -20,7 +19,7 @@ func UserModelToPB(u *models.User) *commonv1.User {
 		Username:  u.Username,
 		FirstName: u.FirstName,
 		LastName:  u.LastName,
-		Role:      RoleCodeToPB(u.Role.Code),
+		Role:      RoleSummaryModelToPB(&u.Role),
 		Status:    UserStatusToPB(u.Status),
 		CreatedAt: timestamppb.New(u.CreatedAt),
 		UpdatedAt: timestamppb.New(u.UpdatedAt),
@@ -47,25 +46,16 @@ func UserModelToPB(u *models.User) *commonv1.User {
 	return out
 }
 
-func RoleCodeToPB(code constants.RoleCode) commonv1.RoleCode {
-	switch code {
-	case constants.RoleCodeAdmin:
-		return commonv1.RoleCode_ROLE_CODE_ADMIN
-	case constants.RoleCodeUser:
-		return commonv1.RoleCode_ROLE_CODE_USER
-	default:
-		return commonv1.RoleCode_ROLE_CODE_UNSPECIFIED
+func RoleSummaryModelToPB(role *models.Role) *commonv1.RoleSummary {
+	if role == nil {
+		return nil
 	}
-}
 
-func RoleCodeFromPB(code commonv1.RoleCode) (constants.RoleCode, bool) {
-	switch code {
-	case commonv1.RoleCode_ROLE_CODE_ADMIN:
-		return constants.RoleCodeAdmin, true
-	case commonv1.RoleCode_ROLE_CODE_USER:
-		return constants.RoleCodeUser, true
-	default:
-		return "", false
+	return &commonv1.RoleSummary{
+		Id:       role.ID.String(),
+		Code:     string(role.Code),
+		Name:     role.Name,
+		IsSystem: role.IsSystem,
 	}
 }
 

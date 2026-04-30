@@ -22,55 +22,6 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
-type RoleCode int32
-
-const (
-	RoleCode_ROLE_CODE_UNSPECIFIED RoleCode = 0
-	RoleCode_ROLE_CODE_USER        RoleCode = 1
-	RoleCode_ROLE_CODE_ADMIN       RoleCode = 2
-)
-
-// Enum value maps for RoleCode.
-var (
-	RoleCode_name = map[int32]string{
-		0: "ROLE_CODE_UNSPECIFIED",
-		1: "ROLE_CODE_USER",
-		2: "ROLE_CODE_ADMIN",
-	}
-	RoleCode_value = map[string]int32{
-		"ROLE_CODE_UNSPECIFIED": 0,
-		"ROLE_CODE_USER":        1,
-		"ROLE_CODE_ADMIN":       2,
-	}
-)
-
-func (x RoleCode) Enum() *RoleCode {
-	p := new(RoleCode)
-	*p = x
-	return p
-}
-
-func (x RoleCode) String() string {
-	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
-}
-
-func (RoleCode) Descriptor() protoreflect.EnumDescriptor {
-	return file_common_v1_common_proto_enumTypes[0].Descriptor()
-}
-
-func (RoleCode) Type() protoreflect.EnumType {
-	return &file_common_v1_common_proto_enumTypes[0]
-}
-
-func (x RoleCode) Number() protoreflect.EnumNumber {
-	return protoreflect.EnumNumber(x)
-}
-
-// Deprecated: Use RoleCode.Descriptor instead.
-func (RoleCode) EnumDescriptor() ([]byte, []int) {
-	return file_common_v1_common_proto_rawDescGZIP(), []int{0}
-}
-
 type UserStatus int32
 
 const (
@@ -107,11 +58,11 @@ func (x UserStatus) String() string {
 }
 
 func (UserStatus) Descriptor() protoreflect.EnumDescriptor {
-	return file_common_v1_common_proto_enumTypes[1].Descriptor()
+	return file_common_v1_common_proto_enumTypes[0].Descriptor()
 }
 
 func (UserStatus) Type() protoreflect.EnumType {
-	return &file_common_v1_common_proto_enumTypes[1]
+	return &file_common_v1_common_proto_enumTypes[0]
 }
 
 func (x UserStatus) Number() protoreflect.EnumNumber {
@@ -120,7 +71,211 @@ func (x UserStatus) Number() protoreflect.EnumNumber {
 
 // Deprecated: Use UserStatus.Descriptor instead.
 func (UserStatus) EnumDescriptor() ([]byte, []int) {
+	return file_common_v1_common_proto_rawDescGZIP(), []int{0}
+}
+
+type Permission struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	Code          string                 `protobuf:"bytes,2,opt,name=code,proto3" json:"code,omitempty"`
+	Name          string                 `protobuf:"bytes,3,opt,name=name,proto3" json:"name,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *Permission) Reset() {
+	*x = Permission{}
+	mi := &file_common_v1_common_proto_msgTypes[0]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *Permission) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*Permission) ProtoMessage() {}
+
+func (x *Permission) ProtoReflect() protoreflect.Message {
+	mi := &file_common_v1_common_proto_msgTypes[0]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use Permission.ProtoReflect.Descriptor instead.
+func (*Permission) Descriptor() ([]byte, []int) {
+	return file_common_v1_common_proto_rawDescGZIP(), []int{0}
+}
+
+func (x *Permission) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+func (x *Permission) GetCode() string {
+	if x != nil {
+		return x.Code
+	}
+	return ""
+}
+
+func (x *Permission) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+type Role struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	Code          string                 `protobuf:"bytes,2,opt,name=code,proto3" json:"code,omitempty"`
+	Name          string                 `protobuf:"bytes,3,opt,name=name,proto3" json:"name,omitempty"`
+	IsSystem      bool                   `protobuf:"varint,4,opt,name=is_system,json=isSystem,proto3" json:"is_system,omitempty"`
+	Permissions   []*Permission          `protobuf:"bytes,5,rep,name=permissions,proto3" json:"permissions,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *Role) Reset() {
+	*x = Role{}
+	mi := &file_common_v1_common_proto_msgTypes[1]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *Role) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*Role) ProtoMessage() {}
+
+func (x *Role) ProtoReflect() protoreflect.Message {
+	mi := &file_common_v1_common_proto_msgTypes[1]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use Role.ProtoReflect.Descriptor instead.
+func (*Role) Descriptor() ([]byte, []int) {
 	return file_common_v1_common_proto_rawDescGZIP(), []int{1}
+}
+
+func (x *Role) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+func (x *Role) GetCode() string {
+	if x != nil {
+		return x.Code
+	}
+	return ""
+}
+
+func (x *Role) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+func (x *Role) GetIsSystem() bool {
+	if x != nil {
+		return x.IsSystem
+	}
+	return false
+}
+
+func (x *Role) GetPermissions() []*Permission {
+	if x != nil {
+		return x.Permissions
+	}
+	return nil
+}
+
+type RoleSummary struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	Code          string                 `protobuf:"bytes,2,opt,name=code,proto3" json:"code,omitempty"`
+	Name          string                 `protobuf:"bytes,3,opt,name=name,proto3" json:"name,omitempty"`
+	IsSystem      bool                   `protobuf:"varint,4,opt,name=is_system,json=isSystem,proto3" json:"is_system,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *RoleSummary) Reset() {
+	*x = RoleSummary{}
+	mi := &file_common_v1_common_proto_msgTypes[2]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *RoleSummary) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*RoleSummary) ProtoMessage() {}
+
+func (x *RoleSummary) ProtoReflect() protoreflect.Message {
+	mi := &file_common_v1_common_proto_msgTypes[2]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use RoleSummary.ProtoReflect.Descriptor instead.
+func (*RoleSummary) Descriptor() ([]byte, []int) {
+	return file_common_v1_common_proto_rawDescGZIP(), []int{2}
+}
+
+func (x *RoleSummary) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+func (x *RoleSummary) GetCode() string {
+	if x != nil {
+		return x.Code
+	}
+	return ""
+}
+
+func (x *RoleSummary) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+func (x *RoleSummary) GetIsSystem() bool {
+	if x != nil {
+		return x.IsSystem
+	}
+	return false
 }
 
 type MessageResponse struct {
@@ -132,7 +287,7 @@ type MessageResponse struct {
 
 func (x *MessageResponse) Reset() {
 	*x = MessageResponse{}
-	mi := &file_common_v1_common_proto_msgTypes[0]
+	mi := &file_common_v1_common_proto_msgTypes[3]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -144,7 +299,7 @@ func (x *MessageResponse) String() string {
 func (*MessageResponse) ProtoMessage() {}
 
 func (x *MessageResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_common_v1_common_proto_msgTypes[0]
+	mi := &file_common_v1_common_proto_msgTypes[3]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -157,7 +312,7 @@ func (x *MessageResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use MessageResponse.ProtoReflect.Descriptor instead.
 func (*MessageResponse) Descriptor() ([]byte, []int) {
-	return file_common_v1_common_proto_rawDescGZIP(), []int{0}
+	return file_common_v1_common_proto_rawDescGZIP(), []int{3}
 }
 
 func (x *MessageResponse) GetMessage() string {
@@ -178,7 +333,7 @@ type PaginationMeta struct {
 
 func (x *PaginationMeta) Reset() {
 	*x = PaginationMeta{}
-	mi := &file_common_v1_common_proto_msgTypes[1]
+	mi := &file_common_v1_common_proto_msgTypes[4]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -190,7 +345,7 @@ func (x *PaginationMeta) String() string {
 func (*PaginationMeta) ProtoMessage() {}
 
 func (x *PaginationMeta) ProtoReflect() protoreflect.Message {
-	mi := &file_common_v1_common_proto_msgTypes[1]
+	mi := &file_common_v1_common_proto_msgTypes[4]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -203,7 +358,7 @@ func (x *PaginationMeta) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PaginationMeta.ProtoReflect.Descriptor instead.
 func (*PaginationMeta) Descriptor() ([]byte, []int) {
-	return file_common_v1_common_proto_rawDescGZIP(), []int{1}
+	return file_common_v1_common_proto_rawDescGZIP(), []int{4}
 }
 
 func (x *PaginationMeta) GetPage() int32 {
@@ -235,7 +390,7 @@ type User struct {
 	FirstName       string                 `protobuf:"bytes,4,opt,name=first_name,json=firstName,proto3" json:"first_name,omitempty"`
 	LastName        string                 `protobuf:"bytes,5,opt,name=last_name,json=lastName,proto3" json:"last_name,omitempty"`
 	Dob             *string                `protobuf:"bytes,6,opt,name=dob,proto3,oneof" json:"dob,omitempty"`
-	Role            RoleCode               `protobuf:"varint,7,opt,name=role,proto3,enum=portal.common.v1.RoleCode" json:"role,omitempty"`
+	Role            *RoleSummary           `protobuf:"bytes,7,opt,name=role,proto3" json:"role,omitempty"`
 	Status          UserStatus             `protobuf:"varint,8,opt,name=status,proto3,enum=portal.common.v1.UserStatus" json:"status,omitempty"`
 	EmailVerifiedAt *timestamppb.Timestamp `protobuf:"bytes,9,opt,name=email_verified_at,json=emailVerifiedAt,proto3,oneof" json:"email_verified_at,omitempty"`
 	LastLoginAt     *timestamppb.Timestamp `protobuf:"bytes,10,opt,name=last_login_at,json=lastLoginAt,proto3,oneof" json:"last_login_at,omitempty"`
@@ -251,7 +406,7 @@ type User struct {
 
 func (x *User) Reset() {
 	*x = User{}
-	mi := &file_common_v1_common_proto_msgTypes[2]
+	mi := &file_common_v1_common_proto_msgTypes[5]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -263,7 +418,7 @@ func (x *User) String() string {
 func (*User) ProtoMessage() {}
 
 func (x *User) ProtoReflect() protoreflect.Message {
-	mi := &file_common_v1_common_proto_msgTypes[2]
+	mi := &file_common_v1_common_proto_msgTypes[5]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -276,7 +431,7 @@ func (x *User) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use User.ProtoReflect.Descriptor instead.
 func (*User) Descriptor() ([]byte, []int) {
-	return file_common_v1_common_proto_rawDescGZIP(), []int{2}
+	return file_common_v1_common_proto_rawDescGZIP(), []int{5}
 }
 
 func (x *User) GetId() string {
@@ -321,11 +476,11 @@ func (x *User) GetDob() string {
 	return ""
 }
 
-func (x *User) GetRole() RoleCode {
+func (x *User) GetRole() *RoleSummary {
 	if x != nil {
 		return x.Role
 	}
-	return RoleCode_ROLE_CODE_UNSPECIFIED
+	return nil
 }
 
 func (x *User) GetStatus() UserStatus {
@@ -395,13 +550,29 @@ var File_common_v1_common_proto protoreflect.FileDescriptor
 
 const file_common_v1_common_proto_rawDesc = "" +
 	"\n" +
-	"\x16common/v1/common.proto\x12\x10portal.common.v1\x1a\x1fgoogle/protobuf/timestamp.proto\"+\n" +
+	"\x16common/v1/common.proto\x12\x10portal.common.v1\x1a\x1fgoogle/protobuf/timestamp.proto\"D\n" +
+	"\n" +
+	"Permission\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\x12\x12\n" +
+	"\x04code\x18\x02 \x01(\tR\x04code\x12\x12\n" +
+	"\x04name\x18\x03 \x01(\tR\x04name\"\x9b\x01\n" +
+	"\x04Role\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\x12\x12\n" +
+	"\x04code\x18\x02 \x01(\tR\x04code\x12\x12\n" +
+	"\x04name\x18\x03 \x01(\tR\x04name\x12\x1b\n" +
+	"\tis_system\x18\x04 \x01(\bR\bisSystem\x12>\n" +
+	"\vpermissions\x18\x05 \x03(\v2\x1c.portal.common.v1.PermissionR\vpermissions\"b\n" +
+	"\vRoleSummary\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\x12\x12\n" +
+	"\x04code\x18\x02 \x01(\tR\x04code\x12\x12\n" +
+	"\x04name\x18\x03 \x01(\tR\x04name\x12\x1b\n" +
+	"\tis_system\x18\x04 \x01(\bR\bisSystem\"+\n" +
 	"\x0fMessageResponse\x12\x18\n" +
 	"\amessage\x18\x01 \x01(\tR\amessage\"W\n" +
 	"\x0ePaginationMeta\x12\x12\n" +
 	"\x04page\x18\x01 \x01(\x05R\x04page\x12\x1b\n" +
 	"\tpage_size\x18\x02 \x01(\x05R\bpageSize\x12\x14\n" +
-	"\x05total\x18\x03 \x01(\x03R\x05total\"\xc3\x06\n" +
+	"\x05total\x18\x03 \x01(\x03R\x05total\"\xc6\x06\n" +
 	"\x04User\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x14\n" +
 	"\x05email\x18\x02 \x01(\tR\x05email\x12\x1a\n" +
@@ -409,8 +580,8 @@ const file_common_v1_common_proto_rawDesc = "" +
 	"\n" +
 	"first_name\x18\x04 \x01(\tR\tfirstName\x12\x1b\n" +
 	"\tlast_name\x18\x05 \x01(\tR\blastName\x12\x15\n" +
-	"\x03dob\x18\x06 \x01(\tH\x00R\x03dob\x88\x01\x01\x12.\n" +
-	"\x04role\x18\a \x01(\x0e2\x1a.portal.common.v1.RoleCodeR\x04role\x124\n" +
+	"\x03dob\x18\x06 \x01(\tH\x00R\x03dob\x88\x01\x01\x121\n" +
+	"\x04role\x18\a \x01(\v2\x1d.portal.common.v1.RoleSummaryR\x04role\x124\n" +
 	"\x06status\x18\b \x01(\x0e2\x1c.portal.common.v1.UserStatusR\x06status\x12K\n" +
 	"\x11email_verified_at\x18\t \x01(\v2\x1a.google.protobuf.TimestampH\x01R\x0femailVerifiedAt\x88\x01\x01\x12C\n" +
 	"\rlast_login_at\x18\n" +
@@ -433,11 +604,7 @@ const file_common_v1_common_proto_rawDesc = "" +
 	"\v_deleted_atB\r\n" +
 	"\v_deleted_byB\x0e\n" +
 	"\f_restored_atB\x0e\n" +
-	"\f_restored_by*N\n" +
-	"\bRoleCode\x12\x19\n" +
-	"\x15ROLE_CODE_UNSPECIFIED\x10\x00\x12\x12\n" +
-	"\x0eROLE_CODE_USER\x10\x01\x12\x13\n" +
-	"\x0fROLE_CODE_ADMIN\x10\x02*\x80\x01\n" +
+	"\f_restored_by*\x80\x01\n" +
 	"\n" +
 	"UserStatus\x12\x1b\n" +
 	"\x17USER_STATUS_UNSPECIFIED\x10\x00\x12$\n" +
@@ -457,30 +624,33 @@ func file_common_v1_common_proto_rawDescGZIP() []byte {
 	return file_common_v1_common_proto_rawDescData
 }
 
-var file_common_v1_common_proto_enumTypes = make([]protoimpl.EnumInfo, 2)
-var file_common_v1_common_proto_msgTypes = make([]protoimpl.MessageInfo, 3)
+var file_common_v1_common_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
+var file_common_v1_common_proto_msgTypes = make([]protoimpl.MessageInfo, 6)
 var file_common_v1_common_proto_goTypes = []any{
-	(RoleCode)(0),                 // 0: portal.common.v1.RoleCode
-	(UserStatus)(0),               // 1: portal.common.v1.UserStatus
-	(*MessageResponse)(nil),       // 2: portal.common.v1.MessageResponse
-	(*PaginationMeta)(nil),        // 3: portal.common.v1.PaginationMeta
-	(*User)(nil),                  // 4: portal.common.v1.User
-	(*timestamppb.Timestamp)(nil), // 5: google.protobuf.Timestamp
+	(UserStatus)(0),               // 0: portal.common.v1.UserStatus
+	(*Permission)(nil),            // 1: portal.common.v1.Permission
+	(*Role)(nil),                  // 2: portal.common.v1.Role
+	(*RoleSummary)(nil),           // 3: portal.common.v1.RoleSummary
+	(*MessageResponse)(nil),       // 4: portal.common.v1.MessageResponse
+	(*PaginationMeta)(nil),        // 5: portal.common.v1.PaginationMeta
+	(*User)(nil),                  // 6: portal.common.v1.User
+	(*timestamppb.Timestamp)(nil), // 7: google.protobuf.Timestamp
 }
 var file_common_v1_common_proto_depIdxs = []int32{
-	0, // 0: portal.common.v1.User.role:type_name -> portal.common.v1.RoleCode
-	1, // 1: portal.common.v1.User.status:type_name -> portal.common.v1.UserStatus
-	5, // 2: portal.common.v1.User.email_verified_at:type_name -> google.protobuf.Timestamp
-	5, // 3: portal.common.v1.User.last_login_at:type_name -> google.protobuf.Timestamp
-	5, // 4: portal.common.v1.User.created_at:type_name -> google.protobuf.Timestamp
-	5, // 5: portal.common.v1.User.updated_at:type_name -> google.protobuf.Timestamp
-	5, // 6: portal.common.v1.User.deleted_at:type_name -> google.protobuf.Timestamp
-	5, // 7: portal.common.v1.User.restored_at:type_name -> google.protobuf.Timestamp
-	8, // [8:8] is the sub-list for method output_type
-	8, // [8:8] is the sub-list for method input_type
-	8, // [8:8] is the sub-list for extension type_name
-	8, // [8:8] is the sub-list for extension extendee
-	0, // [0:8] is the sub-list for field type_name
+	1, // 0: portal.common.v1.Role.permissions:type_name -> portal.common.v1.Permission
+	3, // 1: portal.common.v1.User.role:type_name -> portal.common.v1.RoleSummary
+	0, // 2: portal.common.v1.User.status:type_name -> portal.common.v1.UserStatus
+	7, // 3: portal.common.v1.User.email_verified_at:type_name -> google.protobuf.Timestamp
+	7, // 4: portal.common.v1.User.last_login_at:type_name -> google.protobuf.Timestamp
+	7, // 5: portal.common.v1.User.created_at:type_name -> google.protobuf.Timestamp
+	7, // 6: portal.common.v1.User.updated_at:type_name -> google.protobuf.Timestamp
+	7, // 7: portal.common.v1.User.deleted_at:type_name -> google.protobuf.Timestamp
+	7, // 8: portal.common.v1.User.restored_at:type_name -> google.protobuf.Timestamp
+	9, // [9:9] is the sub-list for method output_type
+	9, // [9:9] is the sub-list for method input_type
+	9, // [9:9] is the sub-list for extension type_name
+	9, // [9:9] is the sub-list for extension extendee
+	0, // [0:9] is the sub-list for field type_name
 }
 
 func init() { file_common_v1_common_proto_init() }
@@ -488,14 +658,14 @@ func file_common_v1_common_proto_init() {
 	if File_common_v1_common_proto != nil {
 		return
 	}
-	file_common_v1_common_proto_msgTypes[2].OneofWrappers = []any{}
+	file_common_v1_common_proto_msgTypes[5].OneofWrappers = []any{}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_common_v1_common_proto_rawDesc), len(file_common_v1_common_proto_rawDesc)),
-			NumEnums:      2,
-			NumMessages:   3,
+			NumEnums:      1,
+			NumMessages:   6,
 			NumExtensions: 0,
 			NumServices:   0,
 		},
