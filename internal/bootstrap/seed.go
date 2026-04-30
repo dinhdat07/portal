@@ -1,6 +1,7 @@
 package bootstrap
 
 import (
+	"errors"
 	"portal-system/internal/config"
 	"portal-system/internal/domain/constants"
 	"portal-system/internal/domain/enum"
@@ -52,27 +53,35 @@ func SeedAdmin(db *gorm.DB, cfg *config.Config) error {
 func SeedRoles(db *gorm.DB) error {
 	roles := []models.Role{
 		{
-			ID:   uuid.New(),
-			Code: constants.RoleCodeAdmin,
-			Name: "Admin",
+			ID:       uuid.New(),
+			Code:     constants.RoleCodeAdmin,
+			Name:     "Admin",
+			IsSystem: true,
 		},
 		{
-			ID:   uuid.New(),
-			Code: constants.RoleCodeUser,
-			Name: "User",
+			ID:       uuid.New(),
+			Code:     constants.RoleCodeUser,
+			Name:     "User",
+			IsSystem: true,
 		},
 	}
 
 	for _, r := range roles {
-		err := db.
-			Where("code = ?", r.Code).
-			Attrs(models.Role{
-				ID:   r.ID,
-				Code: r.Code,
-				Name: r.Name,
-			}).
-			FirstOrCreate(&models.Role{}).Error
-		if err != nil {
+		var existing models.Role
+		err := db.Where("code = ?", r.Code).First(&existing).Error
+		switch {
+		case err == nil:
+			if err := db.Model(&existing).Updates(map[string]any{
+				"name":      r.Name,
+				"is_system": r.IsSystem,
+			}).Error; err != nil {
+				return err
+			}
+		case errors.Is(err, gorm.ErrRecordNotFound):
+			if err := db.Create(&r).Error; err != nil {
+				return err
+			}
+		default:
 			return err
 		}
 	}
@@ -86,11 +95,12 @@ func SeedPermissions(db *gorm.DB) error {
 
 		err := db.
 			Where(models.Permission{Code: code}).
-			Attrs(models.Permission{
+			Assign(models.Permission{Name: code}).
+			FirstOrCreate(&models.Permission{
 				ID:   uuid.New(),
+				Code: code,
 				Name: code,
-			}).
-			FirstOrCreate(&models.Permission{}).Error
+			}).Error
 		if err != nil {
 			return err
 		}

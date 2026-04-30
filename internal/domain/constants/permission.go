@@ -16,6 +16,16 @@ const (
 	PermUserDelete     PermissionCode = "users:delete"
 	PermUserRestore    PermissionCode = "users:restore"
 	PermUserRoleUpdate PermissionCode = "users:update_role"
+
+	// role management
+	PermRoleList             PermissionCode = "roles:list"
+	PermRoleCreate           PermissionCode = "roles:create"
+	PermRoleDelete           PermissionCode = "roles:delete"
+	PermRoleAssignPermission PermissionCode = "roles:assign_permission"
+	PermRoleRemovePermission PermissionCode = "roles:remove_permission"
+
+	// permission management
+	PermPermissionList PermissionCode = "permissions:list"
 )
 
 var AllPermissions = []PermissionCode{
@@ -26,6 +36,12 @@ var AllPermissions = []PermissionCode{
 	PermUserDelete,
 	PermUserRestore,
 	PermUserRoleUpdate,
+	PermRoleList,
+	PermRoleCreate,
+	PermRoleDelete,
+	PermRoleAssignPermission,
+	PermRoleRemovePermission,
+	PermPermissionList,
 	PermProfileReadSelf,
 	PermProfileUpdateSelf,
 	PermProfileChangePassword,

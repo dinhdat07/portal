@@ -10,7 +10,8 @@ type Role struct {
 	ID          uuid.UUID          `gorm:"type:uuid;primaryKey"`
 	Code        constants.RoleCode `gorm:"size:50;uniqueIndex;not null"`
 	Name        string             `gorm:"size:100;not null"`
-	Permissions []Permission       `gorm:"many2many:role_permissions;"`
+	IsSystem    bool               `gorm:"not null;default:false"`
+	Permissions []Permission       `gorm:"many2many:role_permissions;constraint:OnDelete:CASCADE;"`
 }
 
 type RolePermission struct {

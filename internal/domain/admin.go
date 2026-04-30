@@ -49,3 +49,8 @@ type UpdateUserInput struct {
 	LastName  *string
 	DOB       *time.Time
 }
+
+type CreateRoleInput struct {
+	Code constants.RoleCode
+	Name string
+}

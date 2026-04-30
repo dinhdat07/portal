@@ -10,6 +10,38 @@ func (e *AppError) Error() string {
 }
 
 var (
+	ErrRoleNotFound = &AppError{
+		Code:    "role_not_found",
+		Message: "Role not found",
+	}
+
+	ErrRoleCodeExists = &AppError{
+		Code:    "role_code_exists",
+		Message: "Role code already exists",
+	}
+
+	ErrRoleInUse = &AppError{
+		Code:    "role_in_use",
+		Message: "Role is assigned to users",
+	}
+
+	ErrInvalidReplacementRole = &AppError{
+		Code:    "invalid_replacement_role",
+		Message: "Invalid replacement role",
+	}
+
+	ErrCannotModifySystemRole = &AppError{
+		Code:    "cannot_modify_system_role",
+		Message: "System role cannot be modified",
+	}
+
+	ErrPermissionNotFound = &AppError{
+		Code:    "permission_not_found",
+		Message: "Permission not found",
+	}
+)
+
+var (
 	ErrInvalidCredentials = &AppError{
 		Code:    "invalid_credentials",
 		Message: "Email/username or password is incorrect",

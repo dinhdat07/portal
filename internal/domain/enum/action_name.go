@@ -26,6 +26,15 @@ const (
 	ActionAdminDeleteUser  ActionName = "ADMIN_DELETE_USER"
 	ActionAdminRestoreUser ActionName = "ADMIN_RESTORE_USER"
 	ActionAdminAssignRole  ActionName = "ADMIN_ASSIGN_ROLE"
+
+	ActionCreateRole       ActionName = "ADMIN_CREATE_ROLE"
+	ActionUpdateRole       ActionName = "ADMIN_UPDATE_ROLE"
+	ActionDeleteRole       ActionName = "ADMIN_DELETE_ROLE"
+	ActionListRoles        ActionName = "ADMIN_LIST_ROLES"
+	ActionAssignPermission ActionName = "ADMIN_ASSIGN_PERMISSION_TO_ROLE"
+	ActionRemovePermission ActionName = "ADMIN_REMOVE_PERMISSION_FROM_ROLE"
+
+	ActionListPermissions ActionName = "ADMIN_LIST_PERMISSIONS"
 )
 
 func (a ActionName) IsValid() bool {

@@ -19,6 +19,10 @@ func NewGormRoleRepository(db *gorm.DB) *GormRoleRepository {
 	return &GormRoleRepository{db: db}
 }
 
+func (r *GormRoleRepository) Create(ctx context.Context, role *models.Role) error {
+	return r.getDB(ctx).Create(role).Error
+}
+
 func (r *GormRoleRepository) FindByCode(ctx context.Context, code constants.RoleCode) (*models.Role, error) {
 	var role models.Role
 
@@ -94,6 +98,12 @@ func (r *GormRoleRepository) RemovePermission(ctx context.Context, roleID uuid.U
 	return r.getDB(ctx).
 		Where("role_id = ? AND permission_id = ?", roleID, permID).
 		Delete(&models.RolePermission{}).Error
+}
+
+func (r *GormRoleRepository) Delete(ctx context.Context, id uuid.UUID) error {
+	return r.getDB(ctx).
+		Where("id = ?", id).
+		Delete(&models.Role{}).Error
 }
 
 func (r *GormRoleRepository) getDB(ctx context.Context) *gorm.DB {

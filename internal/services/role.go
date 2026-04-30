@@ -1,0 +1,251 @@
+package services
+
+import (
+	"context"
+	"errors"
+	"portal-system/internal/domain"
+	"portal-system/internal/domain/enum"
+	"portal-system/internal/models"
+	"portal-system/internal/repositories"
+
+	"github.com/google/uuid"
+)
+
+type RoleService interface {
+	CreateRole(ctx context.Context, meta *domain.AuditMeta, actor *domain.AuditUser, in domain.CreateRoleInput) (*models.Role, error)
+	ListRoles(ctx context.Context) ([]models.Role, error)
+	AssignPermission(ctx context.Context, meta *domain.AuditMeta, actor *domain.AuditUser, roleID uuid.UUID, permID uuid.UUID) error
+	RemovePermission(ctx context.Context, meta *domain.AuditMeta, actor *domain.AuditUser, roleID uuid.UUID, permID uuid.UUID) error
+	DeleteRole(ctx context.Context, meta *domain.AuditMeta, actor *domain.AuditUser, roleID uuid.UUID, replaceRoleID *uuid.UUID) error
+}
+
+type RoleServiceDeps struct {
+	RoleRepo       repositories.RoleRepository
+	PermissionRepo repositories.PermissionRepository
+	UserRepo       repositories.UserRepository
+	TxManager      repositories.TxManager
+	AuditLogger    AuditLogger
+}
+
+type roleService struct {
+	roleRepo       repositories.RoleRepository
+	permissionRepo repositories.PermissionRepository
+	userRepo       repositories.UserRepository
+	txManager      repositories.TxManager
+	auditLogger    AuditLogger
+}
+
+func NewRoleService(deps RoleServiceDeps) *roleService {
+	return &roleService{
+		roleRepo:       deps.RoleRepo,
+		permissionRepo: deps.PermissionRepo,
+		userRepo:       deps.UserRepo,
+		txManager:      deps.TxManager,
+		auditLogger:    deps.AuditLogger,
+	}
+}
+
+func (s *roleService) CreateRole(ctx context.Context, meta *domain.AuditMeta, actor *domain.AuditUser, in domain.CreateRoleInput) (*models.Role, error) {
+	if in.Code == "" || in.Name == "" {
+		return nil, ErrInvalidInput
+	}
+
+	existing, err := s.roleRepo.FindByCode(ctx, in.Code)
+	if err != nil && !errors.Is(err, repositories.ErrNotFound) {
+		return nil, ErrInternalServer
+	}
+	if existing != nil {
+		return nil, ErrRoleCodeExists
+	}
+
+	role := &models.Role{
+		ID:       uuid.New(),
+		Code:     in.Code,
+		Name:     in.Name,
+		IsSystem: false,
+	}
+
+	err = s.txManager.WithTx(ctx, func(ctx context.Context) error {
+		if err := s.roleRepo.Create(ctx, role); err != nil {
+			return ErrInternalServer
+		}
+
+		return s.auditLogger.LogWithMetadata(
+			ctx,
+			meta,
+			enum.ActionCreateRole,
+			actor,
+			nil,
+			map[string]any{
+				"role_id":   role.ID,
+				"role_code": role.Code,
+				"role_name": role.Name,
+			},
+		)
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return role, nil
+}
+
+func (s *roleService) ListRoles(ctx context.Context) ([]models.Role, error) {
+	roles, err := s.roleRepo.List(ctx)
+	if err != nil {
+		return nil, ErrInternalServer
+	}
+	return roles, nil
+}
+
+func (s *roleService) AssignPermission(ctx context.Context, meta *domain.AuditMeta, actor *domain.AuditUser, roleID uuid.UUID, permID uuid.UUID) error {
+	return s.txManager.WithTx(ctx, func(ctx context.Context) error {
+		role, err := s.roleRepo.FindByID(ctx, roleID)
+		if err != nil {
+			if errors.Is(err, repositories.ErrNotFound) {
+				return ErrRoleNotFound
+			}
+			return ErrInternalServer
+		}
+
+		perm, err := s.permissionRepo.FindByID(ctx, permID)
+		if err != nil {
+			if errors.Is(err, repositories.ErrNotFound) {
+				return ErrPermissionNotFound
+			}
+			return ErrInternalServer
+		}
+
+		if role.IsSystem {
+			return ErrCannotModifySystemRole
+		}
+
+		if err := s.roleRepo.AssignPermission(ctx, roleID, permID); err != nil {
+			return ErrInternalServer
+		}
+
+		return s.auditLogger.LogWithMetadata(
+			ctx,
+			meta,
+			enum.ActionAssignPermission,
+			actor,
+			nil,
+			map[string]any{
+				"role_id":         role.ID,
+				"role_code":       role.Code,
+				"role_name":       role.Name,
+				"permission_id":   perm.ID,
+				"permission_code": perm.Code,
+			},
+		)
+	})
+}
+
+func (s *roleService) RemovePermission(ctx context.Context, meta *domain.AuditMeta, actor *domain.AuditUser, roleID uuid.UUID, permID uuid.UUID) error {
+	return s.txManager.WithTx(ctx, func(ctx context.Context) error {
+		role, err := s.roleRepo.FindByID(ctx, roleID)
+		if err != nil {
+			if errors.Is(err, repositories.ErrNotFound) {
+				return ErrRoleNotFound
+			}
+			return ErrInternalServer
+		}
+
+		perm, err := s.permissionRepo.FindByID(ctx, permID)
+		if err != nil {
+			if errors.Is(err, repositories.ErrNotFound) {
+				return ErrPermissionNotFound
+			}
+			return ErrInternalServer
+		}
+
+		if role.IsSystem {
+			return ErrCannotModifySystemRole
+		}
+
+		if err := s.roleRepo.RemovePermission(ctx, roleID, permID); err != nil {
+			return ErrInternalServer
+		}
+
+		return s.auditLogger.LogWithMetadata(
+			ctx,
+			meta,
+			enum.ActionRemovePermission,
+			actor,
+			nil,
+			map[string]any{
+				"role_id":         role.ID,
+				"role_code":       role.Code,
+				"role_name":       role.Name,
+				"permission_id":   perm.ID,
+				"permission_code": perm.Code,
+			},
+		)
+	})
+}
+
+func (s *roleService) DeleteRole(ctx context.Context, meta *domain.AuditMeta, actor *domain.AuditUser, roleID uuid.UUID, replaceRoleID *uuid.UUID) error {
+	role, err := s.roleRepo.FindByID(ctx, roleID)
+	if err != nil {
+		if errors.Is(err, repositories.ErrNotFound) {
+			return ErrRoleNotFound
+		}
+		return ErrInternalServer
+	}
+
+	if role.IsSystem {
+		return ErrCannotModifySystemRole
+	}
+
+	used, err := s.userRepo.ExistsByRoleIDUnscoped(ctx, roleID)
+	if err != nil {
+		return ErrInternalServer
+	}
+
+	if used && replaceRoleID == nil {
+		return ErrRoleInUse
+	}
+
+	return s.txManager.WithTx(ctx, func(ctx context.Context) error {
+		if replaceRoleID != nil {
+			if *replaceRoleID == roleID {
+				return ErrInvalidReplacementRole
+			}
+
+			_, err := s.roleRepo.FindByID(ctx, *replaceRoleID)
+			if err != nil {
+				if errors.Is(err, repositories.ErrNotFound) {
+					return ErrInvalidReplacementRole
+				}
+				return ErrInternalServer
+			}
+
+			if err := s.userRepo.UpdateRoleByRoleIDUnscoped(ctx, roleID, *replaceRoleID); err != nil {
+				return ErrInternalServer
+			}
+		}
+
+		if err := s.roleRepo.Delete(ctx, roleID); err != nil {
+			return ErrInternalServer
+		}
+
+		data := map[string]any{
+			"role_id":   role.ID,
+			"role_code": role.Code,
+			"role_name": role.Name,
+		}
+
+		if replaceRoleID != nil {
+			data["replacement_role_id"] = *replaceRoleID
+		}
+
+		return s.auditLogger.LogWithMetadata(
+			ctx,
+			meta,
+			enum.ActionDeleteRole,
+			actor,
+			nil,
+			data,
+		)
+	})
+}

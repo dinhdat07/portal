@@ -38,6 +38,19 @@ func (r *GormUserRepository) FindByID(ctx context.Context, id uuid.UUID) (*model
 	return &user, nil
 }
 
+func (r *GormUserRepository) ExistsByRoleIDUnscoped(ctx context.Context, roleID uuid.UUID) (bool, error) {
+	var user models.User
+	err := r.getDB(ctx).Unscoped().First(&user, "role_id = ?", roleID).Error
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return false, nil
+		}
+		return false, err
+	}
+
+	return true, nil
+}
+
 func (r *GormUserRepository) FindByIDUnscoped(ctx context.Context, id uuid.UUID) (*models.User, error) {
 	var user models.User
 	err := r.getDB(ctx).Preload("Role").Unscoped().First(&user, "id = ?", id).Error
@@ -113,6 +126,22 @@ func (r *GormUserRepository) UpdateRole(ctx context.Context, id uuid.UUID, roleI
 		Model(&models.User{}).
 		Where("id = ?", id).
 		Update("role_id", roleID)
+	if result.Error != nil {
+		return result.Error
+	}
+	if result.RowsAffected == 0 {
+		return repositories.ErrNotFound
+	}
+	return nil
+}
+
+func (r *GormUserRepository) UpdateRoleByRoleIDUnscoped(ctx context.Context, oldRoleID uuid.UUID, newRoleID uuid.UUID) error {
+	result := r.getDB(ctx).
+		Unscoped().
+		Model(&models.User{}).
+		Where("role_id = ?", oldRoleID).
+		Update("role_id", newRoleID)
+
 	if result.Error != nil {
 		return result.Error
 	}
