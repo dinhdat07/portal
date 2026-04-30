@@ -356,8 +356,8 @@ func (_c *TokenIssuer_Parse_Call) Run(run func(tokenString string)) *TokenIssuer
 	return _c
 }
 
-func (_c *TokenIssuer_Parse_Call) Return(claims *services.TokenClaims, err error) *TokenIssuer_Parse_Call {
-	_c.Call.Return(claims, err)
+func (_c *TokenIssuer_Parse_Call) Return(tokenClaims *services.TokenClaims, err error) *TokenIssuer_Parse_Call {
+	_c.Call.Return(tokenClaims, err)
 	return _c
 }
 

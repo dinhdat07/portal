@@ -18,6 +18,10 @@ import (
 var testDB *gorm.DB
 
 func TestMain(m *testing.M) {
+	os.Exit(runTestMain(m))
+}
+
+func runTestMain(m *testing.M) int {
 	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Minute)
 	defer cancel()
 
@@ -31,27 +35,27 @@ func TestMain(m *testing.M) {
 	)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "start postgres test container: %v\n", err)
-		os.Exit(1)
+		return 1
 	}
 
 	dsn, err := container.ConnectionString(ctx, "sslmode=disable")
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "postgres connection string: %v\n", err)
 		_ = container.Terminate(context.Background())
-		os.Exit(1)
+		return 1
 	}
 
 	testDB, err = gorm.Open(pgdriver.Open(dsn), &gorm.Config{})
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "open gorm db: %v\n", err)
 		_ = container.Terminate(context.Background())
-		os.Exit(1)
+		return 1
 	}
 
 	if err := bootstrap.AutoMigrate(testDB); err != nil {
 		fmt.Fprintf(os.Stderr, "auto migrate test db: %v\n", err)
 		_ = container.Terminate(context.Background())
-		os.Exit(1)
+		return 1
 	}
 
 	code := m.Run()
@@ -61,7 +65,7 @@ func TestMain(m *testing.M) {
 	}
 	_ = container.Terminate(context.Background())
 
-	os.Exit(code)
+	return code
 }
 
 func newTestTx(t *testing.T) (context.Context, *gorm.DB) {

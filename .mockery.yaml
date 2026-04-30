@@ -8,14 +8,6 @@ packages:
       filename: "{{.InterfaceName | snakecase}}.go"
       structname: "{{.InterfaceName}}"
       all: true
-    interfaces:
-      AuditLogRepository: {}
-      AuthSessionRepository: {}
-      RefreshTokenRepository: {}
-      RoleRepository: {}
-      TxManager: {}
-      UserRepository: {}
-      UserTokenRepository: {}
 
   portal-system/internal/services:
     config:
@@ -23,11 +15,4 @@ packages:
       pkgname: servicesmocks
       filename: "{{.InterfaceName | snakecase}}.go"
       structname: "{{.InterfaceName}}"
-    interfaces:
-      AdminService: {}
-      AuditLogger: {}
-      AuthService: {}
-      EmailSender: {}
-      SessionRevocationStore: {}
-      TokenIssuer: {}
-      UserService: {}
+      all: true

@@ -95,6 +95,43 @@ func newAuthServiceForTest(deps authServiceTestDeps) AuthService {
 	})
 }
 
+func newPermissionServiceForTest(
+	repo *repositoriesmocks.PermissionRepository,
+) PermissionService {
+	return NewPermissionService(repo)
+}
+
+func newRoleServiceForTest(
+	tx *repositoriesmocks.TxManager,
+	auditLogger *servicesmocks.AuditLogger,
+	roleRepo *repositoriesmocks.RoleRepository,
+	permRepo *repositoriesmocks.PermissionRepository,
+	userRepo *repositoriesmocks.UserRepository,
+) RoleService {
+	if tx == nil {
+		tx = newPassthroughTxManager()
+	}
+	if auditLogger == nil {
+		auditLogger = newAuditLoggerMock()
+	}
+	if roleRepo == nil {
+		roleRepo = &repositoriesmocks.RoleRepository{}
+	}
+	if permRepo == nil {
+		permRepo = &repositoriesmocks.PermissionRepository{}
+	}
+	if userRepo == nil {
+		userRepo = &repositoriesmocks.UserRepository{}
+	}
+	return NewRoleService(RoleServiceDeps{
+		RoleRepo:       roleRepo,
+		PermissionRepo: permRepo,
+		UserRepo:       userRepo,
+		TxManager:      tx,
+		AuditLogger:    auditLogger,
+	})
+}
+
 func newPassthroughTxManager() *repositoriesmocks.TxManager {
 	tx := &repositoriesmocks.TxManager{}
 	tx.EXPECT().WithTx(mock.Anything, mock.Anything).RunAndReturn(func(ctx context.Context, fn func(context.Context) error) error {

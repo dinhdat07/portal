@@ -21,7 +21,8 @@ func TestGormTxManager_WithTx(t *testing.T) {
 		roleCode := constants.RoleCode("tx_commit_user")
 
 		err := manager.WithTx(context.Background(), func(ctx context.Context) error {
-			tx := ctx.Value(txKey{}).(*gorm.DB)
+			tx, ok := ctx.Value(txKey{}).(*gorm.DB)
+			require.True(t, ok)
 			role := mustCreateRole(t, tx, roleCode)
 			user := &models.User{
 				Email:     email,
@@ -52,7 +53,8 @@ func TestGormTxManager_WithTx(t *testing.T) {
 		roleCode := constants.RoleCode("tx_rollback_admin")
 
 		err := manager.WithTx(context.Background(), func(ctx context.Context) error {
-			tx := ctx.Value(txKey{}).(*gorm.DB)
+			tx, ok := ctx.Value(txKey{}).(*gorm.DB)
+			require.True(t, ok)
 			role := mustCreateRole(t, tx, roleCode)
 			user := &models.User{
 				Email:     email,

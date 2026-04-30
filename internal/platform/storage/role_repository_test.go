@@ -76,6 +76,41 @@ func TestGormRoleRepository_List(t *testing.T) {
 	})
 }
 
+func TestGormRoleRepository_CreateDelete(t *testing.T) {
+	t.Run("create success", func(t *testing.T) {
+		ctx, tx := newTestTx(t)
+		repo := NewGormRoleRepository(testDB)
+		role := &models.Role{
+			ID:       uuid.New(),
+			Code:     constants.RoleCode("ROLE_CODE_MANAGER"),
+			Name:     "Manager",
+			IsSystem: false,
+		}
+
+		err := repo.Create(ctx, role)
+		require.NoError(t, err)
+
+		var stored models.Role
+		require.NoError(t, tx.First(&stored, "id = ?", role.ID).Error)
+		require.Equal(t, role.Code, stored.Code)
+		require.Equal(t, role.Name, stored.Name)
+		require.False(t, stored.IsSystem)
+	})
+
+	t.Run("delete success", func(t *testing.T) {
+		ctx, tx := newTestTx(t)
+		repo := NewGormRoleRepository(testDB)
+		role := mustCreateRole(t, tx, constants.RoleCode("ROLE_CODE_TEMP"))
+
+		err := repo.Delete(ctx, role.ID)
+		require.NoError(t, err)
+
+		found, err := repo.FindByID(ctx, role.ID)
+		require.Nil(t, found)
+		require.ErrorIs(t, err, repositories.ErrNotFound)
+	})
+}
+
 func TestGormRoleRepository_Permissions(t *testing.T) {
 	t.Run("get with permissions success", func(t *testing.T) {
 		ctx, tx := newTestTx(t)

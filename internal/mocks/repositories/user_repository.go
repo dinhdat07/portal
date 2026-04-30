@@ -160,6 +160,72 @@ func (_c *UserRepository_Delete_Call) RunAndReturn(run func(ctx context.Context,
 	return _c
 }
 
+// ExistsByRoleIDUnscoped provides a mock function for the type UserRepository
+func (_mock *UserRepository) ExistsByRoleIDUnscoped(ctx context.Context, roleID uuid.UUID) (bool, error) {
+	ret := _mock.Called(ctx, roleID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for ExistsByRoleIDUnscoped")
+	}
+
+	var r0 bool
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, uuid.UUID) (bool, error)); ok {
+		return returnFunc(ctx, roleID)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, uuid.UUID) bool); ok {
+		r0 = returnFunc(ctx, roleID)
+	} else {
+		r0 = ret.Get(0).(bool)
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context, uuid.UUID) error); ok {
+		r1 = returnFunc(ctx, roleID)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// UserRepository_ExistsByRoleIDUnscoped_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ExistsByRoleIDUnscoped'
+type UserRepository_ExistsByRoleIDUnscoped_Call struct {
+	*mock.Call
+}
+
+// ExistsByRoleIDUnscoped is a helper method to define mock.On call
+//   - ctx context.Context
+//   - roleID uuid.UUID
+func (_e *UserRepository_Expecter) ExistsByRoleIDUnscoped(ctx interface{}, roleID interface{}) *UserRepository_ExistsByRoleIDUnscoped_Call {
+	return &UserRepository_ExistsByRoleIDUnscoped_Call{Call: _e.mock.On("ExistsByRoleIDUnscoped", ctx, roleID)}
+}
+
+func (_c *UserRepository_ExistsByRoleIDUnscoped_Call) Run(run func(ctx context.Context, roleID uuid.UUID)) *UserRepository_ExistsByRoleIDUnscoped_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 uuid.UUID
+		if args[1] != nil {
+			arg1 = args[1].(uuid.UUID)
+		}
+		run(
+			arg0,
+			arg1,
+		)
+	})
+	return _c
+}
+
+func (_c *UserRepository_ExistsByRoleIDUnscoped_Call) Return(b bool, err error) *UserRepository_ExistsByRoleIDUnscoped_Call {
+	_c.Call.Return(b, err)
+	return _c
+}
+
+func (_c *UserRepository_ExistsByRoleIDUnscoped_Call) RunAndReturn(run func(ctx context.Context, roleID uuid.UUID) (bool, error)) *UserRepository_ExistsByRoleIDUnscoped_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // FindByEmail provides a mock function for the type UserRepository
 func (_mock *UserRepository) FindByEmail(ctx context.Context, email string) (*models.User, error) {
 	ret := _mock.Called(ctx, email)
@@ -799,6 +865,69 @@ func (_c *UserRepository_UpdateRole_Call) Return(err error) *UserRepository_Upda
 }
 
 func (_c *UserRepository_UpdateRole_Call) RunAndReturn(run func(ctx context.Context, id uuid.UUID, roleID uuid.UUID) error) *UserRepository_UpdateRole_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// UpdateRoleByRoleIDUnscoped provides a mock function for the type UserRepository
+func (_mock *UserRepository) UpdateRoleByRoleIDUnscoped(ctx context.Context, oldRoleID uuid.UUID, newRoleID uuid.UUID) error {
+	ret := _mock.Called(ctx, oldRoleID, newRoleID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for UpdateRoleByRoleIDUnscoped")
+	}
+
+	var r0 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, uuid.UUID, uuid.UUID) error); ok {
+		r0 = returnFunc(ctx, oldRoleID, newRoleID)
+	} else {
+		r0 = ret.Error(0)
+	}
+	return r0
+}
+
+// UserRepository_UpdateRoleByRoleIDUnscoped_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'UpdateRoleByRoleIDUnscoped'
+type UserRepository_UpdateRoleByRoleIDUnscoped_Call struct {
+	*mock.Call
+}
+
+// UpdateRoleByRoleIDUnscoped is a helper method to define mock.On call
+//   - ctx context.Context
+//   - oldRoleID uuid.UUID
+//   - newRoleID uuid.UUID
+func (_e *UserRepository_Expecter) UpdateRoleByRoleIDUnscoped(ctx interface{}, oldRoleID interface{}, newRoleID interface{}) *UserRepository_UpdateRoleByRoleIDUnscoped_Call {
+	return &UserRepository_UpdateRoleByRoleIDUnscoped_Call{Call: _e.mock.On("UpdateRoleByRoleIDUnscoped", ctx, oldRoleID, newRoleID)}
+}
+
+func (_c *UserRepository_UpdateRoleByRoleIDUnscoped_Call) Run(run func(ctx context.Context, oldRoleID uuid.UUID, newRoleID uuid.UUID)) *UserRepository_UpdateRoleByRoleIDUnscoped_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 uuid.UUID
+		if args[1] != nil {
+			arg1 = args[1].(uuid.UUID)
+		}
+		var arg2 uuid.UUID
+		if args[2] != nil {
+			arg2 = args[2].(uuid.UUID)
+		}
+		run(
+			arg0,
+			arg1,
+			arg2,
+		)
+	})
+	return _c
+}
+
+func (_c *UserRepository_UpdateRoleByRoleIDUnscoped_Call) Return(err error) *UserRepository_UpdateRoleByRoleIDUnscoped_Call {
+	_c.Call.Return(err)
+	return _c
+}
+
+func (_c *UserRepository_UpdateRoleByRoleIDUnscoped_Call) RunAndReturn(run func(ctx context.Context, oldRoleID uuid.UUID, newRoleID uuid.UUID) error) *UserRepository_UpdateRoleByRoleIDUnscoped_Call {
 	_c.Call.Return(run)
 	return _c
 }

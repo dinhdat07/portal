@@ -155,6 +155,34 @@ func TestGormUserRepository_FindByIDUnscoped(t *testing.T) {
 	})
 }
 
+func TestGormUserRepository_ExistsByRoleIDUnscoped(t *testing.T) {
+	t.Run("true for soft deleted user", func(t *testing.T) {
+		ctx, tx := newTestTx(t)
+		repo := NewGormUserRepository(testDB)
+		role := mustCreateRole(t, tx, constants.RoleCodeUser)
+		user := mustCreateUser(t, tx, role.ID, "exists-role@example.com", "existsrole")
+
+		require.NoError(t, tx.Model(&models.User{}).Where("id = ?", user.ID).Updates(map[string]interface{}{
+			"deleted_at": time.Now(),
+			"deleted_by": uuid.New(),
+			"status":     enum.StatusDeleted,
+		}).Error)
+
+		exists, err := repo.ExistsByRoleIDUnscoped(ctx, role.ID)
+		require.NoError(t, err)
+		require.True(t, exists)
+	})
+
+	t.Run("false when no user", func(t *testing.T) {
+		ctx, _ := newTestTx(t)
+		repo := NewGormUserRepository(testDB)
+
+		exists, err := repo.ExistsByRoleIDUnscoped(ctx, uuid.New())
+		require.NoError(t, err)
+		require.False(t, exists)
+	})
+}
+
 func TestGormUserRepository_FindByUsername(t *testing.T) {
 	t.Run("success", func(t *testing.T) {
 		ctx, tx := newTestTx(t)
@@ -252,6 +280,37 @@ func TestGormUserRepository_UpdateRole(t *testing.T) {
 		repo := NewGormUserRepository(testDB)
 
 		err := repo.UpdateRole(ctx, uuid.New(), uuid.New())
+		require.ErrorIs(t, err, repositories.ErrNotFound)
+	})
+}
+
+func TestGormUserRepository_UpdateRoleByRoleIDUnscoped(t *testing.T) {
+	t.Run("success updates soft deleted users too", func(t *testing.T) {
+		ctx, tx := newTestTx(t)
+		repo := NewGormUserRepository(testDB)
+		oldRole := mustCreateRole(t, tx, constants.RoleCodeUser)
+		newRole := mustCreateRole(t, tx, constants.RoleCodeAdmin)
+		user := mustCreateUser(t, tx, oldRole.ID, "update-role-bulk@example.com", "uprolebulk")
+
+		require.NoError(t, tx.Model(&models.User{}).Where("id = ?", user.ID).Updates(map[string]interface{}{
+			"deleted_at": time.Now(),
+			"deleted_by": uuid.New(),
+			"status":     enum.StatusDeleted,
+		}).Error)
+
+		err := repo.UpdateRoleByRoleIDUnscoped(ctx, oldRole.ID, newRole.ID)
+		require.NoError(t, err)
+
+		var updated models.User
+		require.NoError(t, tx.Unscoped().First(&updated, "id = ?", user.ID).Error)
+		require.Equal(t, newRole.ID, updated.RoleID)
+	})
+
+	t.Run("not found", func(t *testing.T) {
+		ctx, _ := newTestTx(t)
+		repo := NewGormUserRepository(testDB)
+
+		err := repo.UpdateRoleByRoleIDUnscoped(ctx, uuid.New(), uuid.New())
 		require.ErrorIs(t, err, repositories.ErrNotFound)
 	})
 }
