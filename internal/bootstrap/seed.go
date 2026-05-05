@@ -93,14 +93,15 @@ func SeedPermissions(db *gorm.DB) error {
 	for _, perm := range constants.AllPermissions {
 		code := string(perm)
 
+		var perm models.Permission
 		err := db.
-			Where(models.Permission{Code: code}).
-			Assign(models.Permission{Name: code}).
-			FirstOrCreate(&models.Permission{
+			Where("code = ?", code).
+			Attrs(models.Permission{
 				ID:   uuid.New(),
 				Code: code,
-				Name: code,
-			}).Error
+			}).
+			Assign(models.Permission{Name: code}).
+			FirstOrCreate(&perm).Error
 		if err != nil {
 			return err
 		}
