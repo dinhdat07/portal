@@ -16,7 +16,7 @@ type Infra struct {
 	RevocationStore services.SessionRevocationStore
 }
 
-func newInfra(cfg *config.Config, smtpCfg *config.SMTPConfig, rdb *redis.Client) *Infra {
+func newInfra(cfg *config.Config, smtpCfg *config.SMTPConfig, rdb redis.UniversalClient) *Infra {
 	return &Infra{
 		EmailService:    email.NewSMTPEmailService(*smtpCfg),
 		TokenManager:    token.New(cfg.JWTSecret, cfg.JWTAccessTTL),

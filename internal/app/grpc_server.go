@@ -19,8 +19,10 @@ func (a *App) NewGRPCServer() *grpc.Server {
 	s := grpc.NewServer(
 		grpc.ChainUnaryInterceptor(
 			interceptor.RecoveryInterceptor(),
+			interceptor.PreAuthRateLimitInterceptor(a.RateLimiter, a.RateLimitKeyBuilder, a.RateLimitConfig),
 			interceptor.ValidationInterceptor(a.Validator),
 			interceptor.AuthenticationInterceptor(a.Authenticator, publicMethods),
+			interceptor.PostAuthRateLimitInterceptor(a.RateLimiter, a.RateLimitKeyBuilder, a.RateLimitConfig),
 			interceptor.PermissionInterceptor(a.Authorizer, methodPermissions),
 		),
 	)

@@ -26,7 +26,7 @@ func NewClient(cfg *config.RedisConfig) *redis.Client {
 	})
 }
 
-func Ping(ctx context.Context, rdb *redis.Client) error {
+func Ping(ctx context.Context, rdb redis.UniversalClient) error {
 	if rdb == nil {
 		return nil
 	}

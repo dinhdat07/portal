@@ -10,10 +10,10 @@ import (
 )
 
 type RedisSessionRevocationStore struct {
-	rdb *redis.Client
+	rdb redis.UniversalClient
 }
 
-func NewRedisSessionRevocationStore(rdb *redis.Client) *RedisSessionRevocationStore {
+func NewRedisSessionRevocationStore(rdb redis.UniversalClient) *RedisSessionRevocationStore {
 	return &RedisSessionRevocationStore{rdb: rdb}
 }
 
