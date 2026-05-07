@@ -158,19 +158,27 @@ func (svc *userService) UpdateProfile(ctx context.Context, meta *domain.AuditMet
 	}
 
 	// check duplicate username
-	if input.Username != nil && *input.Username != user.Username {
-		existing, err := svc.userRepo.FindByUsername(ctx, *input.Username)
-		if err != nil {
+	if input.Username != nil {
+		username := normalizeUsername(*input.Username)
+		if err := validateNormalizedUsername(username); err != nil {
 			return nil, err
 		}
-		if existing != nil {
-			return nil, ErrUsernameExists
+		if username != normalizeUsername(user.Username) {
+			existing, err := svc.userRepo.FindByUsername(ctx, username)
+			if err != nil {
+				return nil, err
+			}
+			if existing != nil && existing.ID != user.ID {
+				return nil, ErrUsernameExists
+			}
 		}
-		changes["username"] = map[string]any{
-			"old": user.Username,
-			"new": *input.Username,
+		if username != user.Username {
+			changes["username"] = map[string]any{
+				"old": user.Username,
+				"new": username,
+			}
+			user.Username = username
 		}
-		user.Username = *input.Username
 	}
 
 	err = svc.txManager.WithTx(ctx, func(txCtx context.Context) error {

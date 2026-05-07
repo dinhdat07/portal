@@ -120,6 +120,49 @@ func TestAuthService_Register_Table(t *testing.T) {
 	}
 }
 
+func TestAuthService_Register_NormalizesIdentity(t *testing.T) {
+	meta := &domain.AuditMeta{IPAddress: "127.0.0.1", UserAgent: "unit-test"}
+	dob := time.Date(1999, 1, 1, 0, 0, 0, 0, time.UTC)
+	role := &models.Role{ID: uuid.New(), Code: constants.RoleCodeUser}
+
+	userRepo := repositoriesmocks.NewUserRepository(t)
+	userRepo.EXPECT().FindByEmail(mock.Anything, "john@example.com").Return((*models.User)(nil), nil)
+	userRepo.EXPECT().FindByUsername(mock.Anything, "john").Return((*models.User)(nil), nil)
+
+	var createdUser *models.User
+	userRepo.EXPECT().Create(mock.Anything, mock.Anything).RunAndReturn(func(ctx context.Context, user *models.User) error {
+		createdUser = cloneUser(user)
+		user.ID = uuid.New()
+		return nil
+	})
+
+	tokenRepo := repositoriesmocks.NewUserTokenRepository(t)
+	tokenRepo.EXPECT().RevokeByUserAndType(mock.Anything, mock.Anything, enum.TokenTypeEmailVerification).Return(nil)
+	tokenRepo.EXPECT().Create(mock.Anything, mock.Anything).Return(nil)
+
+	roleRepo := repositoriesmocks.NewRoleRepository(t)
+	roleRepo.EXPECT().FindByCode(mock.Anything, constants.RoleCodeUser).Return(role, nil)
+
+	email := servicesmocks.NewEmailSender(t)
+	email.EXPECT().SendVerificationEmail(mock.Anything, "john@example.com", "John", mock.Anything).Return(nil)
+
+	svc := newAuthServiceForTest(authServiceTestDeps{
+		auditLogger: newAuditLoggerMock(),
+		userRepo:    userRepo,
+		tokenRepo:   tokenRepo,
+		roleRepo:    roleRepo,
+		email:       email,
+	})
+
+	err := svc.Register(context.Background(), meta, " John@Example.COM ", " John ", "Passw0rd!", "John", "Doe", dob)
+	if err != nil {
+		t.Fatalf("expected nil error, got %v", err)
+	}
+	if createdUser == nil || createdUser.Email != "john@example.com" || createdUser.Username != "john" {
+		t.Fatalf("expected normalized user identity, got %#v", createdUser)
+	}
+}
+
 func TestAuthService_LogIn_Table(t *testing.T) {
 	now := time.Now()
 	hashed, hashErr := bcrypt.GenerateFromPassword([]byte("Passw0rd!"), bcrypt.DefaultCost)

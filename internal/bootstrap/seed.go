@@ -6,6 +6,7 @@ import (
 	"portal-system/internal/domain/constants"
 	"portal-system/internal/domain/enum"
 	"portal-system/internal/models"
+	"strings"
 	"time"
 
 	"github.com/google/uuid"
@@ -15,8 +16,10 @@ import (
 )
 
 func SeedAdmin(db *gorm.DB, cfg *config.Config) error {
+	adminEmail := strings.ToLower(strings.TrimSpace(cfg.AdminEmail))
+
 	var existing models.User
-	err := db.Where("email = ?", cfg.AdminEmail).First(&existing).Error
+	err := db.Where("email = ?", adminEmail).First(&existing).Error
 	if err == nil {
 		return nil
 	} else if err != gorm.ErrRecordNotFound {
@@ -37,7 +40,7 @@ func SeedAdmin(db *gorm.DB, cfg *config.Config) error {
 	}
 
 	admin := &models.User{
-		Email:           cfg.AdminEmail,
+		Email:           adminEmail,
 		Username:        "admin",
 		FirstName:       "System",
 		LastName:        "Admin",

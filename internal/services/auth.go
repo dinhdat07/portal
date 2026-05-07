@@ -85,6 +85,15 @@ func NewAuthService(deps AuthServiceDeps) *authService {
 }
 
 func (s *authService) Register(ctx context.Context, meta *domain.AuditMeta, email, username, password, firstName, lastName string, dob time.Time) error {
+	email = normalizeEmail(email)
+	username = normalizeUsername(username)
+	if err := validateNormalizedEmail(email); err != nil {
+		return err
+	}
+	if err := validateNormalizedUsername(username); err != nil {
+		return err
+	}
+
 	existing, err := s.userRepo.FindByEmail(ctx, email)
 	if err != nil {
 		return err
@@ -174,7 +183,7 @@ func (s *authService) LogIn(ctx context.Context, meta *domain.AuditMeta, identif
 	var user *models.User
 	var err error
 
-	identifier = strings.TrimSpace(strings.ToLower(identifier))
+	identifier = normalizeLoginIdentifier(identifier)
 
 	if isEmail(identifier) {
 		user, err = s.userRepo.FindByEmail(ctx, identifier)
@@ -310,6 +319,8 @@ func (s *authService) VerifyEmail(ctx context.Context, meta *domain.AuditMeta, r
 }
 
 func (s *authService) ResendVerification(ctx context.Context, meta *domain.AuditMeta, email string, tokenType enum.TokenType) error {
+	email = normalizeEmail(email)
+
 	user, err := s.userRepo.FindByEmail(ctx, email)
 	if err != nil {
 		return ErrUserNotFound
@@ -357,6 +368,7 @@ func (s *authService) ResendVerification(ctx context.Context, meta *domain.Audit
 }
 
 func (s *authService) ForgotPassword(ctx context.Context, meta *domain.AuditMeta, email string) error {
+	email = normalizeEmail(email)
 
 	user, err := s.userRepo.FindByEmail(ctx, email)
 	if err != nil {

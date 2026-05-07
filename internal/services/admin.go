@@ -123,6 +123,15 @@ func (svc *adminService) CreateUser(ctx context.Context, meta *domain.AuditMeta,
 		return nil, ErrInvalidInput
 	}
 
+	in.Email = normalizeEmail(in.Email)
+	in.Username = normalizeUsername(in.Username)
+	if err := validateNormalizedEmail(in.Email); err != nil {
+		return nil, err
+	}
+	if err := validateNormalizedUsername(in.Username); err != nil {
+		return nil, err
+	}
+
 	existingByEmail, err := svc.userRepo.FindByEmail(ctx, in.Email)
 	if err != nil {
 		return nil, ErrInternalServer

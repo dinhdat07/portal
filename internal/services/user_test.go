@@ -240,6 +240,48 @@ func TestUserService_UpdateProfile_Table(t *testing.T) {
 	}
 }
 
+func TestUserService_UpdateProfile_NormalizesCaseOnlyUsernameChange(t *testing.T) {
+	userID := uuid.New()
+	roleID := uuid.New()
+	meta := &domain.AuditMeta{IPAddress: "127.0.0.1", UserAgent: "unit-test"}
+	actor := &domain.AuditUser{ID: userID, RoleCode: constants.RoleCodeUser, Username: "alice", Email: "alice@example.com"}
+	inputUsername := " ALICE "
+
+	userRepo := repositoriesmocks.NewUserRepository(t)
+	userRepo.EXPECT().FindByID(mock.Anything, userID).Return(&models.User{
+		ID:       userID,
+		Username: "Alice",
+		Email:    "alice@example.com",
+		RoleID:   roleID,
+		Role:     models.Role{Code: constants.RoleCodeUser},
+	}, nil)
+
+	var updatedUsername string
+	userRepo.EXPECT().Update(mock.Anything, mock.Anything).RunAndReturn(func(ctx context.Context, user *models.User) error {
+		updatedUsername = user.Username
+		return nil
+	})
+
+	roleRepo := repositoriesmocks.NewRoleRepository(t)
+	roleRepo.EXPECT().FindByCode(mock.Anything, constants.RoleCodeAdmin).Return(&models.Role{ID: uuid.New(), Code: constants.RoleCodeAdmin}, nil)
+
+	svc := NewUserService(UserServiceDeps{
+		TxManager:   newPassthroughTxManager(),
+		AuditLogger: newAuditLoggerMock(),
+		RoleRepo:    roleRepo,
+		UserRepo:    userRepo,
+	})
+
+	user, err := svc.UpdateProfile(context.Background(), meta, actor, userID, domain.UpdateUserInput{Username: &inputUsername})
+	if err != nil {
+		t.Fatalf("expected nil error, got %v", err)
+	}
+	if user == nil || user.Username != "alice" || updatedUsername != "alice" {
+		t.Fatalf("expected username to be normalized to alice, got user=%#v updated=%q", user, updatedUsername)
+	}
+	userRepo.AssertNotCalled(t, "FindByUsername", mock.Anything, mock.Anything)
+}
+
 func TestUserService_GetProfile_UserNotFound(t *testing.T) {
 	userRepo := repositoriesmocks.NewUserRepository(t)
 	userRepo.EXPECT().FindByID(mock.Anything, mock.Anything).Return(nil, repositories.ErrNotFound)

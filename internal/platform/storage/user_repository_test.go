@@ -22,8 +22,8 @@ func TestGormUserRepository_Create(t *testing.T) {
 	role := mustCreateRole(t, tx, constants.RoleCodeUser)
 
 	user := &models.User{
-		Email:     "john@example.com",
-		Username:  "john",
+		Email:     " John@Example.COM ",
+		Username:  " John ",
 		FirstName: "John",
 		LastName:  "Doe",
 		RoleID:    role.ID,
@@ -37,8 +37,8 @@ func TestGormUserRepository_Create(t *testing.T) {
 	var stored models.User
 	err = tx.WithContext(context.Background()).First(&stored, "id = ?", user.ID).Error
 	require.NoError(t, err)
-	require.Equal(t, user.Email, stored.Email)
-	require.Equal(t, user.Username, stored.Username)
+	require.Equal(t, "john@example.com", stored.Email)
+	require.Equal(t, "john", stored.Username)
 }
 
 func TestGormUserRepository_Create_DuplicateEmail(t *testing.T) {
@@ -69,6 +69,60 @@ func TestGormUserRepository_Create_DuplicateEmail(t *testing.T) {
 	require.Error(t, err)
 }
 
+func TestGormUserRepository_Create_DuplicateIdentityCaseInsensitive(t *testing.T) {
+	t.Run("email", func(t *testing.T) {
+		ctx, tx := newTestTx(t)
+		repo := NewGormUserRepository(testDB)
+		role := mustCreateRole(t, tx, constants.RoleCodeUser)
+
+		existing := &models.User{
+			Email:     "john@example.com",
+			Username:  "john",
+			FirstName: "John",
+			LastName:  "Doe",
+			RoleID:    role.ID,
+			Status:    enum.StatusPending,
+		}
+		require.NoError(t, repo.Create(ctx, existing))
+
+		duplicateEmail := &models.User{
+			Email:     "JOHN@EXAMPLE.COM",
+			Username:  "john-2",
+			FirstName: "John",
+			LastName:  "Other",
+			RoleID:    role.ID,
+			Status:    enum.StatusPending,
+		}
+		require.Error(t, repo.Create(ctx, duplicateEmail))
+	})
+
+	t.Run("username", func(t *testing.T) {
+		ctx, tx := newTestTx(t)
+		repo := NewGormUserRepository(testDB)
+		role := mustCreateRole(t, tx, constants.RoleCodeUser)
+
+		existing := &models.User{
+			Email:     "john@example.com",
+			Username:  "john",
+			FirstName: "John",
+			LastName:  "Doe",
+			RoleID:    role.ID,
+			Status:    enum.StatusPending,
+		}
+		require.NoError(t, repo.Create(ctx, existing))
+
+		duplicateUsername := &models.User{
+			Email:     "john2@example.com",
+			Username:  "JOHN",
+			FirstName: "John",
+			LastName:  "Other",
+			RoleID:    role.ID,
+			Status:    enum.StatusPending,
+		}
+		require.Error(t, repo.Create(ctx, duplicateUsername))
+	})
+}
+
 func TestGormUserRepository_FindByEmail(t *testing.T) {
 	t.Run("success", func(t *testing.T) {
 		ctx, tx := newTestTx(t)
@@ -91,6 +145,18 @@ func TestGormUserRepository_FindByEmail(t *testing.T) {
 		found, err := repo.FindByEmail(ctx, "missing@example.com")
 		require.NoError(t, err)
 		require.Nil(t, found)
+	})
+
+	t.Run("case insensitive", func(t *testing.T) {
+		ctx, tx := newTestTx(t)
+		repo := NewGormUserRepository(testDB)
+		role := mustCreateRole(t, tx, constants.RoleCodeUser)
+		user := mustCreateUser(t, tx, role.ID, "MixedCase@Example.COM", "mixedemail")
+
+		found, err := repo.FindByEmail(ctx, " mixedcase@example.com ")
+		require.NoError(t, err)
+		require.NotNil(t, found)
+		require.Equal(t, user.ID, found.ID)
 	})
 }
 
@@ -205,6 +271,18 @@ func TestGormUserRepository_FindByUsername(t *testing.T) {
 		require.NoError(t, err)
 		require.Nil(t, found)
 	})
+
+	t.Run("case insensitive", func(t *testing.T) {
+		ctx, tx := newTestTx(t)
+		repo := NewGormUserRepository(testDB)
+		role := mustCreateRole(t, tx, constants.RoleCodeUser)
+		user := mustCreateUser(t, tx, role.ID, "mixeduser@example.com", "MixedUser")
+
+		found, err := repo.FindByUsername(ctx, " mixeduser ")
+		require.NoError(t, err)
+		require.NotNil(t, found)
+		require.Equal(t, user.ID, found.ID)
+	})
 }
 
 func TestGormUserRepository_Update(t *testing.T) {
@@ -217,7 +295,7 @@ func TestGormUserRepository_Update(t *testing.T) {
 		newDob := time.Date(1995, 6, 15, 0, 0, 0, 0, time.UTC)
 		user.FirstName = "Updated"
 		user.LastName = "Name"
-		user.Username = "updateduser"
+		user.Username = "UpdatedUser"
 		user.DOB = &newDob
 
 		err := repo.Update(ctx, user)

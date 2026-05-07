@@ -3,6 +3,7 @@ package storage
 import (
 	"context"
 	"errors"
+	"strings"
 	"time"
 
 	"portal-system/internal/domain"
@@ -23,6 +24,9 @@ func NewGormUserRepository(db *gorm.DB) *GormUserRepository {
 }
 
 func (r *GormUserRepository) Create(ctx context.Context, user *models.User) error {
+	user.Email = normalizeEmail(user.Email)
+	user.Username = normalizeUsername(user.Username)
+
 	return r.getDB(ctx).Create(user).Error
 }
 
@@ -65,8 +69,10 @@ func (r *GormUserRepository) FindByIDUnscoped(ctx context.Context, id uuid.UUID)
 
 func (r *GormUserRepository) FindByUsername(ctx context.Context, username string) (*models.User, error) {
 	var user models.User
+	username = normalizeUsername(username)
+
 	err := r.getDB(ctx).Preload("Role").
-		Where("username = ?", username).
+		Where("LOWER(TRIM(username)) = ?", username).
 		First(&user).Error
 
 	if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -81,8 +87,10 @@ func (r *GormUserRepository) FindByUsername(ctx context.Context, username string
 
 func (r *GormUserRepository) FindByEmail(ctx context.Context, email string) (*models.User, error) {
 	var user models.User
+	email = normalizeEmail(email)
+
 	err := r.getDB(ctx).Preload("Role").
-		Where("email = ?", email).
+		Where("LOWER(TRIM(email)) = ?", email).
 		First(&user).Error
 
 	if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -96,6 +104,8 @@ func (r *GormUserRepository) FindByEmail(ctx context.Context, email string) (*mo
 }
 
 func (r *GormUserRepository) Update(ctx context.Context, user *models.User) error {
+	user.Username = normalizeUsername(user.Username)
+
 	return r.getDB(ctx).
 		Model(user).
 		Updates(map[string]interface{}{
@@ -217,12 +227,12 @@ func (r *GormUserRepository) ListUsers(ctx context.Context, filter domain.UsersF
 		db = db.Unscoped()
 	}
 
-	if filter.Username != "" {
-		db = db.Where("username ILIKE ?", "%"+filter.Username+"%")
+	if username := strings.TrimSpace(filter.Username); username != "" {
+		db = db.Where("username ILIKE ?", "%"+username+"%")
 	}
 
-	if filter.Email != "" {
-		db = db.Where("email ILIKE ?", "%"+filter.Email+"%")
+	if email := strings.TrimSpace(filter.Email); email != "" {
+		db = db.Where("email ILIKE ?", "%"+email+"%")
 	}
 
 	if filter.FullName != "" {
@@ -264,4 +274,12 @@ func (r *GormUserRepository) getDB(ctx context.Context) *gorm.DB {
 		return tx.WithContext(ctx)
 	}
 	return r.db.WithContext(ctx)
+}
+
+func normalizeEmail(email string) string {
+	return strings.ToLower(strings.TrimSpace(email))
+}
+
+func normalizeUsername(username string) string {
+	return strings.ToLower(strings.TrimSpace(username))
 }

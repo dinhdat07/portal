@@ -290,6 +290,56 @@ func TestAdminService_CreateUser_Table(t *testing.T) {
 	}
 }
 
+func TestAdminService_CreateUser_NormalizesIdentity(t *testing.T) {
+	actor := &domain.AuditUser{ID: uuid.New(), RoleCode: constants.RoleCodeAdmin}
+	meta := &domain.AuditMeta{IPAddress: "127.0.0.1", UserAgent: "unit-test"}
+	role := &models.Role{ID: uuid.New(), Code: constants.RoleCodeUser}
+
+	tx := repositoriesmocks.NewTxManager(t)
+	tx.EXPECT().WithTx(mock.Anything, mock.Anything).RunAndReturn(func(ctx context.Context, fn func(context.Context) error) error {
+		return fn(ctx)
+	})
+
+	userRepo := repositoriesmocks.NewUserRepository(t)
+	userRepo.EXPECT().FindByEmail(mock.Anything, "jane@example.com").Return((*models.User)(nil), nil)
+	userRepo.EXPECT().FindByUsername(mock.Anything, "jane").Return((*models.User)(nil), nil)
+
+	var createdUser *models.User
+	userRepo.EXPECT().Create(mock.Anything, mock.Anything).RunAndReturn(func(ctx context.Context, user *models.User) error {
+		createdUser = cloneUser(user)
+		user.ID = uuid.New()
+		return nil
+	})
+
+	tokenRepo := repositoriesmocks.NewUserTokenRepository(t)
+	tokenRepo.EXPECT().RevokeByUserAndType(mock.Anything, mock.Anything, enum.TokenTypePasswordSet).Return(nil)
+	tokenRepo.EXPECT().Create(mock.Anything, mock.Anything).Return(nil)
+
+	roleRepo := repositoriesmocks.NewRoleRepository(t)
+	roleRepo.EXPECT().FindByCode(mock.Anything, constants.RoleCodeUser).Return(role, nil)
+
+	tokenMgr := servicesmocks.NewTokenIssuer(t)
+	tokenMgr.EXPECT().GenerateHashToken().Return("token-hash", "raw-token", nil)
+
+	email := servicesmocks.NewEmailSender(t)
+	email.EXPECT().SendSetPasswordEmail(mock.Anything, "jane@example.com", "Jane", mock.Anything).Return(nil)
+
+	svc := newAdminServiceForTest(tx, newAuditLoggerMock(), userRepo, tokenRepo, roleRepo, tokenMgr, email)
+	user, err := svc.CreateUser(context.Background(), meta, actor, domain.CreateUserInput{
+		Email:     " Jane@Example.COM ",
+		Username:  " Jane ",
+		FirstName: "Jane",
+		LastName:  "Doe",
+		RoleCode:  constants.RoleCodeUser,
+	})
+	if err != nil {
+		t.Fatalf("expected nil error, got %v", err)
+	}
+	if user == nil || createdUser == nil || createdUser.Email != "jane@example.com" || createdUser.Username != "jane" {
+		t.Fatalf("expected normalized user identity, got user=%#v created=%#v", user, createdUser)
+	}
+}
+
 func TestAdminService_DeleteUser_Table(t *testing.T) {
 	meta := &domain.AuditMeta{IPAddress: "127.0.0.1", UserAgent: "unit-test"}
 	adminID := uuid.New()
