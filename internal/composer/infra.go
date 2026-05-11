@@ -4,8 +4,9 @@ import (
 	"portal-system/internal/config"
 	"portal-system/internal/platform/email"
 	redisx "portal-system/internal/platform/redis"
-	"portal-system/internal/platform/token"
 	"portal-system/internal/services"
+
+	token "portal-system/internal/platform/security"
 
 	"github.com/redis/go-redis/v9"
 )
