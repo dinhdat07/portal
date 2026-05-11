@@ -3,11 +3,11 @@ package auth_test
 import (
 	"context"
 	"errors"
-	"portal-system/internal/auth"
 	"portal-system/internal/domain/constants"
 	repositoriesmocks "portal-system/internal/mocks/repositories"
 	servicesmocks "portal-system/internal/mocks/services"
 	"portal-system/internal/models"
+	auth "portal-system/internal/platform/security"
 	"portal-system/internal/services"
 	"testing"
 
