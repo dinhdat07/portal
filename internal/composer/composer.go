@@ -4,10 +4,12 @@ import (
 	"context"
 	"fmt"
 	"portal-system/internal/app"
-	"portal-system/internal/bootstrap"
 	"portal-system/internal/config"
+	"portal-system/internal/platform/logger"
 	"portal-system/internal/platform/ratelimit"
 	redisx "portal-system/internal/platform/redis"
+	"portal-system/internal/platform/storage"
+	"portal-system/internal/platform/validator"
 
 	"github.com/redis/go-redis/v9"
 	"gorm.io/driver/postgres"
@@ -15,6 +17,8 @@ import (
 )
 
 func Composer() (*app.App, error) {
+	logger.InitLogger()
+
 	cfg, err := config.Load()
 	if err != nil {
 		return nil, err
@@ -64,26 +68,26 @@ func Composer() (*app.App, error) {
 		rateLimitKeyBuilder = ratelimit.NewKeyBuilder(rateLimitCfg.Prefix)
 	}
 
-	if err := bootstrap.AutoMigrate(db); err != nil {
+	if err := storage.AutoMigrate(db); err != nil {
 		return nil, err
 	}
 
 	if cfg.Env == "development" {
-		if err := bootstrap.SeedPermissions(db); err != nil {
+		if err := storage.SeedPermissions(db); err != nil {
 			return nil, err
 		}
-		if err := bootstrap.SeedRoles(db); err != nil {
+		if err := storage.SeedRoles(db); err != nil {
 			return nil, err
 		}
-		if err := bootstrap.SeedRolePermissions(db); err != nil {
+		if err := storage.SeedRolePermissions(db); err != nil {
 			return nil, err
 		}
-		if err := bootstrap.SeedAdmin(db, cfg); err != nil {
+		if err := storage.SeedAdmin(db, cfg); err != nil {
 			return nil, err
 		}
 	}
 
-	validator := bootstrap.NewValidator()
+	validator := validator.NewValidator()
 	infra := newInfra(cfg, smtpCfg, rdb)
 	repos := newRepositories(db)
 	svcs := newServices(cfg, infra, repos)

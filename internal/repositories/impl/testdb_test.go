@@ -4,10 +4,9 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"portal-system/internal/platform/storage"
 	"testing"
 	"time"
-
-	"portal-system/internal/bootstrap"
 
 	pgdriver "gorm.io/driver/postgres"
 	"gorm.io/gorm"
@@ -52,7 +51,7 @@ func runTestMain(m *testing.M) int {
 		return 1
 	}
 
-	if err := bootstrap.AutoMigrate(testDB); err != nil {
+	if err := storage.AutoMigrate(testDB); err != nil {
 		fmt.Fprintf(os.Stderr, "auto migrate test db: %v\n", err)
 		_ = container.Terminate(context.Background())
 		return 1

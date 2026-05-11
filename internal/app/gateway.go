@@ -61,12 +61,3 @@ func (a *App) NewGatewayMux(ctx context.Context, grpcAddr string) (http.Handler,
 
 	return mux, nil
 }
-
-func RunGatewayServer(addr string, handler http.Handler) error {
-	srv := &http.Server{
-		Addr:    addr,
-		Handler: handler,
-	}
-
-	return srv.ListenAndServe()
-}
