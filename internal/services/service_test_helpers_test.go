@@ -4,9 +4,9 @@ import (
 	"context"
 	"time"
 
-	repositoriesmocks "portal-system/internal/mocks/repositories"
-	servicesmocks "portal-system/internal/mocks/services"
+	repositoriesmocks "portal-system/internal/repositories/mocks"
 	. "portal-system/internal/services"
+	servicesmocks "portal-system/internal/services/mocks"
 
 	"github.com/stretchr/testify/mock"
 )

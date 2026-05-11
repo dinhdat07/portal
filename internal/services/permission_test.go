@@ -3,8 +3,8 @@ package services_test
 import (
 	"context"
 	"errors"
-	repositoriesmocks "portal-system/internal/mocks/repositories"
 	"portal-system/internal/models"
+	repositoriesmocks "portal-system/internal/repositories/mocks"
 	. "portal-system/internal/services"
 	"testing"
 

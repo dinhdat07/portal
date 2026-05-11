@@ -4,8 +4,8 @@ import (
 	"context"
 	"errors"
 	"net"
-	"portal-system/internal/auth"
 	"portal-system/internal/domain"
+	auth "portal-system/internal/platform/security"
 
 	"github.com/google/uuid"
 	"google.golang.org/grpc/codes"

@@ -2,9 +2,9 @@ package interceptor
 
 import (
 	"context"
-	"portal-system/internal/auth"
 	"portal-system/internal/domain/constants"
 	portalgrpc "portal-system/internal/grpc"
+	auth "portal-system/internal/platform/security"
 
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"

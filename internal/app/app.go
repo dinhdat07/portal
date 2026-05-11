@@ -2,10 +2,10 @@ package app
 
 import (
 	"net/http"
-	"portal-system/internal/auth"
 	"portal-system/internal/config"
 	portalgrpc "portal-system/internal/grpc"
 	"portal-system/internal/platform/ratelimit"
+	auth "portal-system/internal/platform/security"
 
 	"buf.build/go/protovalidate"
 	"google.golang.org/grpc"

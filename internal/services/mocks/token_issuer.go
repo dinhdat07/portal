@@ -2,7 +2,7 @@
 // github.com/vektra/mockery
 // template: testify
 
-package servicesmocks
+package mocks
 
 import (
 	"portal-system/internal/services"

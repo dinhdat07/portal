@@ -3,8 +3,8 @@ package interceptor
 import (
 	"context"
 	"errors"
-	"portal-system/internal/auth"
 	portalgrpc "portal-system/internal/grpc"
+	auth "portal-system/internal/platform/security"
 	"strings"
 
 	"google.golang.org/grpc"

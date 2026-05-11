@@ -4,11 +4,11 @@ import (
 	"context"
 	"errors"
 	"portal-system/internal/domain/constants"
-	repositoriesmocks "portal-system/internal/mocks/repositories"
-	servicesmocks "portal-system/internal/mocks/services"
 	"portal-system/internal/models"
 	auth "portal-system/internal/platform/security"
+	repositoriesmocks "portal-system/internal/repositories/mocks"
 	"portal-system/internal/services"
+	servicesmocks "portal-system/internal/services/mocks"
 	"testing"
 
 	"github.com/google/uuid"

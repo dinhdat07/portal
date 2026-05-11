@@ -6,11 +6,11 @@ import (
 	"portal-system/internal/domain"
 	"portal-system/internal/domain/constants"
 	"portal-system/internal/domain/enum"
-	repositoriesmocks "portal-system/internal/mocks/repositories"
-	servicesmocks "portal-system/internal/mocks/services"
 	"portal-system/internal/models"
 	"portal-system/internal/repositories"
+	repositoriesmocks "portal-system/internal/repositories/mocks"
 	. "portal-system/internal/services"
+	servicesmocks "portal-system/internal/services/mocks"
 	"testing"
 
 	"github.com/google/uuid"

@@ -4,8 +4,8 @@ import (
 	"context"
 	"errors"
 	"portal-system/internal/domain"
-	repositoriesmocks "portal-system/internal/mocks/repositories"
 	"portal-system/internal/models"
+	repositoriesmocks "portal-system/internal/repositories/mocks"
 	"testing"
 	"time"
 
