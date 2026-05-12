@@ -6,9 +6,9 @@ import (
 	"portal-system/internal/domain"
 	"portal-system/internal/model"
 	"portal-system/internal/repository"
-	repositorymocks "portal-system/internal/repository/mocks"
+	repositorymock "portal-system/internal/repository/mock"
 	. "portal-system/internal/service"
-	servicemocks "portal-system/internal/service/mocks"
+	servicemock "portal-system/internal/service/mock"
 	"testing"
 	"time"
 
@@ -54,7 +54,7 @@ func TestAuthService_Register_Table(t *testing.T) {
 
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
-			userRepo := repositorymocks.NewUserRepository(t)
+			userRepo := repositorymock.NewUserRepository(t)
 			userRepo.EXPECT().FindByEmail(mock.Anything, "john@example.com").RunAndReturn(func(ctx context.Context, email string) (*model.User, error) {
 				return tc.findEmail, tc.findEmailErr
 			})
@@ -67,14 +67,14 @@ func TestAuthService_Register_Table(t *testing.T) {
 				}
 				return tc.createErr
 			}).Maybe()
-			tokenRepo := repositorymocks.NewUserTokenRepository(t)
+			tokenRepo := repositorymock.NewUserTokenRepository(t)
 			tokenRepo.EXPECT().RevokeByUserAndType(mock.Anything, mock.Anything, domain.TokenTypeEmailVerification).RunAndReturn(func(ctx context.Context, userID uuid.UUID, tokenType domain.TokenType) error {
 				return tc.revokeErr
 			}).Maybe()
 			tokenRepo.EXPECT().Create(mock.Anything, mock.Anything).RunAndReturn(func(ctx context.Context, token *model.UserToken) error {
 				return tc.tokenCreateErr
 			}).Maybe()
-			roleRepo := repositorymocks.NewRoleRepository(t)
+			roleRepo := repositorymock.NewRoleRepository(t)
 			roleRepo.EXPECT().FindByCode(mock.Anything, domain.RoleCodeUser).RunAndReturn(func(ctx context.Context, code domain.RoleCode) (*model.Role, error) {
 				if tc.roleErr != nil {
 					return nil, tc.roleErr
@@ -84,11 +84,11 @@ func TestAuthService_Register_Table(t *testing.T) {
 				}
 				return role, nil
 			}).Maybe()
-			auditLogger := servicemocks.NewAuditLogger(t)
+			auditLogger := servicemock.NewAuditLogger(t)
 			auditLogger.EXPECT().Log(mock.Anything, mock.Anything, domain.ActionRegister, mock.Anything, mock.Anything).Return(tc.auditErr).Maybe()
-			email := servicemocks.NewEmailSender(t)
+			email := servicemock.NewEmailSender(t)
 			email.EXPECT().SendVerificationEmail(mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(tc.emailErr).Maybe()
-			tx := repositorymocks.NewTxManager(t)
+			tx := repositorymock.NewTxManager(t)
 			tx.EXPECT().WithTx(mock.Anything, mock.Anything).RunAndReturn(func(ctx context.Context, fn func(context.Context) error) error {
 				return fn(ctx)
 			}).Maybe()
@@ -123,7 +123,7 @@ func TestAuthService_Register_NormalizesIdentity(t *testing.T) {
 	dob := time.Date(1999, 1, 1, 0, 0, 0, 0, time.UTC)
 	role := &model.Role{ID: uuid.New(), Code: domain.RoleCodeUser}
 
-	userRepo := repositorymocks.NewUserRepository(t)
+	userRepo := repositorymock.NewUserRepository(t)
 	userRepo.EXPECT().FindByEmail(mock.Anything, "john@example.com").Return((*model.User)(nil), nil)
 	userRepo.EXPECT().FindByUsername(mock.Anything, "john").Return((*model.User)(nil), nil)
 
@@ -134,14 +134,14 @@ func TestAuthService_Register_NormalizesIdentity(t *testing.T) {
 		return nil
 	})
 
-	tokenRepo := repositorymocks.NewUserTokenRepository(t)
+	tokenRepo := repositorymock.NewUserTokenRepository(t)
 	tokenRepo.EXPECT().RevokeByUserAndType(mock.Anything, mock.Anything, domain.TokenTypeEmailVerification).Return(nil)
 	tokenRepo.EXPECT().Create(mock.Anything, mock.Anything).Return(nil)
 
-	roleRepo := repositorymocks.NewRoleRepository(t)
+	roleRepo := repositorymock.NewRoleRepository(t)
 	roleRepo.EXPECT().FindByCode(mock.Anything, domain.RoleCodeUser).Return(role, nil)
 
-	email := servicemocks.NewEmailSender(t)
+	email := servicemock.NewEmailSender(t)
 	email.EXPECT().SendVerificationEmail(mock.Anything, "john@example.com", "John", mock.Anything).Return(nil)
 
 	svc := newAuthServiceForTest(authServiceTestDeps{
@@ -204,7 +204,7 @@ func TestAuthService_LogIn_Table(t *testing.T) {
 
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
-			userRepo := repositorymocks.NewUserRepository(t)
+			userRepo := repositorymock.NewUserRepository(t)
 			userRepo.EXPECT().FindByEmail(mock.Anything, "john@example.com").RunAndReturn(func(ctx context.Context, email string) (*model.User, error) {
 				if tc.identifier == "john@example.com" {
 					return cloneUser(tc.user), tc.findErr
@@ -217,21 +217,21 @@ func TestAuthService_LogIn_Table(t *testing.T) {
 				}
 				return nil, repository.ErrNotFound
 			}).Maybe()
-			sessionRepo := repositorymocks.NewAuthSessionRepository(t)
+			sessionRepo := repositorymock.NewAuthSessionRepository(t)
 			sessionRepo.EXPECT().Create(mock.Anything, mock.Anything).RunAndReturn(func(ctx context.Context, session *model.AuthSession) error {
 				if session.ID == uuid.Nil {
 					session.ID = uuid.New()
 				}
 				return tc.createSessionErr
 			}).Maybe()
-			refreshRepo := repositorymocks.NewRefreshTokenRepository(t)
+			refreshRepo := repositorymock.NewRefreshTokenRepository(t)
 			refreshRepo.EXPECT().Create(mock.Anything, mock.Anything).RunAndReturn(func(ctx context.Context, refreshToken *model.RefreshToken) error {
 				if refreshToken.ID == uuid.Nil {
 					refreshToken.ID = uuid.New()
 				}
 				return tc.createRefreshErr
 			}).Maybe()
-			tokenMgr := servicemocks.NewTokenIssuer(t)
+			tokenMgr := servicemock.NewTokenIssuer(t)
 			tokenMgr.EXPECT().GenerateRefreshToken().RunAndReturn(func() (string, error) {
 				if tc.refreshErr != nil {
 					return "", tc.refreshErr
@@ -299,7 +299,7 @@ func TestAuthService_VerifyEmail_Table(t *testing.T) {
 
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
-			tokenRepo := repositorymocks.NewUserTokenRepository(t)
+			tokenRepo := repositorymock.NewUserTokenRepository(t)
 			tokenRepo.EXPECT().FindValidToken(mock.Anything, mock.Anything, tc.tokenType).RunAndReturn(func(ctx context.Context, tokenHash string, tokenType domain.TokenType) (*model.UserToken, error) {
 				if tc.findTokenErr != nil {
 					return nil, tc.findTokenErr
@@ -309,7 +309,7 @@ func TestAuthService_VerifyEmail_Table(t *testing.T) {
 			tokenRepo.EXPECT().MarkUsed(mock.Anything, foundToken.ID).RunAndReturn(func(ctx context.Context, id uuid.UUID) error {
 				return tc.markUsedErr
 			}).Maybe()
-			userRepo := repositorymocks.NewUserRepository(t)
+			userRepo := repositorymock.NewUserRepository(t)
 			userRepo.EXPECT().FindByID(mock.Anything, foundToken.UserID).RunAndReturn(func(ctx context.Context, id uuid.UUID) (*model.User, error) {
 				if tc.findUserErr != nil {
 					return nil, tc.findUserErr
@@ -319,7 +319,7 @@ func TestAuthService_VerifyEmail_Table(t *testing.T) {
 			userRepo.EXPECT().MarkEmailVerified(mock.Anything, foundToken.UserID).RunAndReturn(func(ctx context.Context, id uuid.UUID) error {
 				return tc.markVerifiedErr
 			}).Maybe()
-			auditLogger := servicemocks.NewAuditLogger(t)
+			auditLogger := servicemock.NewAuditLogger(t)
 			auditLogger.EXPECT().Log(mock.Anything, meta, domain.ActionVerifyEmail, mock.Anything, mock.Anything).Return(tc.auditErr).Maybe()
 			svc := newAuthServiceForTest(authServiceTestDeps{
 				auditLogger: auditLogger,
@@ -362,23 +362,23 @@ func TestAuthService_ResendVerification_Table(t *testing.T) {
 
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
-			userRepo := repositorymocks.NewUserRepository(t)
+			userRepo := repositorymock.NewUserRepository(t)
 			userRepo.EXPECT().FindByEmail(mock.Anything, user.Email).RunAndReturn(func(ctx context.Context, email string) (*model.User, error) {
 				if tc.findErr != nil {
 					return nil, tc.findErr
 				}
 				return cloneUser(user), nil
 			})
-			tokenRepo := repositorymocks.NewUserTokenRepository(t)
+			tokenRepo := repositorymock.NewUserTokenRepository(t)
 			tokenRepo.EXPECT().RevokeByUserAndType(mock.Anything, user.ID, domain.TokenTypeEmailVerification).RunAndReturn(func(ctx context.Context, userID uuid.UUID, tokenType domain.TokenType) error {
 				return tc.revokeErr
 			}).Maybe()
 			tokenRepo.EXPECT().Create(mock.Anything, mock.Anything).RunAndReturn(func(ctx context.Context, token *model.UserToken) error {
 				return tc.tokenCreateErr
 			}).Maybe()
-			email := servicemocks.NewEmailSender(t)
+			email := servicemock.NewEmailSender(t)
 			email.EXPECT().SendVerificationEmail(mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(tc.emailErr).Maybe()
-			auditLogger := servicemocks.NewAuditLogger(t)
+			auditLogger := servicemock.NewAuditLogger(t)
 			auditLogger.EXPECT().Log(mock.Anything, meta, domain.ActionResendVerification, mock.Anything, mock.Anything).Return(tc.auditErr).Maybe()
 			svc := newAuthServiceForTest(authServiceTestDeps{
 				auditLogger: auditLogger,
@@ -425,23 +425,23 @@ func TestAuthService_ForgotPassword_Table(t *testing.T) {
 
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
-			userRepo := repositorymocks.NewUserRepository(t)
+			userRepo := repositorymock.NewUserRepository(t)
 			userRepo.EXPECT().FindByEmail(mock.Anything, "john@example.com").RunAndReturn(func(ctx context.Context, email string) (*model.User, error) {
 				if tc.findErr != nil {
 					return nil, tc.findErr
 				}
 				return cloneUser(tc.user), nil
 			})
-			tokenRepo := repositorymocks.NewUserTokenRepository(t)
+			tokenRepo := repositorymock.NewUserTokenRepository(t)
 			tokenRepo.EXPECT().RevokeByUserAndType(mock.Anything, mock.Anything, domain.TokenTypePasswordReset).RunAndReturn(func(ctx context.Context, userID uuid.UUID, tokenType domain.TokenType) error {
 				return tc.revokeErr
 			}).Maybe()
 			tokenRepo.EXPECT().Create(mock.Anything, mock.Anything).RunAndReturn(func(ctx context.Context, token *model.UserToken) error {
 				return tc.tokenCreateErr
 			}).Maybe()
-			auditLogger := servicemocks.NewAuditLogger(t)
+			auditLogger := servicemock.NewAuditLogger(t)
 			auditLogger.EXPECT().Log(mock.Anything, meta, domain.ActionForgotPassword, mock.Anything, mock.Anything).Return(tc.auditErr).Maybe()
-			email := servicemocks.NewEmailSender(t)
+			email := servicemock.NewEmailSender(t)
 			email.EXPECT().SendResetPasswordEmail(mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(tc.emailErr).Maybe()
 			svc := newAuthServiceForTest(authServiceTestDeps{
 				auditLogger: auditLogger,
@@ -506,7 +506,7 @@ func TestAuthService_SetAndResetPassword_Table(t *testing.T) {
 
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
-			tokenRepo := repositorymocks.NewUserTokenRepository(t)
+			tokenRepo := repositorymock.NewUserTokenRepository(t)
 			tokenRepo.EXPECT().FindValidToken(mock.Anything, mock.Anything, tc.tokenType).RunAndReturn(func(ctx context.Context, tokenHash string, tokenType domain.TokenType) (*model.UserToken, error) {
 				if tc.findTokenErr != nil {
 					return nil, tc.findTokenErr
@@ -516,7 +516,7 @@ func TestAuthService_SetAndResetPassword_Table(t *testing.T) {
 			tokenRepo.EXPECT().MarkUsed(mock.Anything, tokenID).RunAndReturn(func(ctx context.Context, id uuid.UUID) error {
 				return tc.markUsedErr
 			}).Maybe()
-			userRepo := repositorymocks.NewUserRepository(t)
+			userRepo := repositorymock.NewUserRepository(t)
 			userRepo.EXPECT().FindByID(mock.Anything, userID).RunAndReturn(func(ctx context.Context, id uuid.UUID) (*model.User, error) {
 				if tc.findUserErr != nil {
 					return nil, tc.findUserErr
@@ -529,7 +529,7 @@ func TestAuthService_SetAndResetPassword_Table(t *testing.T) {
 			userRepo.EXPECT().MarkEmailVerified(mock.Anything, userID).RunAndReturn(func(ctx context.Context, id uuid.UUID) error {
 				return tc.markVerifyErr
 			}).Maybe()
-			auditLogger := servicemocks.NewAuditLogger(t)
+			auditLogger := servicemock.NewAuditLogger(t)
 			auditLogger.EXPECT().Log(mock.Anything, meta, mock.Anything, mock.Anything, mock.Anything).RunAndReturn(func(ctx context.Context, meta *AuditMeta, action domain.ActionName, actor *AuditUser, target *AuditUser) error {
 				return tc.auditErr
 			}).Maybe()
@@ -603,7 +603,7 @@ func TestAuthService_Refresh_Table(t *testing.T) {
 
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
-			refreshRepo := repositorymocks.NewRefreshTokenRepository(t)
+			refreshRepo := repositorymock.NewRefreshTokenRepository(t)
 			refreshRepo.EXPECT().FindByTokenHash(mock.Anything, mock.Anything).RunAndReturn(func(ctx context.Context, tokenHash string) (*model.RefreshToken, error) {
 				if tc.findTokenErr != nil {
 					return nil, tc.findTokenErr
@@ -623,7 +623,7 @@ func TestAuthService_Refresh_Table(t *testing.T) {
 				return tc.markReplacementErr
 			}).Maybe()
 			refreshRepo.EXPECT().RevokeByUserID(mock.Anything, userID).Return(nil).Maybe()
-			sessionRepo := repositorymocks.NewAuthSessionRepository(t)
+			sessionRepo := repositorymock.NewAuthSessionRepository(t)
 			sessionRepo.EXPECT().FindActiveByID(mock.Anything, sessionID).RunAndReturn(func(ctx context.Context, id uuid.UUID) (*model.AuthSession, error) {
 				if tc.sessionErr != nil {
 					return nil, tc.sessionErr
@@ -632,14 +632,14 @@ func TestAuthService_Refresh_Table(t *testing.T) {
 			}).Maybe()
 			sessionRepo.EXPECT().ListActiveByUserID(mock.Anything, userID).Return([]model.AuthSession(nil), nil).Maybe()
 			sessionRepo.EXPECT().RevokeAllByUserID(mock.Anything, userID).Return(nil).Maybe()
-			userRepo := repositorymocks.NewUserRepository(t)
+			userRepo := repositorymock.NewUserRepository(t)
 			userRepo.EXPECT().FindByID(mock.Anything, userID).RunAndReturn(func(ctx context.Context, id uuid.UUID) (*model.User, error) {
 				if tc.userErr != nil {
 					return nil, tc.userErr
 				}
 				return cloneUser(tc.user), nil
 			}).Maybe()
-			tokenMgr := servicemocks.NewTokenIssuer(t)
+			tokenMgr := servicemock.NewTokenIssuer(t)
 			tokenMgr.EXPECT().GenerateAccessToken(mock.Anything).Return("access-token", tc.accessErr).Maybe()
 			tokenMgr.EXPECT().ExpiresInSeconds().Return(1200).Maybe()
 			tokenMgr.EXPECT().GenerateHashToken().Return("next-hash", "next-refresh-token", nil).Maybe()
@@ -689,7 +689,7 @@ func TestAuthService_Logout_Table(t *testing.T) {
 
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
-			sessionRepo := repositorymocks.NewAuthSessionRepository(t)
+			sessionRepo := repositorymock.NewAuthSessionRepository(t)
 			sessionRepo.EXPECT().FindActiveByID(mock.Anything, tc.sessionID).RunAndReturn(func(ctx context.Context, id uuid.UUID) (*model.AuthSession, error) {
 				if tc.findErr != nil {
 					return nil, tc.findErr
@@ -699,7 +699,7 @@ func TestAuthService_Logout_Table(t *testing.T) {
 			sessionRepo.EXPECT().RevokeByID(mock.Anything, tc.sessionID).RunAndReturn(func(ctx context.Context, sessionID uuid.UUID) error {
 				return tc.revokeErr
 			}).Maybe()
-			refreshRepo := repositorymocks.NewRefreshTokenRepository(t)
+			refreshRepo := repositorymock.NewRefreshTokenRepository(t)
 			refreshRepo.EXPECT().RevokeBySessionID(mock.Anything, tc.sessionID).RunAndReturn(func(ctx context.Context, sessionID uuid.UUID) error {
 				return tc.revokeErr
 			}).Maybe()
@@ -742,7 +742,7 @@ func TestAuthService_LogoutAll_Table(t *testing.T) {
 
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
-			sessionRepo := repositorymocks.NewAuthSessionRepository(t)
+			sessionRepo := repositorymock.NewAuthSessionRepository(t)
 			sessionRepo.EXPECT().ListActiveByUserID(mock.Anything, actor.ID).RunAndReturn(func(ctx context.Context, userID uuid.UUID) ([]model.AuthSession, error) {
 				if tc.listErr != nil {
 					return nil, tc.listErr
@@ -752,7 +752,7 @@ func TestAuthService_LogoutAll_Table(t *testing.T) {
 			sessionRepo.EXPECT().RevokeAllByUserID(mock.Anything, actor.ID).RunAndReturn(func(ctx context.Context, userID uuid.UUID) error {
 				return tc.revokeErr
 			}).Maybe()
-			refreshRepo := repositorymocks.NewRefreshTokenRepository(t)
+			refreshRepo := repositorymock.NewRefreshTokenRepository(t)
 			refreshRepo.EXPECT().RevokeByUserID(mock.Anything, actor.ID).RunAndReturn(func(ctx context.Context, userID uuid.UUID) error {
 				return tc.revokeErr
 			}).Maybe()

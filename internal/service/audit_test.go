@@ -5,7 +5,7 @@ import (
 	"errors"
 	"portal-system/internal/model"
 	"portal-system/internal/repository"
-	repositorymocks "portal-system/internal/repository/mocks"
+	repositorymock "portal-system/internal/repository/mock"
 	"testing"
 	"time"
 
@@ -64,7 +64,7 @@ func TestAuditLogService_List_Table(t *testing.T) {
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
 			var captured repository.AuditLogListFilter
-			repo := repositorymocks.NewAuditLogRepository(t)
+			repo := repositorymock.NewAuditLogRepository(t)
 			repo.EXPECT().List(mock.Anything, mock.Anything).RunAndReturn(func(ctx context.Context, filter repository.AuditLogListFilter) ([]model.AuditLog, int64, error) {
 				captured = filter
 				return tc.listLogs, tc.listTotal, tc.listErr

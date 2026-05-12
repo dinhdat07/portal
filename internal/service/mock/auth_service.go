@@ -2,7 +2,7 @@
 // github.com/vektra/mockery
 // template: testify
 
-package mocks
+package mock
 
 import (
 	"context"
@@ -14,7 +14,7 @@ import (
 	mock "github.com/stretchr/testify/mock"
 )
 
-// NewAuthService creates a new instance of AuthService. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.
+// NewAuthService creates a new instance of AuthService. It also registers a testing interface on the mock and a cleanup function to assert the mock expectations.
 // The first argument is typically a *testing.T value.
 func NewAuthService(t interface {
 	mock.TestingT

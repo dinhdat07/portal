@@ -6,9 +6,9 @@ import (
 	"portal-system/internal/domain"
 	"portal-system/internal/model"
 	"portal-system/internal/repository"
-	repositorymocks "portal-system/internal/repository/mocks"
+	repositorymock "portal-system/internal/repository/mock"
 	. "portal-system/internal/service"
-	servicemocks "portal-system/internal/service/mocks"
+	servicemock "portal-system/internal/service/mock"
 	"testing"
 
 	"github.com/google/uuid"
@@ -29,7 +29,7 @@ func TestRoleService_CreateRole(t *testing.T) {
 	})
 
 	t.Run("unexpected find error", func(t *testing.T) {
-		roleRepo := repositorymocks.NewRoleRepository(t)
+		roleRepo := repositorymock.NewRoleRepository(t)
 		roleRepo.EXPECT().FindByCode(mock.Anything, input.Code).Return(nil, errors.New("lookup failed"))
 
 		svc := newRoleServiceForTest(nil, nil, roleRepo, nil, nil)
@@ -39,7 +39,7 @@ func TestRoleService_CreateRole(t *testing.T) {
 	})
 
 	t.Run("role code exists", func(t *testing.T) {
-		roleRepo := repositorymocks.NewRoleRepository(t)
+		roleRepo := repositorymock.NewRoleRepository(t)
 		roleRepo.EXPECT().FindByCode(mock.Anything, input.Code).Return(&model.Role{ID: uuid.New(), Code: input.Code}, nil)
 
 		svc := newRoleServiceForTest(nil, nil, roleRepo, nil, nil)
@@ -49,11 +49,11 @@ func TestRoleService_CreateRole(t *testing.T) {
 	})
 
 	t.Run("create error", func(t *testing.T) {
-		roleRepo := repositorymocks.NewRoleRepository(t)
+		roleRepo := repositorymock.NewRoleRepository(t)
 		roleRepo.EXPECT().FindByCode(mock.Anything, input.Code).Return(nil, repository.ErrNotFound)
 		roleRepo.On("Create", mock.Anything, mock.Anything).Return(errors.New("insert failed")).Once()
 
-		tx := repositorymocks.NewTxManager(t)
+		tx := repositorymock.NewTxManager(t)
 		tx.EXPECT().WithTx(mock.Anything, mock.Anything).RunAndReturn(func(ctx context.Context, fn func(context.Context) error) error {
 			return fn(ctx)
 		})
@@ -65,13 +65,13 @@ func TestRoleService_CreateRole(t *testing.T) {
 	})
 
 	t.Run("success", func(t *testing.T) {
-		roleRepo := repositorymocks.NewRoleRepository(t)
+		roleRepo := repositorymock.NewRoleRepository(t)
 		roleRepo.EXPECT().FindByCode(mock.Anything, input.Code).Return(nil, repository.ErrNotFound)
 		roleRepo.On("Create", mock.Anything, mock.Anything).Return(nil).Once()
 
-		auditLogger := servicemocks.NewAuditLogger(t)
+		auditLogger := servicemock.NewAuditLogger(t)
 		auditLogger.EXPECT().LogWithMetadata(mock.Anything, meta, domain.ActionCreateRole, actor, (*AuditUser)(nil), mock.Anything).Return(nil).Once()
-		tx := repositorymocks.NewTxManager(t)
+		tx := repositorymock.NewTxManager(t)
 		tx.EXPECT().WithTx(mock.Anything, mock.Anything).RunAndReturn(func(ctx context.Context, fn func(context.Context) error) error {
 			return fn(ctx)
 		})
@@ -89,7 +89,7 @@ func TestRoleService_CreateRole(t *testing.T) {
 
 func TestRoleService_ListRoles(t *testing.T) {
 	t.Run("success", func(t *testing.T) {
-		roleRepo := repositorymocks.NewRoleRepository(t)
+		roleRepo := repositorymock.NewRoleRepository(t)
 		expected := []model.Role{{ID: uuid.New(), Name: "Admin"}}
 		roleRepo.EXPECT().List(context.Background()).Return(expected, nil)
 
@@ -100,7 +100,7 @@ func TestRoleService_ListRoles(t *testing.T) {
 	})
 
 	t.Run("repository error", func(t *testing.T) {
-		roleRepo := repositorymocks.NewRoleRepository(t)
+		roleRepo := repositorymock.NewRoleRepository(t)
 		roleRepo.EXPECT().List(context.Background()).Return(nil, errors.New("db error"))
 
 		svc := newRoleServiceForTest(nil, nil, roleRepo, nil, nil)
@@ -117,7 +117,7 @@ func TestRoleService_AssignPermission(t *testing.T) {
 	permID := uuid.New()
 
 	t.Run("role not found", func(t *testing.T) {
-		roleRepo := repositorymocks.NewRoleRepository(t)
+		roleRepo := repositorymock.NewRoleRepository(t)
 		roleRepo.EXPECT().FindByID(mock.Anything, roleID).Return(nil, repository.ErrNotFound)
 
 		svc := newRoleServiceForTest(nil, nil, roleRepo, nil, nil)
@@ -126,9 +126,9 @@ func TestRoleService_AssignPermission(t *testing.T) {
 	})
 
 	t.Run("permission not found", func(t *testing.T) {
-		roleRepo := repositorymocks.NewRoleRepository(t)
+		roleRepo := repositorymock.NewRoleRepository(t)
 		roleRepo.EXPECT().FindByID(mock.Anything, roleID).Return(&model.Role{ID: roleID, Code: domain.RoleCode("ROLE_CODE_MANAGER")}, nil)
-		permRepo := repositorymocks.NewPermissionRepository(t)
+		permRepo := repositorymock.NewPermissionRepository(t)
 		permRepo.EXPECT().FindByID(mock.Anything, permID).Return(nil, repository.ErrNotFound)
 
 		svc := newRoleServiceForTest(nil, nil, roleRepo, permRepo, nil)
@@ -137,9 +137,9 @@ func TestRoleService_AssignPermission(t *testing.T) {
 	})
 
 	t.Run("system role cannot be modified", func(t *testing.T) {
-		roleRepo := repositorymocks.NewRoleRepository(t)
+		roleRepo := repositorymock.NewRoleRepository(t)
 		roleRepo.EXPECT().FindByID(mock.Anything, roleID).Return(&model.Role{ID: roleID, IsSystem: true}, nil)
-		permRepo := repositorymocks.NewPermissionRepository(t)
+		permRepo := repositorymock.NewPermissionRepository(t)
 		permRepo.EXPECT().FindByID(mock.Anything, permID).Return(&model.Permission{ID: permID}, nil)
 
 		svc := newRoleServiceForTest(nil, nil, roleRepo, permRepo, nil)
@@ -151,12 +151,12 @@ func TestRoleService_AssignPermission(t *testing.T) {
 		role := &model.Role{ID: roleID, Code: domain.RoleCode("ROLE_CODE_MANAGER"), Name: "Manager"}
 		perm := &model.Permission{ID: permID, Code: "roles:list"}
 
-		roleRepo := repositorymocks.NewRoleRepository(t)
+		roleRepo := repositorymock.NewRoleRepository(t)
 		roleRepo.EXPECT().FindByID(mock.Anything, roleID).Return(role, nil)
 		roleRepo.EXPECT().AssignPermission(mock.Anything, roleID, permID).Return(nil)
-		permRepo := repositorymocks.NewPermissionRepository(t)
+		permRepo := repositorymock.NewPermissionRepository(t)
 		permRepo.EXPECT().FindByID(mock.Anything, permID).Return(perm, nil)
-		auditLogger := servicemocks.NewAuditLogger(t)
+		auditLogger := servicemock.NewAuditLogger(t)
 		auditLogger.EXPECT().LogWithMetadata(mock.Anything, meta, domain.ActionAssignPermission, actor, (*AuditUser)(nil), mock.Anything).Return(nil).Once()
 
 		svc := newRoleServiceForTest(nil, auditLogger, roleRepo, permRepo, nil)
@@ -173,12 +173,12 @@ func TestRoleService_RemovePermission(t *testing.T) {
 	role := &model.Role{ID: roleID, Code: domain.RoleCode("ROLE_CODE_MANAGER"), Name: "Manager"}
 	perm := &model.Permission{ID: permID, Code: "roles:list"}
 
-	roleRepo := repositorymocks.NewRoleRepository(t)
+	roleRepo := repositorymock.NewRoleRepository(t)
 	roleRepo.EXPECT().FindByID(mock.Anything, roleID).Return(role, nil)
 	roleRepo.EXPECT().RemovePermission(mock.Anything, roleID, permID).Return(nil)
-	permRepo := repositorymocks.NewPermissionRepository(t)
+	permRepo := repositorymock.NewPermissionRepository(t)
 	permRepo.EXPECT().FindByID(mock.Anything, permID).Return(perm, nil)
-	auditLogger := servicemocks.NewAuditLogger(t)
+	auditLogger := servicemock.NewAuditLogger(t)
 	auditLogger.EXPECT().LogWithMetadata(mock.Anything, meta, domain.ActionRemovePermission, actor, (*AuditUser)(nil), mock.Anything).Return(nil).Once()
 
 	svc := newRoleServiceForTest(nil, auditLogger, roleRepo, permRepo, nil)
@@ -194,7 +194,7 @@ func TestRoleService_DeleteRole(t *testing.T) {
 	role := &model.Role{ID: roleID, Code: domain.RoleCode("ROLE_CODE_MANAGER"), Name: "Manager"}
 
 	t.Run("role not found", func(t *testing.T) {
-		roleRepo := repositorymocks.NewRoleRepository(t)
+		roleRepo := repositorymock.NewRoleRepository(t)
 		roleRepo.EXPECT().FindByID(mock.Anything, roleID).Return(nil, repository.ErrNotFound)
 
 		svc := newRoleServiceForTest(nil, nil, roleRepo, nil, nil)
@@ -203,9 +203,9 @@ func TestRoleService_DeleteRole(t *testing.T) {
 	})
 
 	t.Run("role in use without replacement", func(t *testing.T) {
-		roleRepo := repositorymocks.NewRoleRepository(t)
+		roleRepo := repositorymock.NewRoleRepository(t)
 		roleRepo.EXPECT().FindByID(mock.Anything, roleID).Return(role, nil)
-		userRepo := repositorymocks.NewUserRepository(t)
+		userRepo := repositorymock.NewUserRepository(t)
 		userRepo.On("ExistsByRoleIDUnscoped", mock.Anything, roleID).Return(true, nil).Once()
 
 		svc := newRoleServiceForTest(nil, nil, roleRepo, nil, userRepo)
@@ -214,13 +214,13 @@ func TestRoleService_DeleteRole(t *testing.T) {
 	})
 
 	t.Run("invalid replacement role", func(t *testing.T) {
-		roleRepo := repositorymocks.NewRoleRepository(t)
+		roleRepo := repositorymock.NewRoleRepository(t)
 		roleRepo.EXPECT().FindByID(mock.Anything, roleID).Return(role, nil)
 		roleRepo.EXPECT().FindByID(mock.Anything, replacementID).Return(nil, repository.ErrNotFound)
-		userRepo := repositorymocks.NewUserRepository(t)
+		userRepo := repositorymock.NewUserRepository(t)
 		userRepo.On("ExistsByRoleIDUnscoped", mock.Anything, roleID).Return(true, nil).Once()
 
-		tx := repositorymocks.NewTxManager(t)
+		tx := repositorymock.NewTxManager(t)
 		tx.EXPECT().WithTx(mock.Anything, mock.Anything).RunAndReturn(func(ctx context.Context, fn func(context.Context) error) error {
 			return fn(ctx)
 		})
@@ -232,16 +232,16 @@ func TestRoleService_DeleteRole(t *testing.T) {
 
 	t.Run("success with replacement", func(t *testing.T) {
 		replacementRole := &model.Role{ID: replacementID, Code: domain.RoleCodeUser, Name: "User"}
-		roleRepo := repositorymocks.NewRoleRepository(t)
+		roleRepo := repositorymock.NewRoleRepository(t)
 		roleRepo.EXPECT().FindByID(mock.Anything, roleID).Return(role, nil)
 		roleRepo.EXPECT().FindByID(mock.Anything, replacementID).Return(replacementRole, nil)
 		roleRepo.On("Delete", mock.Anything, roleID).Return(nil).Once()
-		userRepo := repositorymocks.NewUserRepository(t)
+		userRepo := repositorymock.NewUserRepository(t)
 		userRepo.On("ExistsByRoleIDUnscoped", mock.Anything, roleID).Return(true, nil).Once()
 		userRepo.On("UpdateRoleByRoleIDUnscoped", mock.Anything, roleID, replacementID).Return(nil).Once()
-		auditLogger := servicemocks.NewAuditLogger(t)
+		auditLogger := servicemock.NewAuditLogger(t)
 		auditLogger.EXPECT().LogWithMetadata(mock.Anything, meta, domain.ActionDeleteRole, actor, (*AuditUser)(nil), mock.Anything).Return(nil).Once()
-		tx := repositorymocks.NewTxManager(t)
+		tx := repositorymock.NewTxManager(t)
 		tx.EXPECT().WithTx(mock.Anything, mock.Anything).RunAndReturn(func(ctx context.Context, fn func(context.Context) error) error {
 			return fn(ctx)
 		})

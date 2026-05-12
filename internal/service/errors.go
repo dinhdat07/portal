@@ -1,191 +1,326 @@
 package service
 
+import (
+	"errors"
+	"fmt"
+)
+
+type ErrorGroup string
+
+const (
+	ErrorGroupAuth       ErrorGroup = "AUTH"
+	ErrorGroupUser       ErrorGroup = "USER"
+	ErrorGroupRole       ErrorGroup = "ROLE"
+	ErrorGroupPermission ErrorGroup = "PERMISSION"
+	ErrorGroupEmail      ErrorGroup = "EMAIL"
+	ErrorGroupPassword   ErrorGroup = "PASSWORD"
+	ErrorGroupToken      ErrorGroup = "TOKEN"
+	ErrorGroupValidation ErrorGroup = "VALIDATION"
+	ErrorGroupAudit      ErrorGroup = "AUDIT"
+	ErrorGroupInternal   ErrorGroup = "INTERNAL"
+)
+
+type ErrorCode string
+
+const (
+	CodeRoleNotFound           ErrorCode = "ROLE_NOT_FOUND"
+	CodeRoleCodeExists         ErrorCode = "ROLE_CODE_EXISTS"
+	CodeRoleInUse              ErrorCode = "ROLE_IN_USE"
+	CodeInvalidReplacementRole ErrorCode = "ROLE_INVALID_REPLACEMENT"
+	CodeCannotModifySystemRole ErrorCode = "ROLE_CANNOT_MODIFY_SYSTEM"
+
+	CodePermissionNotFound ErrorCode = "PERMISSION_NOT_FOUND"
+
+	CodeInvalidCredentials ErrorCode = "AUTH_INVALID_CREDENTIALS"
+	CodeUnauthorized       ErrorCode = "AUTH_UNAUTHORIZED"
+	CodeForbidden          ErrorCode = "AUTH_FORBIDDEN"
+
+	CodeAccountNotVerified  ErrorCode = "AUTH_ACCOUNT_NOT_VERIFIED"
+	CodeAccountDeleted      ErrorCode = "AUTH_ACCOUNT_DELETED"
+	CodeUserInactive        ErrorCode = "AUTH_USER_INACTIVE"
+	CodeInvalidRefreshToken ErrorCode = "TOKEN_INVALID_REFRESH"
+
+	CodeUserNotFound       ErrorCode = "USER_NOT_FOUND"
+	CodeUserAlreadyDeleted ErrorCode = "USER_ALREADY_DELETED"
+	CodeInvalidUserID      ErrorCode = "USER_INVALID_ID"
+	CodeUserNotDeleted     ErrorCode = "USER_NOT_DELETED"
+
+	CodeEmailExists      ErrorCode = "EMAIL_ALREADY_EXISTS"
+	CodeUsernameExists   ErrorCode = "USER_USERNAME_ALREADY_EXISTS"
+	CodeEmailBlacklisted ErrorCode = "EMAIL_BLACKLISTED"
+
+	CodeIncorrectPassword  ErrorCode = "PASSWORD_INCORRECT"
+	CodePasswordMismatch   ErrorCode = "PASSWORD_CONFIRMATION_MISMATCH"
+	CodePasswordNotChanged ErrorCode = "PASSWORD_NOT_CHANGED"
+	CodePasswordAlreadySet ErrorCode = "PASSWORD_ALREADY_SET"
+
+	CodeInvalidInput     ErrorCode = "VALIDATION_INVALID_INPUT"
+	CodeInvalidAction    ErrorCode = "VALIDATION_INVALID_ACTION"
+	CodeInvalidTimeRange ErrorCode = "VALIDATION_INVALID_TIME_RANGE"
+
+	CodeInternalError               ErrorCode = "INTERNAL_ERROR"
+	CodeInvalidToken                ErrorCode = "TOKEN_INVALID"
+	CodeAuditLogFailed              ErrorCode = "AUDIT_LOG_FAILED"
+	CodeSendVerificationEmailFailed ErrorCode = "EMAIL_SEND_VERIFICATION_FAILED"
+	CodeSendResetPasswordFailed     ErrorCode = "EMAIL_SEND_RESET_PASSWORD_FAILED"
+	CodeSendSetPasswordFailed       ErrorCode = "EMAIL_SEND_SET_PASSWORD_FAILED"
+)
+
 type AppError struct {
-	Code    string `json:"code"`
-	Message string `json:"message"`
+	Group   ErrorGroup `json:"group"`
+	Code    ErrorCode  `json:"code"`
+	Message string     `json:"message"`
+	Err     error      `json:"-"`
 }
 
 func (e *AppError) Error() string {
-	return e.Message
+	if e.Err != nil {
+		return fmt.Sprintf("%s: %s: %v", e.Code, e.Message, e.Err)
+	}
+
+	return fmt.Sprintf("%s: %s", e.Code, e.Message)
+}
+
+func (e *AppError) Unwrap() error {
+	return e.Err
+}
+
+func NewAppError(group ErrorGroup, code ErrorCode, message string) *AppError {
+	return &AppError{
+		Group:   group,
+		Code:    code,
+		Message: message,
+	}
+}
+
+func WrapAppError(group ErrorGroup, code ErrorCode, message string, err error) *AppError {
+	return &AppError{
+		Group:   group,
+		Code:    code,
+		Message: message,
+		Err:     err,
+	}
+}
+
+func AsAppError(err error) (*AppError, bool) {
+	var appErr *AppError
+	if errors.As(err, &appErr) {
+		return appErr, true
+	}
+
+	return nil, false
 }
 
 var (
-	ErrRoleNotFound = &AppError{
-		Code:    "role_not_found",
-		Message: "Role not found",
-	}
+	ErrRoleNotFound = NewAppError(
+		ErrorGroupRole,
+		CodeRoleNotFound,
+		"Role not found",
+	)
 
-	ErrRoleCodeExists = &AppError{
-		Code:    "role_code_exists",
-		Message: "Role code already exists",
-	}
+	ErrRoleCodeExists = NewAppError(
+		ErrorGroupRole,
+		CodeRoleCodeExists,
+		"Role code already exists",
+	)
 
-	ErrRoleInUse = &AppError{
-		Code:    "role_in_use",
-		Message: "Role is assigned to users",
-	}
+	ErrRoleInUse = NewAppError(
+		ErrorGroupRole,
+		CodeRoleInUse,
+		"Role is assigned to users",
+	)
 
-	ErrInvalidReplacementRole = &AppError{
-		Code:    "invalid_replacement_role",
-		Message: "Invalid replacement role",
-	}
+	ErrInvalidReplacementRole = NewAppError(
+		ErrorGroupRole,
+		CodeInvalidReplacementRole,
+		"Invalid replacement role",
+	)
 
-	ErrCannotModifySystemRole = &AppError{
-		Code:    "cannot_modify_system_role",
-		Message: "System role cannot be modified",
-	}
+	ErrCannotModifySystemRole = NewAppError(
+		ErrorGroupRole,
+		CodeCannotModifySystemRole,
+		"System role cannot be modified",
+	)
 
-	ErrPermissionNotFound = &AppError{
-		Code:    "permission_not_found",
-		Message: "Permission not found",
-	}
+	ErrPermissionNotFound = NewAppError(
+		ErrorGroupPermission,
+		CodePermissionNotFound,
+		"Permission not found",
+	)
 )
 
 var (
-	ErrInvalidCredentials = &AppError{
-		Code:    "invalid_credentials",
-		Message: "Email/username or password is incorrect",
-	}
+	ErrInvalidCredentials = NewAppError(
+		ErrorGroupAuth,
+		CodeInvalidCredentials,
+		"Email/username or password is incorrect",
+	)
 
-	ErrUnauthorized = &AppError{
-		Code:    "unauthorized",
-		Message: "You are not authenticated",
-	}
+	ErrUnauthorized = NewAppError(
+		ErrorGroupAuth,
+		CodeUnauthorized,
+		"You are not authenticated",
+	)
 
-	ErrForbidden = &AppError{
-		Code:    "forbidden",
-		Message: "You do not have permission to perform this action",
-	}
+	ErrForbidden = NewAppError(
+		ErrorGroupAuth,
+		CodeForbidden,
+		"You do not have permission to perform this action",
+	)
 )
 
 var (
-	ErrAccountNotVerified = &AppError{
-		Code:    "account_not_verified",
-		Message: "Your account is not verified. Please check your email",
-	}
+	ErrAccountNotVerified = NewAppError(
+		ErrorGroupAuth,
+		CodeAccountNotVerified,
+		"Your account is not verified. Please check your email",
+	)
 
-	ErrAccountDeleted = &AppError{
-		Code:    "account_deleted",
-		Message: "This account has been deleted",
-	}
+	ErrAccountDeleted = NewAppError(
+		ErrorGroupAuth,
+		CodeAccountDeleted,
+		"This account has been deleted",
+	)
 
-	ErrUserInactive = &AppError{
-		Code:    "user_inactive",
-		Message: "Your account is inactive",
-	}
+	ErrUserInactive = NewAppError(
+		ErrorGroupAuth,
+		CodeUserInactive,
+		"Your account is inactive",
+	)
 
-	ErrInvalidRefreshToken = &AppError{
-		Code:    "invalid_refresh_token",
-		Message: "Your session is expired",
-	}
+	ErrInvalidRefreshToken = NewAppError(
+		ErrorGroupToken,
+		CodeInvalidRefreshToken,
+		"Your session is expired",
+	)
 )
 
 var (
-	ErrUserNotFound = &AppError{
-		Code:    "user_not_found",
-		Message: "User not found",
-	}
+	ErrUserNotFound = NewAppError(
+		ErrorGroupUser,
+		CodeUserNotFound,
+		"User not found",
+	)
 
-	ErrUserAlreadyDeleted = &AppError{
-		Code:    "user_already_deleted",
-		Message: "User is already deleted",
-	}
+	ErrUserAlreadyDeleted = NewAppError(
+		ErrorGroupUser,
+		CodeUserAlreadyDeleted,
+		"User is already deleted",
+	)
 
-	ErrInvalidUserID = &AppError{
-		Code:    "invalid_user_id",
-		Message: "Invalid user ID",
-	}
+	ErrInvalidUserID = NewAppError(
+		ErrorGroupUser,
+		CodeInvalidUserID,
+		"Invalid user ID",
+	)
 
-	ErrUserNotDeleted = &AppError{
-		Code:    "user_not_deleted",
-		Message: "User is not deleted",
-	}
+	ErrUserNotDeleted = NewAppError(
+		ErrorGroupUser,
+		CodeUserNotDeleted,
+		"User is not deleted",
+	)
 )
 
 var (
-	ErrEmailExists = &AppError{
-		Code:    "email_already_exists",
-		Message: "Email is already in use",
-	}
+	ErrEmailExists = NewAppError(
+		ErrorGroupEmail,
+		CodeEmailExists,
+		"Email is already in use",
+	)
 
-	ErrUsernameExists = &AppError{
-		Code:    "username_already_exists",
-		Message: "Username is already taken",
-	}
+	ErrUsernameExists = NewAppError(
+		ErrorGroupUser,
+		CodeUsernameExists,
+		"Username is already taken",
+	)
 
-	ErrEmailBlacklisted = &AppError{
-		Code:    "email_blacklisted",
-		Message: "This email cannot be used",
-	}
+	ErrEmailBlacklisted = NewAppError(
+		ErrorGroupEmail,
+		CodeEmailBlacklisted,
+		"This email cannot be used",
+	)
 )
 
 var (
-	ErrIncorrectPassword = &AppError{
-		Code:    "incorrect_password",
-		Message: "Current password is incorrect",
-	}
+	ErrIncorrectPassword = NewAppError(
+		ErrorGroupPassword,
+		CodeIncorrectPassword,
+		"Current password is incorrect",
+	)
 
-	ErrPasswordConfirmationMismatch = &AppError{
-		Code:    "password_mismatch",
-		Message: "Password confirmation does not match",
-	}
+	ErrPasswordConfirmationMismatch = NewAppError(
+		ErrorGroupPassword,
+		CodePasswordMismatch,
+		"Password confirmation does not match",
+	)
 
-	ErrNewPasswordMustBeDifferent = &AppError{
-		Code:    "password_not_changed",
-		Message: "New password must be different from the current one",
-	}
+	ErrNewPasswordMustBeDifferent = NewAppError(
+		ErrorGroupPassword,
+		CodePasswordNotChanged,
+		"New password must be different from the current one",
+	)
 
-	ErrPasswordAlreadySet = &AppError{
-		Code:    "password_already_set",
-		Message: "Password has already been set",
-	}
+	ErrPasswordAlreadySet = NewAppError(
+		ErrorGroupPassword,
+		CodePasswordAlreadySet,
+		"Password has already been set",
+	)
 )
 
 var (
-	ErrInvalidInput = &AppError{
-		Code:    "invalid_input",
-		Message: "Invalid input data",
-	}
+	ErrInvalidInput = NewAppError(
+		ErrorGroupValidation,
+		CodeInvalidInput,
+		"Invalid input data",
+	)
 
-	ErrInvalidAction = &AppError{
-		Code:    "invalid_action",
-		Message: "Invalid action",
-	}
+	ErrInvalidAction = NewAppError(
+		ErrorGroupValidation,
+		CodeInvalidAction,
+		"Invalid action",
+	)
 
-	ErrInvalidTimeRange = &AppError{
-		Code:    "invalid_time_range",
-		Message: "Invalid time range",
-	}
+	ErrInvalidTimeRange = NewAppError(
+		ErrorGroupValidation,
+		CodeInvalidTimeRange,
+		"Invalid time range",
+	)
 )
 
 var (
-	ErrInternalServer = &AppError{
-		Code:    "internal_error",
-		Message: "Something went wrong. Please try again later",
-	}
+	ErrInternalServer = NewAppError(
+		ErrorGroupInternal,
+		CodeInternalError,
+		"Something went wrong. Please try again later",
+	)
 
-	ErrInvalidToken = &AppError{
-		Code:    "invalid_token",
-		Message: "Invalid or expired token",
-	}
+	ErrInvalidToken = NewAppError(
+		ErrorGroupToken,
+		CodeInvalidToken,
+		"Invalid or expired token",
+	)
 
-	ErrAuditLogger = &AppError{
-		Code:    "audit_log_failed",
-		Message: "Failed to record activity",
-	}
+	ErrAuditLogger = NewAppError(
+		ErrorGroupAudit,
+		CodeAuditLogFailed,
+		"Failed to record activity",
+	)
 
-	ErrSendVerificationEmail = &AppError{
-		Code:    "send_verification_failed",
-		Message: "Failed to send verification email",
-	}
+	ErrSendVerificationEmail = NewAppError(
+		ErrorGroupEmail,
+		CodeSendVerificationEmailFailed,
+		"Failed to send verification email",
+	)
 
-	ErrSendResetPasswordEmail = &AppError{
-		Code:    "send_reset_password_failed",
-		Message: "Failed to send reset password email",
-	}
+	ErrSendResetPasswordEmail = NewAppError(
+		ErrorGroupEmail,
+		CodeSendResetPasswordFailed,
+		"Failed to send reset password email",
+	)
 
-	ErrSendSetPasswordEmail = &AppError{
-		Code:    "send_set_password_failed",
-		Message: "Failed to send set password email",
-	}
+	ErrSendSetPasswordEmail = NewAppError(
+		ErrorGroupEmail,
+		CodeSendSetPasswordFailed,
+		"Failed to send set password email",
+	)
 )

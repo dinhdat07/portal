@@ -6,9 +6,9 @@ import (
 	"portal-system/internal/domain"
 	"portal-system/internal/model"
 	"portal-system/internal/repository"
-	repositorymocks "portal-system/internal/repository/mocks"
+	repositorymock "portal-system/internal/repository/mock"
 	. "portal-system/internal/service"
-	servicemocks "portal-system/internal/service/mocks"
+	servicemock "portal-system/internal/service/mock"
 	"testing"
 	"time"
 
@@ -159,14 +159,14 @@ func TestUserService_UpdateProfile_Table(t *testing.T) {
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
 			adminRole := &model.Role{ID: adminRoleID, Code: domain.RoleCodeAdmin}
-			auditLogger := servicemocks.NewAuditLogger(t)
+			auditLogger := servicemock.NewAuditLogger(t)
 			auditLogger.EXPECT().LogWithMetadata(mock.Anything, meta, mock.Anything, tc.actor, mock.Anything, mock.Anything).RunAndReturn(func(ctx context.Context, meta *AuditMeta, action domain.ActionName, actor *AuditUser, target *AuditUser, data map[string]any) error {
 				if tc.expectAction != "" && action != tc.expectAction {
 					t.Fatalf("expected audit action %s, got %s", tc.expectAction, action)
 				}
 				return tc.auditErr
 			}).Maybe()
-			userRepo := repositorymocks.NewUserRepository(t)
+			userRepo := repositorymock.NewUserRepository(t)
 			userRepo.EXPECT().FindByID(mock.Anything, userID).RunAndReturn(func(ctx context.Context, id uuid.UUID) (*model.User, error) {
 				if tc.findByIDErr != nil {
 					return nil, tc.findByIDErr
@@ -182,14 +182,14 @@ func TestUserService_UpdateProfile_Table(t *testing.T) {
 			userRepo.EXPECT().Update(mock.Anything, mock.Anything).RunAndReturn(func(ctx context.Context, user *model.User) error {
 				return tc.updateErr
 			}).Maybe()
-			roleRepo := repositorymocks.NewRoleRepository(t)
+			roleRepo := repositorymock.NewRoleRepository(t)
 			roleRepo.EXPECT().FindByCode(mock.Anything, domain.RoleCodeAdmin).RunAndReturn(func(ctx context.Context, code domain.RoleCode) (*model.Role, error) {
 				if tc.roleFindErr != nil {
 					return nil, tc.roleFindErr
 				}
 				return adminRole, nil
 			}).Maybe()
-			tx := repositorymocks.NewTxManager(t)
+			tx := repositorymock.NewTxManager(t)
 			tx.EXPECT().WithTx(mock.Anything, mock.Anything).RunAndReturn(func(ctx context.Context, fn func(ctx context.Context) error) error {
 				return fn(ctx)
 			}).Maybe()
@@ -245,7 +245,7 @@ func TestUserService_UpdateProfile_NormalizesCaseOnlyUsernameChange(t *testing.T
 	actor := &AuditUser{ID: userID, RoleCode: domain.RoleCodeUser, Username: "alice", Email: "alice@example.com"}
 	inputUsername := " ALICE "
 
-	userRepo := repositorymocks.NewUserRepository(t)
+	userRepo := repositorymock.NewUserRepository(t)
 	userRepo.EXPECT().FindByID(mock.Anything, userID).Return(&model.User{
 		ID:       userID,
 		Username: "Alice",
@@ -260,7 +260,7 @@ func TestUserService_UpdateProfile_NormalizesCaseOnlyUsernameChange(t *testing.T
 		return nil
 	})
 
-	roleRepo := repositorymocks.NewRoleRepository(t)
+	roleRepo := repositorymock.NewRoleRepository(t)
 	roleRepo.EXPECT().FindByCode(mock.Anything, domain.RoleCodeAdmin).Return(&model.Role{ID: uuid.New(), Code: domain.RoleCodeAdmin}, nil)
 
 	svc := NewUserService(UserServiceDeps{
@@ -281,11 +281,11 @@ func TestUserService_UpdateProfile_NormalizesCaseOnlyUsernameChange(t *testing.T
 }
 
 func TestUserService_GetProfile_UserNotFound(t *testing.T) {
-	userRepo := repositorymocks.NewUserRepository(t)
+	userRepo := repositorymock.NewUserRepository(t)
 	userRepo.EXPECT().FindByID(mock.Anything, mock.Anything).Return(nil, repository.ErrNotFound)
-	roleRepo := repositorymocks.NewRoleRepository(t)
-	tx := repositorymocks.NewTxManager(t)
-	auditLogger := servicemocks.NewAuditLogger(t)
+	roleRepo := repositorymock.NewRoleRepository(t)
+	tx := repositorymock.NewTxManager(t)
+	auditLogger := servicemock.NewAuditLogger(t)
 	svc := NewUserService(UserServiceDeps{
 		UserRepo:    userRepo,
 		RoleRepo:    roleRepo,
@@ -304,12 +304,12 @@ func TestUserService_GetProfile_UserNotFound(t *testing.T) {
 func TestUserService_GetProfile_AdminWritesAuditLog(t *testing.T) {
 	userID := uuid.New()
 	var capturedAction domain.ActionName
-	auditLogger := servicemocks.NewAuditLogger(t)
+	auditLogger := servicemock.NewAuditLogger(t)
 	auditLogger.EXPECT().Log(mock.Anything, mock.Anything, domain.ActionAdminViewUser, mock.Anything, mock.Anything).RunAndReturn(func(ctx context.Context, meta *AuditMeta, action domain.ActionName, actor *AuditUser, target *AuditUser) error {
 		capturedAction = action
 		return nil
 	}).Once()
-	userRepo := repositorymocks.NewUserRepository(t)
+	userRepo := repositorymock.NewUserRepository(t)
 	userRepo.EXPECT().FindByID(mock.Anything, userID).Return(&model.User{
 		ID:       userID,
 		Username: "target",
@@ -318,8 +318,8 @@ func TestUserService_GetProfile_AdminWritesAuditLog(t *testing.T) {
 			Code: domain.RoleCodeUser,
 		},
 	}, nil)
-	roleRepo := repositorymocks.NewRoleRepository(t)
-	tx := repositorymocks.NewTxManager(t)
+	roleRepo := repositorymock.NewRoleRepository(t)
+	tx := repositorymock.NewTxManager(t)
 	svc := NewUserService(UserServiceDeps{
 		UserRepo:    userRepo,
 		RoleRepo:    roleRepo,
@@ -452,11 +452,11 @@ func TestUserService_ChangePassword_Table(t *testing.T) {
 
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
-			auditLogger := servicemocks.NewAuditLogger(t)
+			auditLogger := servicemock.NewAuditLogger(t)
 			auditLogger.EXPECT().Log(mock.Anything, meta, domain.ActionChangePassword, actor, actor).RunAndReturn(func(ctx context.Context, meta *AuditMeta, action domain.ActionName, actor *AuditUser, target *AuditUser) error {
 				return tc.auditErr
 			}).Maybe()
-			userRepo := repositorymocks.NewUserRepository(t)
+			userRepo := repositorymock.NewUserRepository(t)
 			userRepo.EXPECT().FindByID(mock.Anything, actorID).RunAndReturn(func(ctx context.Context, id uuid.UUID) (*model.User, error) {
 				if tc.findByIDErr != nil {
 					return nil, tc.findByIDErr
@@ -472,11 +472,11 @@ func TestUserService_ChangePassword_Table(t *testing.T) {
 				}
 				return tc.updatePasswordErr
 			}).Maybe()
-			txManager := repositorymocks.NewTxManager(t)
+			txManager := repositorymock.NewTxManager(t)
 			txManager.EXPECT().WithTx(mock.Anything, mock.Anything).RunAndReturn(func(ctx context.Context, fn func(ctx context.Context) error) error {
 				return fn(ctx)
 			}).Maybe()
-			roleRepo := repositorymocks.NewRoleRepository(t)
+			roleRepo := repositorymock.NewRoleRepository(t)
 			svc := NewUserService(UserServiceDeps{
 				TxManager:   txManager,
 				AuditLogger: auditLogger,

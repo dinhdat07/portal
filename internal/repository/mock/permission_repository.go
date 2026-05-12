@@ -2,7 +2,7 @@
 // github.com/vektra/mockery
 // template: testify
 
-package mocks
+package mock
 
 import (
 	"context"
@@ -12,7 +12,7 @@ import (
 	mock "github.com/stretchr/testify/mock"
 )
 
-// NewPermissionRepository creates a new instance of PermissionRepository. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.
+// NewPermissionRepository creates a new instance of PermissionRepository. It also registers a testing interface on the mock and a cleanup function to assert the mock expectations.
 // The first argument is typically a *testing.T value.
 func NewPermissionRepository(t interface {
 	mock.TestingT

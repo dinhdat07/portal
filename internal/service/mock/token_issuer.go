@@ -2,7 +2,7 @@
 // github.com/vektra/mockery
 // template: testify
 
-package mocks
+package mock
 
 import (
 	"portal-system/internal/service"
@@ -10,7 +10,7 @@ import (
 	mock "github.com/stretchr/testify/mock"
 )
 
-// NewTokenIssuer creates a new instance of TokenIssuer. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.
+// NewTokenIssuer creates a new instance of TokenIssuer. It also registers a testing interface on the mock and a cleanup function to assert the mock expectations.
 // The first argument is typically a *testing.T value.
 func NewTokenIssuer(t interface {
 	mock.TestingT

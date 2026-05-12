@@ -6,9 +6,9 @@ import (
 	"portal-system/internal/domain"
 	"portal-system/internal/infrastructure/security"
 	"portal-system/internal/model"
-	repositorymocks "portal-system/internal/repository/mocks"
+	repositorymock "portal-system/internal/repository/mock"
 	"portal-system/internal/service"
-	servicemocks "portal-system/internal/service/mocks"
+	servicemock "portal-system/internal/service/mock"
 	"testing"
 
 	"github.com/google/uuid"
@@ -50,7 +50,7 @@ func TestAuthenticator_Authenticate_Table(t *testing.T) {
 
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
-			manager := servicemocks.NewTokenIssuer(t)
+			manager := servicemock.NewTokenIssuer(t)
 			manager.EXPECT().Parse(tc.tokenString).RunAndReturn(func(tokenString string) (*service.TokenClaims, error) {
 				if tokenString == "bad-token" {
 					return nil, errors.New("invalid token")
@@ -65,7 +65,7 @@ func TestAuthenticator_Authenticate_Table(t *testing.T) {
 				}, nil
 			}).Maybe()
 
-			roleRepo := repositorymocks.NewRoleRepository(t)
+			roleRepo := repositorymock.NewRoleRepository(t)
 			roleRepo.EXPECT().GetWithPermissions(mock.Anything, roleID).RunAndReturn(func(ctx context.Context, id uuid.UUID) (*model.Role, error) {
 				if tc.roleErr != nil {
 					return nil, tc.roleErr
@@ -73,7 +73,7 @@ func TestAuthenticator_Authenticate_Table(t *testing.T) {
 				return role, nil
 			}).Maybe()
 
-			sessionRepo := repositorymocks.NewAuthSessionRepository(t)
+			sessionRepo := repositorymock.NewAuthSessionRepository(t)
 			sessionRepo.EXPECT().FindActiveByID(mock.Anything, sessionID).RunAndReturn(func(ctx context.Context, id uuid.UUID) (*model.AuthSession, error) {
 				if tc.sessionErr != nil {
 					return nil, tc.sessionErr
@@ -81,7 +81,7 @@ func TestAuthenticator_Authenticate_Table(t *testing.T) {
 				return tc.session, nil
 			}).Maybe()
 
-			revoStore := servicemocks.NewSessionRevocationStore(t)
+			revoStore := servicemock.NewSessionRevocationStore(t)
 			revoStore.EXPECT().IsRevoked(mock.Anything, sessionID).RunAndReturn(func(ctx context.Context, id uuid.UUID) (bool, error) {
 				return tc.revoked, tc.revokeErr
 			}).Maybe()

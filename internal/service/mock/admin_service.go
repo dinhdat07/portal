@@ -2,7 +2,7 @@
 // github.com/vektra/mockery
 // template: testify
 
-package mocks
+package mock
 
 import (
 	"context"
@@ -14,7 +14,7 @@ import (
 	mock "github.com/stretchr/testify/mock"
 )
 
-// NewAdminService creates a new instance of AdminService. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.
+// NewAdminService creates a new instance of AdminService. It also registers a testing interface on the mock and a cleanup function to assert the mock expectations.
 // The first argument is typically a *testing.T value.
 func NewAdminService(t interface {
 	mock.TestingT

@@ -6,9 +6,9 @@ import (
 	"portal-system/internal/domain"
 	"portal-system/internal/model"
 	"portal-system/internal/repository"
-	repositorymocks "portal-system/internal/repository/mocks"
+	repositorymock "portal-system/internal/repository/mock"
 	. "portal-system/internal/service"
-	servicemocks "portal-system/internal/service/mocks"
+	servicemock "portal-system/internal/service/mock"
 	"testing"
 	"time"
 
@@ -62,9 +62,9 @@ func TestAdminService_ListUsers_Table(t *testing.T) {
 
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
-			auditLogger := servicemocks.NewAuditLogger(t)
+			auditLogger := servicemock.NewAuditLogger(t)
 			auditLogger.EXPECT().LogWithMetadata(mock.Anything, meta, domain.ActionAdminSearchUser, actor, (*AuditUser)(nil), mock.Anything).Return(nil).Maybe()
-			roleRepo := repositorymocks.NewRoleRepository(t)
+			roleRepo := repositorymock.NewRoleRepository(t)
 			roleRepo.EXPECT().FindByCode(mock.Anything, roleCode).RunAndReturn(func(ctx context.Context, code domain.RoleCode) (*model.Role, error) {
 				if tc.roleErr != nil {
 					return nil, tc.roleErr
@@ -73,16 +73,16 @@ func TestAdminService_ListUsers_Table(t *testing.T) {
 			}).Maybe()
 
 			var capturedFilter repository.UserListFilter
-			userRepo := repositorymocks.NewUserRepository(t)
+			userRepo := repositorymock.NewUserRepository(t)
 			userRepo.EXPECT().ListUsers(mock.Anything, mock.Anything).RunAndReturn(func(ctx context.Context, filter repository.UserListFilter) ([]model.User, int64, error) {
 				capturedFilter = filter
 				return tc.listUsers, tc.total, tc.listErr
 			}).Maybe()
 
-			tx := repositorymocks.NewTxManager(t)
-			tokenRepo := repositorymocks.NewUserTokenRepository(t)
-			email := servicemocks.NewEmailSender(t)
-			tokenMgr := servicemocks.NewTokenIssuer(t)
+			tx := repositorymock.NewTxManager(t)
+			tokenRepo := repositorymock.NewUserTokenRepository(t)
+			email := servicemock.NewEmailSender(t)
+			tokenMgr := servicemock.NewTokenIssuer(t)
 			svc := newAdminServiceForTest(tx, auditLogger, userRepo, tokenRepo, roleRepo, tokenMgr, email)
 			out, err := svc.ListUsers(context.Background(), meta, actor, tc.filter)
 			if tc.expected == nil {
@@ -224,13 +224,13 @@ func TestAdminService_CreateUser_Table(t *testing.T) {
 
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
-			tx := repositorymocks.NewTxManager(t)
+			tx := repositorymock.NewTxManager(t)
 			tx.EXPECT().WithTx(mock.Anything, mock.Anything).RunAndReturn(func(ctx context.Context, fn func(context.Context) error) error {
 				return fn(ctx)
 			}).Maybe()
-			auditLogger := servicemocks.NewAuditLogger(t)
+			auditLogger := servicemock.NewAuditLogger(t)
 			auditLogger.EXPECT().Log(mock.Anything, meta, domain.ActionAdminCreateUser, actor, mock.Anything).Return(tc.auditErr).Maybe()
-			userRepo := repositorymocks.NewUserRepository(t)
+			userRepo := repositorymock.NewUserRepository(t)
 			userRepo.EXPECT().FindByEmail(mock.Anything, input.Email).RunAndReturn(func(ctx context.Context, email string) (*model.User, error) {
 				return tc.findEmail, tc.findEmailErr
 			}).Maybe()
@@ -243,14 +243,14 @@ func TestAdminService_CreateUser_Table(t *testing.T) {
 				}
 				return tc.createErr
 			}).Maybe()
-			tokenRepo := repositorymocks.NewUserTokenRepository(t)
+			tokenRepo := repositorymock.NewUserTokenRepository(t)
 			tokenRepo.EXPECT().RevokeByUserAndType(mock.Anything, mock.Anything, domain.TokenTypePasswordSet).RunAndReturn(func(ctx context.Context, userID uuid.UUID, tokenType domain.TokenType) error {
 				return tc.revokeErr
 			}).Maybe()
 			tokenRepo.EXPECT().Create(mock.Anything, mock.Anything).RunAndReturn(func(ctx context.Context, token *model.UserToken) error {
 				return tc.tokenCreateErr
 			}).Maybe()
-			roleRepo := repositorymocks.NewRoleRepository(t)
+			roleRepo := repositorymock.NewRoleRepository(t)
 			roleRepo.EXPECT().FindByCode(mock.Anything, input.RoleCode).RunAndReturn(func(ctx context.Context, code domain.RoleCode) (*model.Role, error) {
 				if tc.roleErr != nil {
 					return nil, tc.roleErr
@@ -260,9 +260,9 @@ func TestAdminService_CreateUser_Table(t *testing.T) {
 				}
 				return role, nil
 			}).Maybe()
-			email := servicemocks.NewEmailSender(t)
+			email := servicemock.NewEmailSender(t)
 			email.EXPECT().SendSetPasswordEmail(mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(tc.emailErr).Maybe()
-			tokenMgr := servicemocks.NewTokenIssuer(t)
+			tokenMgr := servicemock.NewTokenIssuer(t)
 			tokenMgr.EXPECT().GenerateHashToken().Return("token-hash", "raw-token", nil).Maybe()
 			svc := newAdminServiceForTest(tx, auditLogger, userRepo, tokenRepo, roleRepo, tokenMgr, email)
 
@@ -293,12 +293,12 @@ func TestAdminService_CreateUser_NormalizesIdentity(t *testing.T) {
 	meta := &AuditMeta{IPAddress: "127.0.0.1", UserAgent: "unit-test"}
 	role := &model.Role{ID: uuid.New(), Code: domain.RoleCodeUser}
 
-	tx := repositorymocks.NewTxManager(t)
+	tx := repositorymock.NewTxManager(t)
 	tx.EXPECT().WithTx(mock.Anything, mock.Anything).RunAndReturn(func(ctx context.Context, fn func(context.Context) error) error {
 		return fn(ctx)
 	})
 
-	userRepo := repositorymocks.NewUserRepository(t)
+	userRepo := repositorymock.NewUserRepository(t)
 	userRepo.EXPECT().FindByEmail(mock.Anything, "jane@example.com").Return((*model.User)(nil), nil)
 	userRepo.EXPECT().FindByUsername(mock.Anything, "jane").Return((*model.User)(nil), nil)
 
@@ -309,17 +309,17 @@ func TestAdminService_CreateUser_NormalizesIdentity(t *testing.T) {
 		return nil
 	})
 
-	tokenRepo := repositorymocks.NewUserTokenRepository(t)
+	tokenRepo := repositorymock.NewUserTokenRepository(t)
 	tokenRepo.EXPECT().RevokeByUserAndType(mock.Anything, mock.Anything, domain.TokenTypePasswordSet).Return(nil)
 	tokenRepo.EXPECT().Create(mock.Anything, mock.Anything).Return(nil)
 
-	roleRepo := repositorymocks.NewRoleRepository(t)
+	roleRepo := repositorymock.NewRoleRepository(t)
 	roleRepo.EXPECT().FindByCode(mock.Anything, domain.RoleCodeUser).Return(role, nil)
 
-	tokenMgr := servicemocks.NewTokenIssuer(t)
+	tokenMgr := servicemock.NewTokenIssuer(t)
 	tokenMgr.EXPECT().GenerateHashToken().Return("token-hash", "raw-token", nil)
 
-	email := servicemocks.NewEmailSender(t)
+	email := servicemock.NewEmailSender(t)
 	email.EXPECT().SendSetPasswordEmail(mock.Anything, "jane@example.com", "Jane", mock.Anything).Return(nil)
 
 	svc := newAdminServiceForTest(tx, newAuditLoggerMock(), userRepo, tokenRepo, roleRepo, tokenMgr, email)
@@ -395,9 +395,9 @@ func TestAdminService_DeleteUser_Table(t *testing.T) {
 
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
-			auditLogger := servicemocks.NewAuditLogger(t)
+			auditLogger := servicemock.NewAuditLogger(t)
 			auditLogger.EXPECT().Log(mock.Anything, meta, domain.ActionAdminDeleteUser, actor, mock.Anything).Return(tc.auditErr).Maybe()
-			userRepo := repositorymocks.NewUserRepository(t)
+			userRepo := repositorymock.NewUserRepository(t)
 			userRepo.EXPECT().FindByID(mock.Anything, baseUser.ID).RunAndReturn(func(ctx context.Context, id uuid.UUID) (*model.User, error) {
 				if tc.findErr != nil {
 					return nil, tc.findErr
@@ -407,14 +407,14 @@ func TestAdminService_DeleteUser_Table(t *testing.T) {
 			userRepo.EXPECT().Delete(mock.Anything, baseUser.ID, actor.ID).RunAndReturn(func(ctx context.Context, id uuid.UUID, deletedBy uuid.UUID) error {
 				return tc.deleteErr
 			}).Maybe()
-			roleRepo := repositorymocks.NewRoleRepository(t)
+			roleRepo := repositorymock.NewRoleRepository(t)
 			roleRepo.EXPECT().FindByCode(mock.Anything, domain.RoleCodeAdmin).RunAndReturn(func(ctx context.Context, code domain.RoleCode) (*model.Role, error) {
 				if tc.roleErr != nil {
 					return nil, tc.roleErr
 				}
 				return adminRole, nil
 			}).Maybe()
-			tx := repositorymocks.NewTxManager(t)
+			tx := repositorymock.NewTxManager(t)
 			tx.EXPECT().WithTx(mock.Anything, mock.Anything).RunAndReturn(func(ctx context.Context, fn func(context.Context) error) error {
 				return fn(ctx)
 			}).Maybe()
@@ -485,9 +485,9 @@ func TestAdminService_RestoreUser_Table(t *testing.T) {
 
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
-			auditLogger := servicemocks.NewAuditLogger(t)
+			auditLogger := servicemock.NewAuditLogger(t)
 			auditLogger.EXPECT().Log(mock.Anything, meta, domain.ActionAdminRestoreUser, actor, mock.Anything).Return(tc.auditErr).Maybe()
-			userRepo := repositorymocks.NewUserRepository(t)
+			userRepo := repositorymock.NewUserRepository(t)
 			userRepo.EXPECT().FindByIDUnscoped(mock.Anything, userID).RunAndReturn(func(ctx context.Context, id uuid.UUID) (*model.User, error) {
 				if tc.findErr != nil {
 					return nil, tc.findErr
@@ -497,7 +497,7 @@ func TestAdminService_RestoreUser_Table(t *testing.T) {
 			userRepo.EXPECT().Restore(mock.Anything, userID).RunAndReturn(func(ctx context.Context, id uuid.UUID) error {
 				return tc.restoreErr
 			}).Maybe()
-			tx := repositorymocks.NewTxManager(t)
+			tx := repositorymock.NewTxManager(t)
 			tx.EXPECT().WithTx(mock.Anything, mock.Anything).RunAndReturn(func(ctx context.Context, fn func(context.Context) error) error {
 				return fn(ctx)
 			}).Maybe()
@@ -607,9 +607,9 @@ func TestAdminService_UpdateRole_Table(t *testing.T) {
 			if tc.sameRole {
 				targetRole = &model.Role{ID: tc.user.RoleID, Code: tc.user.Role.Code}
 			}
-			auditLogger := servicemocks.NewAuditLogger(t)
+			auditLogger := servicemock.NewAuditLogger(t)
 			auditLogger.EXPECT().LogWithMetadata(mock.Anything, meta, domain.ActionAdminAssignRole, actor, mock.Anything, mock.Anything).Return(tc.auditErr).Maybe()
-			userRepo := repositorymocks.NewUserRepository(t)
+			userRepo := repositorymock.NewUserRepository(t)
 			userRepo.EXPECT().FindByID(mock.Anything, userID).RunAndReturn(func(ctx context.Context, id uuid.UUID) (*model.User, error) {
 				if tc.findErr != nil {
 					return nil, tc.findErr
@@ -619,7 +619,7 @@ func TestAdminService_UpdateRole_Table(t *testing.T) {
 			userRepo.EXPECT().UpdateRole(mock.Anything, userID, mock.Anything).RunAndReturn(func(ctx context.Context, id uuid.UUID, roleID uuid.UUID) error {
 				return tc.updateRoleErr
 			}).Maybe()
-			roleRepo := repositorymocks.NewRoleRepository(t)
+			roleRepo := repositorymock.NewRoleRepository(t)
 			roleRepo.EXPECT().FindByCode(mock.Anything, mock.Anything).RunAndReturn(func(ctx context.Context, code domain.RoleCode) (*model.Role, error) {
 				switch code {
 				case domain.RoleCodeAdmin:
@@ -634,7 +634,7 @@ func TestAdminService_UpdateRole_Table(t *testing.T) {
 					return targetRole, nil
 				}
 			}).Maybe()
-			tx := repositorymocks.NewTxManager(t)
+			tx := repositorymock.NewTxManager(t)
 			tx.EXPECT().WithTx(mock.Anything, mock.Anything).RunAndReturn(func(ctx context.Context, fn func(context.Context) error) error {
 				return fn(ctx)
 			}).Maybe()

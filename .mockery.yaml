@@ -3,16 +3,16 @@ template: testify
 packages:
   portal-system/internal/repository:
     config:
-      dir: internal/repository/mocks
-      pkgname: mocks
+      dir: internal/repository/mock
+      pkgname: mock
       filename: "{{.InterfaceName | snakecase}}.go"
       structname: "{{.InterfaceName}}"
       all: true
 
   portal-system/internal/service:
     config:
-      dir: internal/service/mocks
-      pkgname: mocks
+      dir: internal/service/mock
+      pkgname: mock
       filename: "{{.InterfaceName | snakecase}}.go"
       structname: "{{.InterfaceName}}"
       all: true

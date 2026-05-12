@@ -4,7 +4,7 @@ import (
 	"context"
 	"errors"
 	"portal-system/internal/model"
-	repositorymocks "portal-system/internal/repository/mocks"
+	repositorymock "portal-system/internal/repository/mock"
 	. "portal-system/internal/service"
 	"testing"
 
@@ -13,7 +13,7 @@ import (
 
 func TestPermissionService_ListPermission(t *testing.T) {
 	t.Run("success", func(t *testing.T) {
-		repo := repositorymocks.NewPermissionRepository(t)
+		repo := repositorymock.NewPermissionRepository(t)
 		expected := []model.Permission{
 			{Code: "permissions:list", Name: "permissions:list"},
 			{Code: "roles:create", Name: "roles:create"},
@@ -27,7 +27,7 @@ func TestPermissionService_ListPermission(t *testing.T) {
 	})
 
 	t.Run("repository error", func(t *testing.T) {
-		repo := repositorymocks.NewPermissionRepository(t)
+		repo := repositorymock.NewPermissionRepository(t)
 		repo.EXPECT().List(context.Background()).Return(nil, errors.New("db error"))
 
 		svc := newPermissionServiceForTest(repo)

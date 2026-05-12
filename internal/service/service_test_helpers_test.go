@@ -4,34 +4,34 @@ import (
 	"context"
 	"time"
 
-	repositorymocks "portal-system/internal/repository/mocks"
+	repositorymock "portal-system/internal/repository/mock"
 	. "portal-system/internal/service"
-	servicemocks "portal-system/internal/service/mocks"
+	servicemock "portal-system/internal/service/mock"
 
 	"github.com/stretchr/testify/mock"
 )
 
 type authServiceTestDeps struct {
-	tx          *repositorymocks.TxManager
-	auditLogger *servicemocks.AuditLogger
-	userRepo    *repositorymocks.UserRepository
-	tokenRepo   *repositorymocks.UserTokenRepository
-	roleRepo    *repositorymocks.RoleRepository
-	refreshRepo *repositorymocks.RefreshTokenRepository
-	sessionRepo *repositorymocks.AuthSessionRepository
-	revoStore   *servicemocks.SessionRevocationStore
-	tokenMgr    *servicemocks.TokenIssuer
-	email       *servicemocks.EmailSender
+	tx          *repositorymock.TxManager
+	auditLogger *servicemock.AuditLogger
+	userRepo    *repositorymock.UserRepository
+	tokenRepo   *repositorymock.UserTokenRepository
+	roleRepo    *repositorymock.RoleRepository
+	refreshRepo *repositorymock.RefreshTokenRepository
+	sessionRepo *repositorymock.AuthSessionRepository
+	revoStore   *servicemock.SessionRevocationStore
+	tokenMgr    *servicemock.TokenIssuer
+	email       *servicemock.EmailSender
 }
 
 func newAdminServiceForTest(
-	tx *repositorymocks.TxManager,
-	auditLogger *servicemocks.AuditLogger,
-	userRepo *repositorymocks.UserRepository,
-	tokenRepo *repositorymocks.UserTokenRepository,
-	roleRepo *repositorymocks.RoleRepository,
-	tokenMgr *servicemocks.TokenIssuer,
-	email *servicemocks.EmailSender,
+	tx *repositorymock.TxManager,
+	auditLogger *servicemock.AuditLogger,
+	userRepo *repositorymock.UserRepository,
+	tokenRepo *repositorymock.UserTokenRepository,
+	roleRepo *repositorymock.RoleRepository,
+	tokenMgr *servicemock.TokenIssuer,
+	email *servicemock.EmailSender,
 ) AdminService {
 	if tx == nil {
 		tx = newPassthroughTxManager()
@@ -40,10 +40,10 @@ func newAdminServiceForTest(
 		auditLogger = newAuditLoggerMock()
 	}
 	if tokenRepo == nil {
-		tokenRepo = &repositorymocks.UserTokenRepository{}
+		tokenRepo = &repositorymock.UserTokenRepository{}
 	}
 	if roleRepo == nil {
-		roleRepo = &repositorymocks.RoleRepository{}
+		roleRepo = &repositorymock.RoleRepository{}
 	}
 	if tokenMgr == nil {
 		tokenMgr = newTokenIssuerMock()
@@ -96,17 +96,17 @@ func newAuthServiceForTest(deps authServiceTestDeps) AuthService {
 }
 
 func newPermissionServiceForTest(
-	repo *repositorymocks.PermissionRepository,
+	repo *repositorymock.PermissionRepository,
 ) PermissionService {
 	return NewPermissionService(repo)
 }
 
 func newRoleServiceForTest(
-	tx *repositorymocks.TxManager,
-	auditLogger *servicemocks.AuditLogger,
-	roleRepo *repositorymocks.RoleRepository,
-	permRepo *repositorymocks.PermissionRepository,
-	userRepo *repositorymocks.UserRepository,
+	tx *repositorymock.TxManager,
+	auditLogger *servicemock.AuditLogger,
+	roleRepo *repositorymock.RoleRepository,
+	permRepo *repositorymock.PermissionRepository,
+	userRepo *repositorymock.UserRepository,
 ) RoleService {
 	if tx == nil {
 		tx = newPassthroughTxManager()
@@ -115,13 +115,13 @@ func newRoleServiceForTest(
 		auditLogger = newAuditLoggerMock()
 	}
 	if roleRepo == nil {
-		roleRepo = &repositorymocks.RoleRepository{}
+		roleRepo = &repositorymock.RoleRepository{}
 	}
 	if permRepo == nil {
-		permRepo = &repositorymocks.PermissionRepository{}
+		permRepo = &repositorymock.PermissionRepository{}
 	}
 	if userRepo == nil {
-		userRepo = &repositorymocks.UserRepository{}
+		userRepo = &repositorymock.UserRepository{}
 	}
 	return NewRoleService(RoleServiceDeps{
 		RoleRepo:       roleRepo,
@@ -132,30 +132,30 @@ func newRoleServiceForTest(
 	})
 }
 
-func newPassthroughTxManager() *repositorymocks.TxManager {
-	tx := &repositorymocks.TxManager{}
+func newPassthroughTxManager() *repositorymock.TxManager {
+	tx := &repositorymock.TxManager{}
 	tx.EXPECT().WithTx(mock.Anything, mock.Anything).RunAndReturn(func(ctx context.Context, fn func(context.Context) error) error {
 		return fn(ctx)
 	}).Maybe()
 	return tx
 }
 
-func newAuditLoggerMock() *servicemocks.AuditLogger {
-	logger := &servicemocks.AuditLogger{}
+func newAuditLoggerMock() *servicemock.AuditLogger {
+	logger := &servicemock.AuditLogger{}
 	logger.EXPECT().Log(mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(nil).Maybe()
 	logger.EXPECT().LogWithMetadata(mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(nil).Maybe()
 	return logger
 }
 
-func newSessionRevocationStore() *servicemocks.SessionRevocationStore {
-	store := &servicemocks.SessionRevocationStore{}
+func newSessionRevocationStore() *servicemock.SessionRevocationStore {
+	store := &servicemock.SessionRevocationStore{}
 	store.EXPECT().IsRevoked(mock.Anything, mock.Anything).Return(false, nil).Maybe()
 	store.EXPECT().MarkRevoked(mock.Anything, mock.Anything, mock.Anything).Return(nil).Maybe()
 	return store
 }
 
-func newTokenIssuerMock() *servicemocks.TokenIssuer {
-	tokenMgr := &servicemocks.TokenIssuer{}
+func newTokenIssuerMock() *servicemock.TokenIssuer {
+	tokenMgr := &servicemock.TokenIssuer{}
 	tokenMgr.EXPECT().GenerateAccessToken(mock.Anything).Return("access-token", nil).Maybe()
 	tokenMgr.EXPECT().GenerateRefreshToken().Return("refresh-token", nil).Maybe()
 	tokenMgr.EXPECT().ExpiresInSeconds().Return(3600).Maybe()
@@ -167,8 +167,8 @@ func newTokenIssuerMock() *servicemocks.TokenIssuer {
 	return tokenMgr
 }
 
-func newEmailSenderMock() *servicemocks.EmailSender {
-	email := &servicemocks.EmailSender{}
+func newEmailSenderMock() *servicemock.EmailSender {
+	email := &servicemock.EmailSender{}
 	email.EXPECT().SendVerificationEmail(mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(nil).Maybe()
 	email.EXPECT().SendResetPasswordEmail(mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(nil).Maybe()
 	email.EXPECT().SendSetPasswordEmail(mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(nil).Maybe()

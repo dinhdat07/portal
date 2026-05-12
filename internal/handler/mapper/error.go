@@ -1,7 +1,6 @@
 package mapper
 
 import (
-	"errors"
 	"portal-system/internal/service"
 
 	"google.golang.org/grpc/codes"
@@ -17,48 +16,78 @@ func MapError(err error) error {
 		return err
 	}
 
-	switch {
-	case errors.Is(err, service.ErrInvalidInput),
-		errors.Is(err, service.ErrInvalidToken),
-		errors.Is(err, service.ErrInvalidUserID),
-		errors.Is(err, service.ErrInvalidAction),
-		errors.Is(err, service.ErrInvalidTimeRange),
-		errors.Is(err, service.ErrIncorrectPassword),
-		errors.Is(err, service.ErrPasswordConfirmationMismatch),
-		errors.Is(err, service.ErrNewPasswordMustBeDifferent),
-		errors.Is(err, service.ErrPasswordAlreadySet),
-		errors.Is(err, service.ErrInvalidReplacementRole):
-		return gstatus.Error(codes.InvalidArgument, err.Error())
+	appErr, ok := service.AsAppError(err)
+	if !ok {
+		return gstatus.Error(codes.Internal, "Something went wrong. Please try again later")
+	}
 
-	case errors.Is(err, service.ErrUnauthorized),
-		errors.Is(err, service.ErrInvalidCredentials),
-		errors.Is(err, service.ErrInvalidRefreshToken):
-		return gstatus.Error(codes.Unauthenticated, err.Error())
+	return gstatus.Error(mapAppErrorCode(appErr), appErr.Message)
+}
 
-	case errors.Is(err, service.ErrForbidden):
-		return gstatus.Error(codes.PermissionDenied, err.Error())
+func mapAppErrorCode(err *service.AppError) codes.Code {
+	switch err.Code {
+	case service.CodeInvalidInput,
+		service.CodeInvalidToken,
+		service.CodeInvalidUserID,
+		service.CodeInvalidAction,
+		service.CodeInvalidTimeRange,
+		service.CodeIncorrectPassword,
+		service.CodePasswordMismatch,
+		service.CodePasswordNotChanged,
+		service.CodePasswordAlreadySet,
+		service.CodeInvalidReplacementRole:
+		return codes.InvalidArgument
 
-	case errors.Is(err, service.ErrUserNotFound):
-		return gstatus.Error(codes.NotFound, err.Error())
+	case service.CodeUnauthorized,
+		service.CodeInvalidCredentials,
+		service.CodeInvalidRefreshToken:
+		return codes.Unauthenticated
 
-	case errors.Is(err, service.ErrRoleNotFound),
-		errors.Is(err, service.ErrPermissionNotFound):
-		return gstatus.Error(codes.NotFound, err.Error())
+	case service.CodeForbidden:
+		return codes.PermissionDenied
 
-	case errors.Is(err, service.ErrEmailExists),
-		errors.Is(err, service.ErrUsernameExists),
-		errors.Is(err, service.ErrRoleCodeExists):
-		return gstatus.Error(codes.AlreadyExists, err.Error())
+	case service.CodeUserNotFound,
+		service.CodeRoleNotFound,
+		service.CodePermissionNotFound:
+		return codes.NotFound
 
-	case errors.Is(err, service.ErrAccountNotVerified),
-		errors.Is(err, service.ErrAccountDeleted),
-		errors.Is(err, service.ErrUserAlreadyDeleted),
-		errors.Is(err, service.ErrUserNotDeleted),
-		errors.Is(err, service.ErrRoleInUse),
-		errors.Is(err, service.ErrCannotModifySystemRole):
-		return gstatus.Error(codes.FailedPrecondition, err.Error())
+	case service.CodeEmailExists,
+		service.CodeUsernameExists,
+		service.CodeRoleCodeExists:
+		return codes.AlreadyExists
+
+	case service.CodeAccountNotVerified,
+		service.CodeAccountDeleted,
+		service.CodeUserAlreadyDeleted,
+		service.CodeUserNotDeleted,
+		service.CodeRoleInUse,
+		service.CodeCannotModifySystemRole:
+		return codes.FailedPrecondition
 
 	default:
-		return gstatus.Error(codes.Internal, err.Error())
+		return fallbackCodeByGroup(err.Group)
+	}
+}
+
+func fallbackCodeByGroup(group service.ErrorGroup) codes.Code {
+	switch group {
+	case service.ErrorGroupAuth,
+		service.ErrorGroupToken:
+		return codes.Unauthenticated
+
+	case service.ErrorGroupValidation,
+		service.ErrorGroupPassword:
+		return codes.InvalidArgument
+
+	case service.ErrorGroupPermission:
+		return codes.PermissionDenied
+
+	case service.ErrorGroupInternal,
+		service.ErrorGroupAudit,
+		service.ErrorGroupEmail:
+		return codes.Internal
+
+	default:
+		return codes.Internal
 	}
 }

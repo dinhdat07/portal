@@ -2,7 +2,7 @@
 // github.com/vektra/mockery
 // template: testify
 
-package mocks
+package mock
 
 import (
 	"context"
@@ -13,7 +13,7 @@ import (
 	mock "github.com/stretchr/testify/mock"
 )
 
-// NewRoleService creates a new instance of RoleService. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.
+// NewRoleService creates a new instance of RoleService. It also registers a testing interface on the mock and a cleanup function to assert the mock expectations.
 // The first argument is typically a *testing.T value.
 func NewRoleService(t interface {
 	mock.TestingT
