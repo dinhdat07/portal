@@ -3,7 +3,7 @@ package redisx
 import (
 	"context"
 
-	"portal-system/internal/config"
+	"portal-system/config"
 
 	"github.com/redis/go-redis/v9"
 )

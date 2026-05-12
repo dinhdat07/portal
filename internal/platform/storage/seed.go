@@ -2,7 +2,7 @@ package storage
 
 import (
 	"errors"
-	"portal-system/internal/config"
+	"portal-system/config"
 	"portal-system/internal/domain"
 	"portal-system/internal/models"
 	"strings"

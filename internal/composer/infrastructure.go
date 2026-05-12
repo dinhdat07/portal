@@ -1,7 +1,7 @@
 package composer
 
 import (
-	"portal-system/internal/config"
+	"portal-system/config"
 	"portal-system/internal/platform/email"
 	redisx "portal-system/internal/platform/redis"
 	"portal-system/internal/services"

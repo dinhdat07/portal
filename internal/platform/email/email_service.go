@@ -9,7 +9,7 @@ import (
 	appLogger "log"
 	"net"
 	"net/smtp"
-	"portal-system/internal/config"
+	"portal-system/config"
 	"strings"
 	"time"
 )

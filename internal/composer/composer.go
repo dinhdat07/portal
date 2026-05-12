@@ -3,8 +3,8 @@ package composer
 import (
 	"context"
 	"fmt"
+	"portal-system/config"
 	"portal-system/internal/app"
-	"portal-system/internal/config"
 	"portal-system/internal/platform/logger"
 	"portal-system/internal/platform/ratelimit"
 	redisx "portal-system/internal/platform/redis"

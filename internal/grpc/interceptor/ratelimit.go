@@ -3,7 +3,7 @@ package interceptor
 import (
 	"context"
 	"net"
-	"portal-system/internal/config"
+	"portal-system/config"
 	portalgrpc "portal-system/internal/grpc"
 	"portal-system/internal/platform/ratelimit"
 	"strconv"

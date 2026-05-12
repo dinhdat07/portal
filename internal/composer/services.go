@@ -3,7 +3,7 @@ package composer
 import (
 	"time"
 
-	"portal-system/internal/config"
+	"portal-system/config"
 	auth "portal-system/internal/platform/security"
 	"portal-system/internal/services"
 )
