@@ -4,22 +4,22 @@ import (
 	"time"
 
 	"portal-system/config"
-	auth "portal-system/internal/platform/security"
-	"portal-system/internal/services"
+	"portal-system/internal/infrastructure/security"
+	"portal-system/internal/service"
 )
 
 type Services struct {
 	// services
-	AuditLog   services.AuditLogger
-	Auth       services.AuthService
-	User       services.UserService
-	Admin      services.AdminService
-	Role       services.RoleService
-	Permission services.PermissionService
+	AuditLog   service.AuditLogger
+	Auth       service.AuthService
+	User       service.UserService
+	Admin      service.AdminService
+	Role       service.RoleService
+	Permission service.PermissionService
 
 	// auth layer
-	Authenticator *auth.Authenticator
-	Authorizer    *auth.Authorizer
+	Authenticator *security.Authenticator
+	Authorizer    *security.Authorizer
 }
 
 func newServices(
@@ -29,10 +29,10 @@ func newServices(
 ) *Services {
 
 	// audit
-	auditLogService := services.NewAuditLogService(repos.AuditLog)
+	auditLogService := service.NewAuditLogService(repos.AuditLog)
 
 	// auth service
-	authService := services.NewAuthService(services.AuthServiceDeps{
+	authService := service.NewAuthService(service.AuthServiceDeps{
 		TxManager:        repos.TxManager,
 		AuditLogger:      auditLogService,
 		UserRepo:         repos.UserRepo,
@@ -48,7 +48,7 @@ func newServices(
 	})
 
 	// user service
-	userService := services.NewUserService(services.UserServiceDeps{
+	userService := service.NewUserService(service.UserServiceDeps{
 		TxManager:   repos.TxManager,
 		AuditLogger: auditLogService,
 		UserRepo:    repos.UserRepo,
@@ -56,7 +56,7 @@ func newServices(
 	})
 
 	// admin service
-	adminService := services.NewAdminService(services.AdminServiceDeps{
+	adminService := service.NewAdminService(service.AdminServiceDeps{
 		TxManager:    repos.TxManager,
 		AuditLogger:  auditLogService,
 		UserRepo:     repos.UserRepo,
@@ -67,7 +67,7 @@ func newServices(
 		FrontendURL:  cfg.FrontEndUrl,
 	})
 
-	roleService := services.NewRoleService(services.RoleServiceDeps{
+	roleService := service.NewRoleService(service.RoleServiceDeps{
 		RoleRepo:       repos.RoleRepo,
 		PermissionRepo: repos.PermissionRepo,
 		UserRepo:       repos.UserRepo,
@@ -75,17 +75,17 @@ func newServices(
 		AuditLogger:    auditLogService,
 	})
 
-	permissionService := services.NewPermissionService(repos.PermissionRepo)
+	permissionService := service.NewPermissionService(repos.PermissionRepo)
 
 	// auth layer
-	authenticator := auth.NewAuthenticator(
+	authenticator := security.NewAuthenticator(
 		infra.TokenManager,
 		repos.RoleRepo,
 		repos.SessionRepo,
 		infra.RevocationStore,
 	)
 
-	authorizer := auth.NewAuthorizer()
+	authorizer := security.NewAuthorizer()
 
 	return &Services{
 		AuditLog:   auditLogService,

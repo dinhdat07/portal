@@ -5,7 +5,7 @@ import (
 	authv1 "portal-system/gen/go/auth/v1"
 	userv1 "portal-system/gen/go/user/v1"
 	"portal-system/internal/domain"
-	"portal-system/internal/grpc/interceptor"
+	"portal-system/internal/handler/interceptor"
 
 	"google.golang.org/grpc"
 )

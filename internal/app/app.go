@@ -3,9 +3,9 @@ package app
 import (
 	"net/http"
 	"portal-system/config"
-	portalgrpc "portal-system/internal/grpc"
-	"portal-system/internal/platform/ratelimit"
-	auth "portal-system/internal/platform/security"
+	"portal-system/internal/handler"
+	"portal-system/internal/infrastructure/ratelimit"
+	"portal-system/internal/infrastructure/security"
 
 	"buf.build/go/protovalidate"
 	"google.golang.org/grpc"
@@ -20,12 +20,12 @@ type App struct {
 	HTTPServer *http.Server
 
 	Validator     protovalidate.Validator
-	Authenticator *auth.Authenticator
-	Authorizer    *auth.Authorizer
+	Authenticator *security.Authenticator
+	Authorizer    *security.Authorizer
 
-	AuthGRPC  *portalgrpc.AuthServer
-	UserGRPC  *portalgrpc.UserServer
-	AdminGRPC *portalgrpc.AdminServer
+	AuthGRPC  *handler.AuthServer
+	UserGRPC  *handler.UserServer
+	AdminGRPC *handler.AdminServer
 
 	RateLimiter         ratelimit.Limiter
 	RateLimitKeyBuilder ratelimit.KeyBuilder
@@ -40,12 +40,12 @@ type Deps struct {
 	HTTPServer *http.Server
 
 	Validator     protovalidate.Validator
-	Authenticator *auth.Authenticator
-	Authorizer    *auth.Authorizer
+	Authenticator *security.Authenticator
+	Authorizer    *security.Authorizer
 
-	AuthGRPC  *portalgrpc.AuthServer
-	UserGRPC  *portalgrpc.UserServer
-	AdminGRPC *portalgrpc.AdminServer
+	AuthGRPC  *handler.AuthServer
+	UserGRPC  *handler.UserServer
+	AdminGRPC *handler.AdminServer
 
 	RateLimiter         ratelimit.Limiter
 	RateLimitKeyBuilder ratelimit.KeyBuilder

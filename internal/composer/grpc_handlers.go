@@ -1,17 +1,17 @@
 package composer
 
-import portalgrpc "portal-system/internal/grpc"
+import "portal-system/internal/handler"
 
 type GRPCServers struct {
-	Auth  *portalgrpc.AuthServer
-	User  *portalgrpc.UserServer
-	Admin *portalgrpc.AdminServer
+	Auth  *handler.AuthServer
+	User  *handler.UserServer
+	Admin *handler.AdminServer
 }
 
 func newGRPCServers(svcs *Services) *GRPCServers {
 	return &GRPCServers{
-		Auth:  portalgrpc.NewAuthServer(svcs.Auth),
-		User:  portalgrpc.NewUserServer(svcs.User),
-		Admin: portalgrpc.NewAdminServer(svcs.Admin, svcs.User, svcs.Role, svcs.Permission),
+		Auth:  handler.NewAuthServer(svcs.Auth),
+		User:  handler.NewUserServer(svcs.User),
+		Admin: handler.NewAdminServer(svcs.Admin, svcs.User, svcs.Role, svcs.Permission),
 	}
 }
