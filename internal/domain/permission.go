@@ -1,4 +1,4 @@
-package constants
+package domain
 
 type PermissionCode string
 

@@ -6,8 +6,6 @@ import (
 	"time"
 
 	"portal-system/internal/domain"
-	"portal-system/internal/domain/constants"
-	"portal-system/internal/domain/enum"
 	"portal-system/internal/models"
 	"portal-system/internal/repositories"
 
@@ -19,7 +17,7 @@ import (
 func TestGormUserRepository_Create(t *testing.T) {
 	ctx, tx := newTestTx(t)
 	repo := NewGormUserRepository(testDB)
-	role := mustCreateRole(t, tx, constants.RoleCodeUser)
+	role := mustCreateRole(t, tx, domain.RoleCodeUser)
 
 	user := &models.User{
 		Email:     " John@Example.COM ",
@@ -27,7 +25,7 @@ func TestGormUserRepository_Create(t *testing.T) {
 		FirstName: "John",
 		LastName:  "Doe",
 		RoleID:    role.ID,
-		Status:    enum.StatusPending,
+		Status:    domain.StatusPending,
 	}
 
 	err := repo.Create(ctx, user)
@@ -44,7 +42,7 @@ func TestGormUserRepository_Create(t *testing.T) {
 func TestGormUserRepository_Create_DuplicateEmail(t *testing.T) {
 	ctx, tx := newTestTx(t)
 	repo := NewGormUserRepository(testDB)
-	role := mustCreateRole(t, tx, constants.RoleCodeUser)
+	role := mustCreateRole(t, tx, domain.RoleCodeUser)
 
 	existing := &models.User{
 		Email:     "john@example.com",
@@ -52,7 +50,7 @@ func TestGormUserRepository_Create_DuplicateEmail(t *testing.T) {
 		FirstName: "John",
 		LastName:  "Doe",
 		RoleID:    role.ID,
-		Status:    enum.StatusPending,
+		Status:    domain.StatusPending,
 	}
 	require.NoError(t, repo.Create(ctx, existing))
 
@@ -62,7 +60,7 @@ func TestGormUserRepository_Create_DuplicateEmail(t *testing.T) {
 		FirstName: "John",
 		LastName:  "Other",
 		RoleID:    role.ID,
-		Status:    enum.StatusPending,
+		Status:    domain.StatusPending,
 	}
 
 	err := repo.Create(ctx, duplicate)
@@ -73,7 +71,7 @@ func TestGormUserRepository_Create_DuplicateIdentityCaseInsensitive(t *testing.T
 	t.Run("email", func(t *testing.T) {
 		ctx, tx := newTestTx(t)
 		repo := NewGormUserRepository(testDB)
-		role := mustCreateRole(t, tx, constants.RoleCodeUser)
+		role := mustCreateRole(t, tx, domain.RoleCodeUser)
 
 		existing := &models.User{
 			Email:     "john@example.com",
@@ -81,7 +79,7 @@ func TestGormUserRepository_Create_DuplicateIdentityCaseInsensitive(t *testing.T
 			FirstName: "John",
 			LastName:  "Doe",
 			RoleID:    role.ID,
-			Status:    enum.StatusPending,
+			Status:    domain.StatusPending,
 		}
 		require.NoError(t, repo.Create(ctx, existing))
 
@@ -91,7 +89,7 @@ func TestGormUserRepository_Create_DuplicateIdentityCaseInsensitive(t *testing.T
 			FirstName: "John",
 			LastName:  "Other",
 			RoleID:    role.ID,
-			Status:    enum.StatusPending,
+			Status:    domain.StatusPending,
 		}
 		require.Error(t, repo.Create(ctx, duplicateEmail))
 	})
@@ -99,7 +97,7 @@ func TestGormUserRepository_Create_DuplicateIdentityCaseInsensitive(t *testing.T
 	t.Run("username", func(t *testing.T) {
 		ctx, tx := newTestTx(t)
 		repo := NewGormUserRepository(testDB)
-		role := mustCreateRole(t, tx, constants.RoleCodeUser)
+		role := mustCreateRole(t, tx, domain.RoleCodeUser)
 
 		existing := &models.User{
 			Email:     "john@example.com",
@@ -107,7 +105,7 @@ func TestGormUserRepository_Create_DuplicateIdentityCaseInsensitive(t *testing.T
 			FirstName: "John",
 			LastName:  "Doe",
 			RoleID:    role.ID,
-			Status:    enum.StatusPending,
+			Status:    domain.StatusPending,
 		}
 		require.NoError(t, repo.Create(ctx, existing))
 
@@ -117,7 +115,7 @@ func TestGormUserRepository_Create_DuplicateIdentityCaseInsensitive(t *testing.T
 			FirstName: "John",
 			LastName:  "Other",
 			RoleID:    role.ID,
-			Status:    enum.StatusPending,
+			Status:    domain.StatusPending,
 		}
 		require.Error(t, repo.Create(ctx, duplicateUsername))
 	})
@@ -127,7 +125,7 @@ func TestGormUserRepository_FindByEmail(t *testing.T) {
 	t.Run("success", func(t *testing.T) {
 		ctx, tx := newTestTx(t)
 		repo := NewGormUserRepository(testDB)
-		role := mustCreateRole(t, tx, constants.RoleCodeUser)
+		role := mustCreateRole(t, tx, domain.RoleCodeUser)
 		user := mustCreateUser(t, tx, role.ID, "john@example.com", "john")
 
 		found, err := repo.FindByEmail(ctx, user.Email)
@@ -150,7 +148,7 @@ func TestGormUserRepository_FindByEmail(t *testing.T) {
 	t.Run("case insensitive", func(t *testing.T) {
 		ctx, tx := newTestTx(t)
 		repo := NewGormUserRepository(testDB)
-		role := mustCreateRole(t, tx, constants.RoleCodeUser)
+		role := mustCreateRole(t, tx, domain.RoleCodeUser)
 		user := mustCreateUser(t, tx, role.ID, "MixedCase@Example.COM", "mixedemail")
 
 		found, err := repo.FindByEmail(ctx, " mixedcase@example.com ")
@@ -164,7 +162,7 @@ func TestGormUserRepository_FindByID(t *testing.T) {
 	t.Run("success", func(t *testing.T) {
 		ctx, tx := newTestTx(t)
 		repo := NewGormUserRepository(testDB)
-		role := mustCreateRole(t, tx, constants.RoleCodeUser)
+		role := mustCreateRole(t, tx, domain.RoleCodeUser)
 		user := mustCreateUser(t, tx, role.ID, "findid@example.com", "findid")
 
 		found, err := repo.FindByID(ctx, user.ID)
@@ -188,7 +186,7 @@ func TestGormUserRepository_FindByIDUnscoped(t *testing.T) {
 	t.Run("finds soft-deleted user", func(t *testing.T) {
 		ctx, tx := newTestTx(t)
 		repo := NewGormUserRepository(testDB)
-		role := mustCreateRole(t, tx, constants.RoleCodeUser)
+		role := mustCreateRole(t, tx, domain.RoleCodeUser)
 		user := mustCreateUser(t, tx, role.ID, "unscoped@example.com", "unscoped")
 
 		// soft-delete the user
@@ -196,7 +194,7 @@ func TestGormUserRepository_FindByIDUnscoped(t *testing.T) {
 		require.NoError(t, tx.Model(&models.User{}).Where("id = ?", user.ID).Updates(map[string]interface{}{
 			"deleted_at": time.Now(),
 			"deleted_by": deletedBy,
-			"status":     enum.StatusDeleted,
+			"status":     domain.StatusDeleted,
 		}).Error)
 
 		// FindByID should NOT find it
@@ -225,13 +223,13 @@ func TestGormUserRepository_ExistsByRoleIDUnscoped(t *testing.T) {
 	t.Run("true for soft deleted user", func(t *testing.T) {
 		ctx, tx := newTestTx(t)
 		repo := NewGormUserRepository(testDB)
-		role := mustCreateRole(t, tx, constants.RoleCodeUser)
+		role := mustCreateRole(t, tx, domain.RoleCodeUser)
 		user := mustCreateUser(t, tx, role.ID, "exists-role@example.com", "existsrole")
 
 		require.NoError(t, tx.Model(&models.User{}).Where("id = ?", user.ID).Updates(map[string]interface{}{
 			"deleted_at": time.Now(),
 			"deleted_by": uuid.New(),
-			"status":     enum.StatusDeleted,
+			"status":     domain.StatusDeleted,
 		}).Error)
 
 		exists, err := repo.ExistsByRoleIDUnscoped(ctx, role.ID)
@@ -253,7 +251,7 @@ func TestGormUserRepository_FindByUsername(t *testing.T) {
 	t.Run("success", func(t *testing.T) {
 		ctx, tx := newTestTx(t)
 		repo := NewGormUserRepository(testDB)
-		role := mustCreateRole(t, tx, constants.RoleCodeUser)
+		role := mustCreateRole(t, tx, domain.RoleCodeUser)
 		user := mustCreateUser(t, tx, role.ID, "byuser@example.com", "findbyuname")
 
 		found, err := repo.FindByUsername(ctx, user.Username)
@@ -275,7 +273,7 @@ func TestGormUserRepository_FindByUsername(t *testing.T) {
 	t.Run("case insensitive", func(t *testing.T) {
 		ctx, tx := newTestTx(t)
 		repo := NewGormUserRepository(testDB)
-		role := mustCreateRole(t, tx, constants.RoleCodeUser)
+		role := mustCreateRole(t, tx, domain.RoleCodeUser)
 		user := mustCreateUser(t, tx, role.ID, "mixeduser@example.com", "MixedUser")
 
 		found, err := repo.FindByUsername(ctx, " mixeduser ")
@@ -289,7 +287,7 @@ func TestGormUserRepository_Update(t *testing.T) {
 	t.Run("success", func(t *testing.T) {
 		ctx, tx := newTestTx(t)
 		repo := NewGormUserRepository(testDB)
-		role := mustCreateRole(t, tx, constants.RoleCodeUser)
+		role := mustCreateRole(t, tx, domain.RoleCodeUser)
 		user := mustCreateUser(t, tx, role.ID, "update@example.com", "updateuser")
 
 		newDob := time.Date(1995, 6, 15, 0, 0, 0, 0, time.UTC)
@@ -315,7 +313,7 @@ func TestGormUserRepository_UpdatePassword(t *testing.T) {
 	t.Run("success", func(t *testing.T) {
 		ctx, tx := newTestTx(t)
 		repo := NewGormUserRepository(testDB)
-		role := mustCreateRole(t, tx, constants.RoleCodeUser)
+		role := mustCreateRole(t, tx, domain.RoleCodeUser)
 		user := mustCreateUser(t, tx, role.ID, "john@example.com", "john")
 
 		err := repo.UpdatePassword(ctx, user.ID, "hashed-password")
@@ -341,8 +339,8 @@ func TestGormUserRepository_UpdateRole(t *testing.T) {
 	t.Run("success", func(t *testing.T) {
 		ctx, tx := newTestTx(t)
 		repo := NewGormUserRepository(testDB)
-		role := mustCreateRole(t, tx, constants.RoleCodeUser)
-		newRole := mustCreateRole(t, tx, constants.RoleCodeAdmin)
+		role := mustCreateRole(t, tx, domain.RoleCodeUser)
+		newRole := mustCreateRole(t, tx, domain.RoleCodeAdmin)
 		user := mustCreateUser(t, tx, role.ID, "uprole@example.com", "uprole")
 
 		err := repo.UpdateRole(ctx, user.ID, newRole.ID)
@@ -366,14 +364,14 @@ func TestGormUserRepository_UpdateRoleByRoleIDUnscoped(t *testing.T) {
 	t.Run("success updates soft deleted users too", func(t *testing.T) {
 		ctx, tx := newTestTx(t)
 		repo := NewGormUserRepository(testDB)
-		oldRole := mustCreateRole(t, tx, constants.RoleCodeUser)
-		newRole := mustCreateRole(t, tx, constants.RoleCodeAdmin)
+		oldRole := mustCreateRole(t, tx, domain.RoleCodeUser)
+		newRole := mustCreateRole(t, tx, domain.RoleCodeAdmin)
 		user := mustCreateUser(t, tx, oldRole.ID, "update-role-bulk@example.com", "uprolebulk")
 
 		require.NoError(t, tx.Model(&models.User{}).Where("id = ?", user.ID).Updates(map[string]interface{}{
 			"deleted_at": time.Now(),
 			"deleted_by": uuid.New(),
-			"status":     enum.StatusDeleted,
+			"status":     domain.StatusDeleted,
 		}).Error)
 
 		err := repo.UpdateRoleByRoleIDUnscoped(ctx, oldRole.ID, newRole.ID)
@@ -397,11 +395,11 @@ func TestGormUserRepository_MarkEmailVerified(t *testing.T) {
 	t.Run("success", func(t *testing.T) {
 		ctx, tx := newTestTx(t)
 		repo := NewGormUserRepository(testDB)
-		role := mustCreateRole(t, tx, constants.RoleCodeUser)
+		role := mustCreateRole(t, tx, domain.RoleCodeUser)
 		user := mustCreateUser(t, tx, role.ID, "verify@example.com", "verifyuser")
 
 		// user starts as active (from mustCreateUser), set to pending first
-		require.NoError(t, tx.Model(&models.User{}).Where("id = ?", user.ID).Update("status", enum.StatusPending).Error)
+		require.NoError(t, tx.Model(&models.User{}).Where("id = ?", user.ID).Update("status", domain.StatusPending).Error)
 
 		err := repo.MarkEmailVerified(ctx, user.ID)
 		require.NoError(t, err)
@@ -409,7 +407,7 @@ func TestGormUserRepository_MarkEmailVerified(t *testing.T) {
 		var updated models.User
 		require.NoError(t, tx.WithContext(context.Background()).First(&updated, "id = ?", user.ID).Error)
 		require.NotNil(t, updated.EmailVerifiedAt)
-		require.Equal(t, enum.StatusActive, updated.Status)
+		require.Equal(t, domain.StatusActive, updated.Status)
 	})
 
 	t.Run("not found", func(t *testing.T) {
@@ -425,7 +423,7 @@ func TestGormUserRepository_DeleteAndRestore(t *testing.T) {
 	t.Run("delete success", func(t *testing.T) {
 		ctx, tx := newTestTx(t)
 		repo := NewGormUserRepository(testDB)
-		role := mustCreateRole(t, tx, constants.RoleCodeUser)
+		role := mustCreateRole(t, tx, domain.RoleCodeUser)
 		user := mustCreateUser(t, tx, role.ID, "del@example.com", "deluser")
 		deletedBy := uuid.New()
 
@@ -440,7 +438,7 @@ func TestGormUserRepository_DeleteAndRestore(t *testing.T) {
 		// but found via unscoped
 		var unscoped models.User
 		require.NoError(t, tx.WithContext(context.Background()).Unscoped().First(&unscoped, "id = ?", user.ID).Error)
-		require.Equal(t, enum.StatusDeleted, unscoped.Status)
+		require.Equal(t, domain.StatusDeleted, unscoped.Status)
 		require.NotNil(t, unscoped.DeletedBy)
 		require.Equal(t, deletedBy, *unscoped.DeletedBy)
 	})
@@ -456,7 +454,7 @@ func TestGormUserRepository_DeleteAndRestore(t *testing.T) {
 	t.Run("restore success", func(t *testing.T) {
 		ctx, tx := newTestTx(t)
 		repo := NewGormUserRepository(testDB)
-		role := mustCreateRole(t, tx, constants.RoleCodeUser)
+		role := mustCreateRole(t, tx, domain.RoleCodeUser)
 		user := mustCreateUser(t, tx, role.ID, "restore@example.com", "restoreuser")
 		deletedBy := uuid.New()
 
@@ -470,7 +468,7 @@ func TestGormUserRepository_DeleteAndRestore(t *testing.T) {
 		// should be findable again via scoped query
 		var restored models.User
 		require.NoError(t, tx.WithContext(context.Background()).First(&restored, "id = ?", user.ID).Error)
-		require.Equal(t, enum.StatusActive, restored.Status)
+		require.Equal(t, domain.StatusActive, restored.Status)
 		require.Nil(t, restored.DeletedBy)
 	})
 
@@ -487,12 +485,12 @@ func TestGormUserRepository_ListUsers(t *testing.T) {
 	t.Run("basic list with pagination", func(t *testing.T) {
 		ctx, tx := newTestTx(t)
 		repo := NewGormUserRepository(testDB)
-		role := mustCreateRole(t, tx, constants.RoleCodeUser)
+		role := mustCreateRole(t, tx, domain.RoleCodeUser)
 		u1 := mustCreateUser(t, tx, role.ID, "list1@example.com", "listuser1")
 		u2 := mustCreateUser(t, tx, role.ID, "list2@example.com", "listuser2")
 		u3 := mustCreateUser(t, tx, role.ID, "list3@example.com", "listuser3")
 
-		users, total, err := repo.ListUsers(ctx, domain.UsersFilter{
+		users, total, err := repo.ListUsers(ctx, repositories.UserListFilter{
 			Page:     1,
 			PageSize: 2,
 		})
@@ -501,7 +499,7 @@ func TestGormUserRepository_ListUsers(t *testing.T) {
 		require.Len(t, users, 2)
 
 		// second page
-		users2, _, err := repo.ListUsers(ctx, domain.UsersFilter{
+		users2, _, err := repo.ListUsers(ctx, repositories.UserListFilter{
 			Page:     2,
 			PageSize: 2,
 		})
@@ -516,11 +514,11 @@ func TestGormUserRepository_ListUsers(t *testing.T) {
 	t.Run("filter by username", func(t *testing.T) {
 		ctx, tx := newTestTx(t)
 		repo := NewGormUserRepository(testDB)
-		role := mustCreateRole(t, tx, constants.RoleCodeUser)
+		role := mustCreateRole(t, tx, domain.RoleCodeUser)
 		mustCreateUser(t, tx, role.ID, "ufilter1@example.com", "alphauser")
 		mustCreateUser(t, tx, role.ID, "ufilter2@example.com", "betauser")
 
-		users, total, err := repo.ListUsers(ctx, domain.UsersFilter{
+		users, total, err := repo.ListUsers(ctx, repositories.UserListFilter{
 			Username: "alpha",
 			Page:     1,
 			PageSize: 10,
@@ -534,11 +532,11 @@ func TestGormUserRepository_ListUsers(t *testing.T) {
 	t.Run("filter by email", func(t *testing.T) {
 		ctx, tx := newTestTx(t)
 		repo := NewGormUserRepository(testDB)
-		role := mustCreateRole(t, tx, constants.RoleCodeUser)
+		role := mustCreateRole(t, tx, domain.RoleCodeUser)
 		mustCreateUser(t, tx, role.ID, "emailsearch@special.com", "emailsrch")
 		mustCreateUser(t, tx, role.ID, "other@example.com", "otheruser")
 
-		users, total, err := repo.ListUsers(ctx, domain.UsersFilter{
+		users, total, err := repo.ListUsers(ctx, repositories.UserListFilter{
 			Email:    "emailsearch@special",
 			Page:     1,
 			PageSize: 10,
@@ -552,10 +550,10 @@ func TestGormUserRepository_ListUsers(t *testing.T) {
 	t.Run("filter by full name", func(t *testing.T) {
 		ctx, tx := newTestTx(t)
 		repo := NewGormUserRepository(testDB)
-		role := mustCreateRole(t, tx, constants.RoleCodeUser)
+		role := mustCreateRole(t, tx, domain.RoleCodeUser)
 		mustCreateUser(t, tx, role.ID, "fname@example.com", "fnameuser")
 
-		users, total, err := repo.ListUsers(ctx, domain.UsersFilter{
+		users, total, err := repo.ListUsers(ctx, repositories.UserListFilter{
 			FullName: "John Doe",
 			Page:     1,
 			PageSize: 10,
@@ -568,11 +566,11 @@ func TestGormUserRepository_ListUsers(t *testing.T) {
 	t.Run("filter by dob", func(t *testing.T) {
 		ctx, tx := newTestTx(t)
 		repo := NewGormUserRepository(testDB)
-		role := mustCreateRole(t, tx, constants.RoleCodeUser)
+		role := mustCreateRole(t, tx, domain.RoleCodeUser)
 		mustCreateUser(t, tx, role.ID, "dob@example.com", "dobuser")
 
 		dob := time.Date(2000, 1, 1, 0, 0, 0, 0, time.UTC)
-		users, total, err := repo.ListUsers(ctx, domain.UsersFilter{
+		users, total, err := repo.ListUsers(ctx, repositories.UserListFilter{
 			Dob:      &dob,
 			Page:     1,
 			PageSize: 10,
@@ -585,12 +583,12 @@ func TestGormUserRepository_ListUsers(t *testing.T) {
 	t.Run("filter by role id", func(t *testing.T) {
 		ctx, tx := newTestTx(t)
 		repo := NewGormUserRepository(testDB)
-		role1 := mustCreateRole(t, tx, constants.RoleCodeUser)
-		role2 := mustCreateRole(t, tx, constants.RoleCodeAdmin)
+		role1 := mustCreateRole(t, tx, domain.RoleCodeUser)
+		role2 := mustCreateRole(t, tx, domain.RoleCodeAdmin)
 		mustCreateUser(t, tx, role1.ID, "rolefilt1@example.com", "rolefilt1")
 		mustCreateUser(t, tx, role2.ID, "rolefilt2@example.com", "rolefilt2")
 
-		users, total, err := repo.ListUsers(ctx, domain.UsersFilter{
+		users, total, err := repo.ListUsers(ctx, repositories.UserListFilter{
 			RoleID:   &role1.ID,
 			Page:     1,
 			PageSize: 10,
@@ -604,14 +602,14 @@ func TestGormUserRepository_ListUsers(t *testing.T) {
 	t.Run("filter by status", func(t *testing.T) {
 		ctx, tx := newTestTx(t)
 		repo := NewGormUserRepository(testDB)
-		role := mustCreateRole(t, tx, constants.RoleCodeUser)
+		role := mustCreateRole(t, tx, domain.RoleCodeUser)
 		user := mustCreateUser(t, tx, role.ID, "statusfilt@example.com", "statusfilt")
 
 		// set user to pending
-		require.NoError(t, tx.Model(&models.User{}).Where("id = ?", user.ID).Update("status", enum.StatusPending).Error)
+		require.NoError(t, tx.Model(&models.User{}).Where("id = ?", user.ID).Update("status", domain.StatusPending).Error)
 
-		users, total, err := repo.ListUsers(ctx, domain.UsersFilter{
-			Status:   enum.StatusPending,
+		users, total, err := repo.ListUsers(ctx, repositories.UserListFilter{
+			Status:   domain.StatusPending,
 			Page:     1,
 			PageSize: 10,
 		})
@@ -624,7 +622,7 @@ func TestGormUserRepository_ListUsers(t *testing.T) {
 	t.Run("include deleted", func(t *testing.T) {
 		ctx, tx := newTestTx(t)
 		repo := NewGormUserRepository(testDB)
-		role := mustCreateRole(t, tx, constants.RoleCodeUser)
+		role := mustCreateRole(t, tx, domain.RoleCodeUser)
 		user := mustCreateUser(t, tx, role.ID, "incldel@example.com", "incldel")
 		deletedBy := uuid.New()
 
@@ -632,11 +630,11 @@ func TestGormUserRepository_ListUsers(t *testing.T) {
 		require.NoError(t, tx.Model(&models.User{}).Where("id = ?", user.ID).Updates(map[string]interface{}{
 			"deleted_at": time.Now(),
 			"deleted_by": deletedBy,
-			"status":     enum.StatusDeleted,
+			"status":     domain.StatusDeleted,
 		}).Error)
 
 		// without include deleted
-		users, _, err := repo.ListUsers(ctx, domain.UsersFilter{
+		users, _, err := repo.ListUsers(ctx, repositories.UserListFilter{
 			Email:    "incldel@example.com",
 			Page:     1,
 			PageSize: 10,
@@ -645,7 +643,7 @@ func TestGormUserRepository_ListUsers(t *testing.T) {
 		require.Empty(t, users)
 
 		// with include deleted
-		users2, total2, err := repo.ListUsers(ctx, domain.UsersFilter{
+		users2, total2, err := repo.ListUsers(ctx, repositories.UserListFilter{
 			Email:          "incldel@example.com",
 			IncludeDeleted: true,
 			Page:           1,
@@ -658,7 +656,7 @@ func TestGormUserRepository_ListUsers(t *testing.T) {
 	})
 }
 
-func mustCreateRole(t *testing.T, tx *gorm.DB, code constants.RoleCode) *models.Role {
+func mustCreateRole(t *testing.T, tx *gorm.DB, code domain.RoleCode) *models.Role {
 	t.Helper()
 
 	role := &models.Role{
@@ -682,7 +680,7 @@ func mustCreateUser(t *testing.T, tx *gorm.DB, roleID uuid.UUID, email, username
 		LastName:  "Doe",
 		DOB:       &dob,
 		RoleID:    roleID,
-		Status:    enum.StatusActive,
+		Status:    domain.StatusActive,
 	}
 	require.NoError(t, tx.Create(user).Error)
 

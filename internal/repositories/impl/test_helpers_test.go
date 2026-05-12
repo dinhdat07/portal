@@ -4,8 +4,7 @@ import (
 	"testing"
 	"time"
 
-	"portal-system/internal/domain/constants"
-	"portal-system/internal/domain/enum"
+	"portal-system/internal/domain"
 	"portal-system/internal/models"
 
 	"github.com/google/uuid"
@@ -51,7 +50,7 @@ func mustCreateRefreshToken(t *testing.T, tx *gorm.DB, sessionID, userID uuid.UU
 	return token
 }
 
-func mustCreateUserToken(t *testing.T, tx *gorm.DB, userID uuid.UUID, tokenType enum.TokenType, tokenHash string, expiresAt time.Time) *models.UserToken {
+func mustCreateUserToken(t *testing.T, tx *gorm.DB, userID uuid.UUID, tokenType domain.TokenType, tokenHash string, expiresAt time.Time) *models.UserToken {
 	t.Helper()
 
 	token := &models.UserToken{
@@ -64,7 +63,7 @@ func mustCreateUserToken(t *testing.T, tx *gorm.DB, userID uuid.UUID, tokenType 
 	return token
 }
 
-func mustCreateAuditLog(t *testing.T, tx *gorm.DB, action enum.ActionName, actorUserID *uuid.UUID, createdAt time.Time) *models.AuditLog {
+func mustCreateAuditLog(t *testing.T, tx *gorm.DB, action domain.ActionName, actorUserID *uuid.UUID, createdAt time.Time) *models.AuditLog {
 	t.Helper()
 
 	log := &models.AuditLog{
@@ -78,5 +77,5 @@ func mustCreateAuditLog(t *testing.T, tx *gorm.DB, action enum.ActionName, actor
 
 func activeUserRole(t *testing.T, tx *gorm.DB) *models.Role {
 	t.Helper()
-	return mustCreateRole(t, tx, constants.RoleCodeUser)
+	return mustCreateRole(t, tx, domain.RoleCodeUser)
 }

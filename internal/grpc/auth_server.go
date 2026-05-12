@@ -5,7 +5,6 @@ import (
 	authv1 "portal-system/gen/go/auth/v1"
 	commonv1 "portal-system/gen/go/common/v1"
 	"portal-system/internal/domain"
-	"portal-system/internal/domain/enum"
 	mappers "portal-system/internal/grpc/mapper"
 	"portal-system/internal/services"
 	"time"
@@ -61,7 +60,7 @@ func (s *AuthServer) VerifyEmail(ctx context.Context, req *authv1.VerifyEmailReq
 
 	meta := getAuditFromCtx(ctx)
 
-	if err := s.authService.VerifyEmail(ctx, meta, req.GetToken(), enum.TokenTypeEmailVerification); err != nil {
+	if err := s.authService.VerifyEmail(ctx, meta, req.GetToken(), domain.TokenTypeEmailVerification); err != nil {
 		return nil, mappers.MapError(err)
 	}
 
@@ -77,7 +76,7 @@ func (s *AuthServer) ResendVerification(ctx context.Context, req *authv1.ResendV
 
 	meta := getAuditFromCtx(ctx)
 
-	if err := s.authService.ResendVerification(ctx, meta, req.GetEmail(), enum.TokenTypeEmailVerification); err != nil {
+	if err := s.authService.ResendVerification(ctx, meta, req.GetEmail(), domain.TokenTypeEmailVerification); err != nil {
 		return nil, mappers.MapError(err)
 	}
 
@@ -93,13 +92,13 @@ func (s *AuthServer) SetPassword(ctx context.Context, req *authv1.SetPasswordReq
 
 	meta := getAuditFromCtx(ctx)
 
-	input := &domain.SetPasswordInput{
+	input := &services.SetPasswordInput{
 		Token:           req.GetToken(),
 		Password:        req.GetPassword(),
 		ConfirmPassword: req.GetConfirmPassword(),
 	}
 
-	if err := s.authService.SetPassword(ctx, meta, input, enum.TokenTypePasswordSet); err != nil {
+	if err := s.authService.SetPassword(ctx, meta, input, domain.TokenTypePasswordSet); err != nil {
 		return nil, mappers.MapError(err)
 	}
 
@@ -115,13 +114,13 @@ func (s *AuthServer) ResetPassword(ctx context.Context, req *authv1.SetPasswordR
 
 	meta := getAuditFromCtx(ctx)
 
-	input := &domain.SetPasswordInput{
+	input := &services.SetPasswordInput{
 		Token:           req.GetToken(),
 		Password:        req.GetPassword(),
 		ConfirmPassword: req.GetConfirmPassword(),
 	}
 
-	if err := s.authService.ResetPassword(ctx, meta, input, enum.TokenTypePasswordReset); err != nil {
+	if err := s.authService.ResetPassword(ctx, meta, input, domain.TokenTypePasswordReset); err != nil {
 		return nil, mappers.MapError(err)
 	}
 

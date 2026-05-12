@@ -6,7 +6,7 @@ package mocks
 
 import (
 	"context"
-	"portal-system/internal/domain/enum"
+	"portal-system/internal/domain"
 	"portal-system/internal/models"
 
 	"github.com/google/uuid"
@@ -98,7 +98,7 @@ func (_c *UserTokenRepository_Create_Call) RunAndReturn(run func(ctx context.Con
 }
 
 // FindValidToken provides a mock function for the type UserTokenRepository
-func (_mock *UserTokenRepository) FindValidToken(ctx context.Context, tokenHash string, tokenType enum.TokenType) (*models.UserToken, error) {
+func (_mock *UserTokenRepository) FindValidToken(ctx context.Context, tokenHash string, tokenType domain.TokenType) (*models.UserToken, error) {
 	ret := _mock.Called(ctx, tokenHash, tokenType)
 
 	if len(ret) == 0 {
@@ -107,17 +107,17 @@ func (_mock *UserTokenRepository) FindValidToken(ctx context.Context, tokenHash 
 
 	var r0 *models.UserToken
 	var r1 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context, string, enum.TokenType) (*models.UserToken, error)); ok {
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string, domain.TokenType) (*models.UserToken, error)); ok {
 		return returnFunc(ctx, tokenHash, tokenType)
 	}
-	if returnFunc, ok := ret.Get(0).(func(context.Context, string, enum.TokenType) *models.UserToken); ok {
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string, domain.TokenType) *models.UserToken); ok {
 		r0 = returnFunc(ctx, tokenHash, tokenType)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*models.UserToken)
 		}
 	}
-	if returnFunc, ok := ret.Get(1).(func(context.Context, string, enum.TokenType) error); ok {
+	if returnFunc, ok := ret.Get(1).(func(context.Context, string, domain.TokenType) error); ok {
 		r1 = returnFunc(ctx, tokenHash, tokenType)
 	} else {
 		r1 = ret.Error(1)
@@ -133,12 +133,12 @@ type UserTokenRepository_FindValidToken_Call struct {
 // FindValidToken is a helper method to define mock.On call
 //   - ctx context.Context
 //   - tokenHash string
-//   - tokenType enum.TokenType
+//   - tokenType domain.TokenType
 func (_e *UserTokenRepository_Expecter) FindValidToken(ctx interface{}, tokenHash interface{}, tokenType interface{}) *UserTokenRepository_FindValidToken_Call {
 	return &UserTokenRepository_FindValidToken_Call{Call: _e.mock.On("FindValidToken", ctx, tokenHash, tokenType)}
 }
 
-func (_c *UserTokenRepository_FindValidToken_Call) Run(run func(ctx context.Context, tokenHash string, tokenType enum.TokenType)) *UserTokenRepository_FindValidToken_Call {
+func (_c *UserTokenRepository_FindValidToken_Call) Run(run func(ctx context.Context, tokenHash string, tokenType domain.TokenType)) *UserTokenRepository_FindValidToken_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		var arg0 context.Context
 		if args[0] != nil {
@@ -148,9 +148,9 @@ func (_c *UserTokenRepository_FindValidToken_Call) Run(run func(ctx context.Cont
 		if args[1] != nil {
 			arg1 = args[1].(string)
 		}
-		var arg2 enum.TokenType
+		var arg2 domain.TokenType
 		if args[2] != nil {
-			arg2 = args[2].(enum.TokenType)
+			arg2 = args[2].(domain.TokenType)
 		}
 		run(
 			arg0,
@@ -166,7 +166,7 @@ func (_c *UserTokenRepository_FindValidToken_Call) Return(userToken *models.User
 	return _c
 }
 
-func (_c *UserTokenRepository_FindValidToken_Call) RunAndReturn(run func(ctx context.Context, tokenHash string, tokenType enum.TokenType) (*models.UserToken, error)) *UserTokenRepository_FindValidToken_Call {
+func (_c *UserTokenRepository_FindValidToken_Call) RunAndReturn(run func(ctx context.Context, tokenHash string, tokenType domain.TokenType) (*models.UserToken, error)) *UserTokenRepository_FindValidToken_Call {
 	_c.Call.Return(run)
 	return _c
 }
@@ -286,7 +286,7 @@ func (_c *UserTokenRepository_Revoke_Call) RunAndReturn(run func(ctx context.Con
 }
 
 // RevokeByUserAndType provides a mock function for the type UserTokenRepository
-func (_mock *UserTokenRepository) RevokeByUserAndType(ctx context.Context, userID uuid.UUID, tokenType enum.TokenType) error {
+func (_mock *UserTokenRepository) RevokeByUserAndType(ctx context.Context, userID uuid.UUID, tokenType domain.TokenType) error {
 	ret := _mock.Called(ctx, userID, tokenType)
 
 	if len(ret) == 0 {
@@ -294,7 +294,7 @@ func (_mock *UserTokenRepository) RevokeByUserAndType(ctx context.Context, userI
 	}
 
 	var r0 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context, uuid.UUID, enum.TokenType) error); ok {
+	if returnFunc, ok := ret.Get(0).(func(context.Context, uuid.UUID, domain.TokenType) error); ok {
 		r0 = returnFunc(ctx, userID, tokenType)
 	} else {
 		r0 = ret.Error(0)
@@ -310,12 +310,12 @@ type UserTokenRepository_RevokeByUserAndType_Call struct {
 // RevokeByUserAndType is a helper method to define mock.On call
 //   - ctx context.Context
 //   - userID uuid.UUID
-//   - tokenType enum.TokenType
+//   - tokenType domain.TokenType
 func (_e *UserTokenRepository_Expecter) RevokeByUserAndType(ctx interface{}, userID interface{}, tokenType interface{}) *UserTokenRepository_RevokeByUserAndType_Call {
 	return &UserTokenRepository_RevokeByUserAndType_Call{Call: _e.mock.On("RevokeByUserAndType", ctx, userID, tokenType)}
 }
 
-func (_c *UserTokenRepository_RevokeByUserAndType_Call) Run(run func(ctx context.Context, userID uuid.UUID, tokenType enum.TokenType)) *UserTokenRepository_RevokeByUserAndType_Call {
+func (_c *UserTokenRepository_RevokeByUserAndType_Call) Run(run func(ctx context.Context, userID uuid.UUID, tokenType domain.TokenType)) *UserTokenRepository_RevokeByUserAndType_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		var arg0 context.Context
 		if args[0] != nil {
@@ -325,9 +325,9 @@ func (_c *UserTokenRepository_RevokeByUserAndType_Call) Run(run func(ctx context
 		if args[1] != nil {
 			arg1 = args[1].(uuid.UUID)
 		}
-		var arg2 enum.TokenType
+		var arg2 domain.TokenType
 		if args[2] != nil {
-			arg2 = args[2].(enum.TokenType)
+			arg2 = args[2].(domain.TokenType)
 		}
 		run(
 			arg0,
@@ -343,7 +343,7 @@ func (_c *UserTokenRepository_RevokeByUserAndType_Call) Return(err error) *UserT
 	return _c
 }
 
-func (_c *UserTokenRepository_RevokeByUserAndType_Call) RunAndReturn(run func(ctx context.Context, userID uuid.UUID, tokenType enum.TokenType) error) *UserTokenRepository_RevokeByUserAndType_Call {
+func (_c *UserTokenRepository_RevokeByUserAndType_Call) RunAndReturn(run func(ctx context.Context, userID uuid.UUID, tokenType domain.TokenType) error) *UserTokenRepository_RevokeByUserAndType_Call {
 	_c.Call.Return(run)
 	return _c
 }

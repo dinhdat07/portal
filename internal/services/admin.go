@@ -6,8 +6,6 @@ import (
 	"fmt"
 	"net/url"
 	"portal-system/internal/domain"
-	"portal-system/internal/domain/constants"
-	"portal-system/internal/domain/enum"
 	"portal-system/internal/models"
 	"portal-system/internal/repositories"
 
@@ -19,11 +17,11 @@ import (
 )
 
 type AdminService interface {
-	ListUsers(ctx context.Context, meta *domain.AuditMeta, actor *domain.AuditUser, in domain.UsersFilter) (*domain.ListUsersResult, error)
-	CreateUser(ctx context.Context, meta *domain.AuditMeta, actor *domain.AuditUser, in domain.CreateUserInput) (*models.User, error)
-	DeleteUser(ctx context.Context, meta *domain.AuditMeta, actor *domain.AuditUser, userID uuid.UUID) (*models.User, error)
-	RestoreUser(ctx context.Context, meta *domain.AuditMeta, actor *domain.AuditUser, userID uuid.UUID) (*models.User, error)
-	UpdateRole(ctx context.Context, meta *domain.AuditMeta, actor *domain.AuditUser, id uuid.UUID, roleCode constants.RoleCode) (*models.User, error)
+	ListUsers(ctx context.Context, meta *AuditMeta, actor *AuditUser, in UsersFilter) (*ListUsersResult, error)
+	CreateUser(ctx context.Context, meta *AuditMeta, actor *AuditUser, in CreateUserInput) (*models.User, error)
+	DeleteUser(ctx context.Context, meta *AuditMeta, actor *AuditUser, userID uuid.UUID) (*models.User, error)
+	RestoreUser(ctx context.Context, meta *AuditMeta, actor *AuditUser, userID uuid.UUID) (*models.User, error)
+	UpdateRole(ctx context.Context, meta *AuditMeta, actor *AuditUser, id uuid.UUID, roleCode domain.RoleCode) (*models.User, error)
 }
 
 type adminService struct {
@@ -61,20 +59,31 @@ func NewAdminService(deps AdminServiceDeps) *adminService {
 	}
 }
 
-func (svc *adminService) ListUsers(ctx context.Context, meta *domain.AuditMeta, actor *domain.AuditUser, in domain.UsersFilter) (*domain.ListUsersResult, error) {
+func (svc *adminService) ListUsers(ctx context.Context, meta *AuditMeta, actor *AuditUser, in UsersFilter) (*ListUsersResult, error) {
+	repoFilter := repositories.UserListFilter{
+		Page:           in.Page,
+		PageSize:       in.PageSize,
+		Username:       in.Username,
+		Email:          in.Email,
+		FullName:       in.FullName,
+		Dob:            in.Dob,
+		Status:         in.Status,
+		IncludeDeleted: in.IncludeDeleted,
+	}
+
 	if in.RoleCode != nil {
 		role, err := svc.roleRepo.FindByCode(ctx, *in.RoleCode)
 		if err != nil {
 			return nil, ErrInvalidInput
 		}
-		in.RoleID = &role.ID
+		repoFilter.RoleID = &role.ID
 	}
 
 	if in.Status != "" && !in.Status.IsValid() {
 		return nil, ErrInvalidInput
 	}
 
-	users, total, err := svc.userRepo.ListUsers(ctx, in)
+	users, total, err := svc.userRepo.ListUsers(ctx, repoFilter)
 	if err != nil {
 		return nil, ErrInternalServer
 	}
@@ -86,7 +95,7 @@ func (svc *adminService) ListUsers(ctx context.Context, meta *domain.AuditMeta, 
 			"full_name":       in.FullName,
 			"dob":             in.Dob,
 			"role_code":       in.RoleCode,
-			"role_id":         in.RoleID,
+			"role_id":         repoFilter.RoleID,
 			"status":          in.Status,
 			"include_deleted": in.IncludeDeleted,
 		},
@@ -101,7 +110,7 @@ func (svc *adminService) ListUsers(ctx context.Context, meta *domain.AuditMeta, 
 	if err := svc.auditLogger.LogWithMetadata(
 		ctx,
 		meta,
-		enum.ActionAdminSearchUser,
+		domain.ActionAdminSearchUser,
 		actor,
 		nil,
 		logMeta,
@@ -109,7 +118,7 @@ func (svc *adminService) ListUsers(ctx context.Context, meta *domain.AuditMeta, 
 		appLogger.Println("failed to log admin search user action", "error", err)
 	}
 
-	return &domain.ListUsersResult{
+	return &ListUsersResult{
 		Users:    users,
 		Total:    total,
 		Page:     in.Page,
@@ -118,7 +127,7 @@ func (svc *adminService) ListUsers(ctx context.Context, meta *domain.AuditMeta, 
 
 }
 
-func (svc *adminService) CreateUser(ctx context.Context, meta *domain.AuditMeta, actor *domain.AuditUser, in domain.CreateUserInput) (*models.User, error) {
+func (svc *adminService) CreateUser(ctx context.Context, meta *AuditMeta, actor *AuditUser, in CreateUserInput) (*models.User, error) {
 	if in.RoleCode == "" {
 		return nil, ErrInvalidInput
 	}
@@ -167,7 +176,7 @@ func (svc *adminService) CreateUser(ctx context.Context, meta *domain.AuditMeta,
 		DOB:       in.DOB,
 		RoleID:    role.ID,
 		Role:      *role,
-		Status:    enum.StatusPending,
+		Status:    domain.StatusPending,
 	}
 
 	err = svc.txManager.WithTx(ctx, func(txCtx context.Context) error {
@@ -176,13 +185,13 @@ func (svc *adminService) CreateUser(ctx context.Context, meta *domain.AuditMeta,
 		}
 
 		if err := svc.tokenRepo.
-			RevokeByUserAndType(txCtx, user.ID, enum.TokenTypePasswordSet); err != nil {
+			RevokeByUserAndType(txCtx, user.ID, domain.TokenTypePasswordSet); err != nil {
 			return ErrInternalServer
 		}
 
 		setPasswordToken := &models.UserToken{
 			UserID:    user.ID,
-			TokenType: enum.TokenTypePasswordSet,
+			TokenType: domain.TokenTypePasswordSet,
 			TokenHash: tokenHash,
 			ExpiresAt: time.Now().UTC().Add(24 * time.Hour),
 		}
@@ -197,8 +206,8 @@ func (svc *adminService) CreateUser(ctx context.Context, meta *domain.AuditMeta,
 			return ErrSendSetPasswordEmail
 		}
 
-		target := domain.MapUserToAuditUser(user)
-		if err := svc.auditLogger.Log(txCtx, meta, enum.ActionAdminCreateUser, actor, target); err != nil {
+		target := MapUserToAuditUser(user)
+		if err := svc.auditLogger.Log(txCtx, meta, domain.ActionAdminCreateUser, actor, target); err != nil {
 			return ErrAuditLogger
 		}
 		return nil
@@ -211,7 +220,7 @@ func (svc *adminService) CreateUser(ctx context.Context, meta *domain.AuditMeta,
 	return user, nil
 }
 
-func (svc *adminService) DeleteUser(ctx context.Context, meta *domain.AuditMeta, actor *domain.AuditUser, userID uuid.UUID) (*models.User, error) {
+func (svc *adminService) DeleteUser(ctx context.Context, meta *AuditMeta, actor *AuditUser, userID uuid.UUID) (*models.User, error) {
 	user, err := svc.userRepo.FindByID(ctx, userID)
 	if err != nil {
 		if errors.Is(err, repositories.ErrNotFound) {
@@ -220,7 +229,7 @@ func (svc *adminService) DeleteUser(ctx context.Context, meta *domain.AuditMeta,
 		return nil, err
 	}
 
-	roleAdmin, err := svc.roleRepo.FindByCode(ctx, constants.RoleCodeAdmin)
+	roleAdmin, err := svc.roleRepo.FindByCode(ctx, domain.RoleCodeAdmin)
 	if err != nil {
 		return nil, ErrInternalServer
 	}
@@ -237,10 +246,10 @@ func (svc *adminService) DeleteUser(ctx context.Context, meta *domain.AuditMeta,
 		now := time.Now()
 		user.DeletedAt = gorm.DeletedAt{Time: now, Valid: true}
 		user.DeletedBy = &actor.ID
-		user.Status = enum.StatusDeleted
+		user.Status = domain.StatusDeleted
 
-		target := domain.MapUserToAuditUser(user)
-		if err := svc.auditLogger.Log(ctx, meta, enum.ActionAdminDeleteUser, actor, target); err != nil {
+		target := MapUserToAuditUser(user)
+		if err := svc.auditLogger.Log(ctx, meta, domain.ActionAdminDeleteUser, actor, target); err != nil {
 			return ErrAuditLogger
 		}
 		return nil
@@ -253,7 +262,7 @@ func (svc *adminService) DeleteUser(ctx context.Context, meta *domain.AuditMeta,
 	return user, nil
 }
 
-func (svc *adminService) RestoreUser(ctx context.Context, meta *domain.AuditMeta, actor *domain.AuditUser, userID uuid.UUID) (*models.User, error) {
+func (svc *adminService) RestoreUser(ctx context.Context, meta *AuditMeta, actor *AuditUser, userID uuid.UUID) (*models.User, error) {
 	user, err := svc.userRepo.FindByIDUnscoped(ctx, userID)
 	if err != nil {
 		if errors.Is(err, repositories.ErrNotFound) {
@@ -273,10 +282,10 @@ func (svc *adminService) RestoreUser(ctx context.Context, meta *domain.AuditMeta
 
 		user.DeletedAt = gorm.DeletedAt{}
 		user.DeletedBy = nil
-		user.Status = enum.StatusActive
+		user.Status = domain.StatusActive
 
-		target := domain.MapUserToAuditUser(user)
-		if err := svc.auditLogger.Log(ctx, meta, enum.ActionAdminRestoreUser, actor, target); err != nil {
+		target := MapUserToAuditUser(user)
+		if err := svc.auditLogger.Log(ctx, meta, domain.ActionAdminRestoreUser, actor, target); err != nil {
 			return ErrAuditLogger
 		}
 
@@ -290,7 +299,7 @@ func (svc *adminService) RestoreUser(ctx context.Context, meta *domain.AuditMeta
 	return user, nil
 }
 
-func (svc *adminService) UpdateRole(ctx context.Context, meta *domain.AuditMeta, actor *domain.AuditUser, id uuid.UUID, roleCode constants.RoleCode) (*models.User, error) {
+func (svc *adminService) UpdateRole(ctx context.Context, meta *AuditMeta, actor *AuditUser, id uuid.UUID, roleCode domain.RoleCode) (*models.User, error) {
 	if roleCode == "" {
 		return nil, ErrInvalidInput
 	}
@@ -308,7 +317,7 @@ func (svc *adminService) UpdateRole(ctx context.Context, meta *domain.AuditMeta,
 		return nil, ErrInternalServer
 	}
 
-	roleAdmin, err := svc.roleRepo.FindByCode(ctx, constants.RoleCodeAdmin)
+	roleAdmin, err := svc.roleRepo.FindByCode(ctx, domain.RoleCodeAdmin)
 	if err != nil {
 		return nil, ErrInternalServer
 	}
@@ -333,9 +342,9 @@ func (svc *adminService) UpdateRole(ctx context.Context, meta *domain.AuditMeta,
 		}
 		user.Role = *role
 
-		target := domain.MapUserToAuditUser(user)
+		target := MapUserToAuditUser(user)
 
-		if err := svc.auditLogger.LogWithMetadata(ctx, meta, enum.ActionAdminAssignRole, actor, target, changes); err != nil {
+		if err := svc.auditLogger.LogWithMetadata(ctx, meta, domain.ActionAdminAssignRole, actor, target, changes); err != nil {
 			return ErrAuditLogger
 		}
 

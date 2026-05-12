@@ -1,4 +1,4 @@
-package enum
+package domain
 
 type TokenType string
 

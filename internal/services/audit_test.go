@@ -3,8 +3,8 @@ package services
 import (
 	"context"
 	"errors"
-	"portal-system/internal/domain"
 	"portal-system/internal/models"
+	"portal-system/internal/repositories"
 	repositoriesmocks "portal-system/internal/repositories/mocks"
 	"testing"
 	"time"
@@ -20,16 +20,16 @@ func TestAuditLogService_List_Table(t *testing.T) {
 	now := time.Now()
 	tests := []struct {
 		name       string
-		filter     domain.AuditLogFilter
+		filter     AuditLogFilter
 		listErr    error
 		listLogs   []models.AuditLog
 		listTotal  int64
 		expected   error
-		assertRepo func(t *testing.T, got domain.AuditLogFilter)
+		assertRepo func(t *testing.T, got repositories.AuditLogListFilter)
 	}{
 		{
 			name: "invalid time range",
-			filter: domain.AuditLogFilter{
+			filter: AuditLogFilter{
 				From: ptrTime(now),
 				To:   ptrTime(now.Add(-1 * time.Hour)),
 			},
@@ -37,7 +37,7 @@ func TestAuditLogService_List_Table(t *testing.T) {
 		},
 		{
 			name: "repo error",
-			filter: domain.AuditLogFilter{
+			filter: AuditLogFilter{
 				Page:     2,
 				PageSize: 50,
 			},
@@ -46,13 +46,13 @@ func TestAuditLogService_List_Table(t *testing.T) {
 		},
 		{
 			name: "success and default pagination",
-			filter: domain.AuditLogFilter{
+			filter: AuditLogFilter{
 				Page:     0,
 				PageSize: 0,
 			},
 			listLogs:  []models.AuditLog{{}},
 			listTotal: 1,
-			assertRepo: func(t *testing.T, got domain.AuditLogFilter) {
+			assertRepo: func(t *testing.T, got repositories.AuditLogListFilter) {
 				t.Helper()
 				if got.Page != 1 || got.PageSize != 20 {
 					t.Fatalf("expected default page=1,pageSize=20 got page=%d,size=%d", got.Page, got.PageSize)
@@ -63,9 +63,9 @@ func TestAuditLogService_List_Table(t *testing.T) {
 
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
-			var captured domain.AuditLogFilter
+			var captured repositories.AuditLogListFilter
 			repo := repositoriesmocks.NewAuditLogRepository(t)
-			repo.EXPECT().List(mock.Anything, mock.Anything).RunAndReturn(func(ctx context.Context, filter domain.AuditLogFilter) ([]models.AuditLog, int64, error) {
+			repo.EXPECT().List(mock.Anything, mock.Anything).RunAndReturn(func(ctx context.Context, filter repositories.AuditLogListFilter) ([]models.AuditLog, int64, error) {
 				captured = filter
 				return tc.listLogs, tc.listTotal, tc.listErr
 			}).Maybe()

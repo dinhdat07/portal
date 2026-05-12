@@ -7,8 +7,8 @@ package mocks
 import (
 	"context"
 	"portal-system/internal/domain"
-	"portal-system/internal/domain/constants"
 	"portal-system/internal/models"
+	"portal-system/internal/services"
 
 	"github.com/google/uuid"
 	mock "github.com/stretchr/testify/mock"
@@ -42,7 +42,7 @@ func (_m *AdminService) EXPECT() *AdminService_Expecter {
 }
 
 // CreateUser provides a mock function for the type AdminService
-func (_mock *AdminService) CreateUser(ctx context.Context, meta *domain.AuditMeta, actor *domain.AuditUser, in domain.CreateUserInput) (*models.User, error) {
+func (_mock *AdminService) CreateUser(ctx context.Context, meta *services.AuditMeta, actor *services.AuditUser, in services.CreateUserInput) (*models.User, error) {
 	ret := _mock.Called(ctx, meta, actor, in)
 
 	if len(ret) == 0 {
@@ -51,17 +51,17 @@ func (_mock *AdminService) CreateUser(ctx context.Context, meta *domain.AuditMet
 
 	var r0 *models.User
 	var r1 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context, *domain.AuditMeta, *domain.AuditUser, domain.CreateUserInput) (*models.User, error)); ok {
+	if returnFunc, ok := ret.Get(0).(func(context.Context, *services.AuditMeta, *services.AuditUser, services.CreateUserInput) (*models.User, error)); ok {
 		return returnFunc(ctx, meta, actor, in)
 	}
-	if returnFunc, ok := ret.Get(0).(func(context.Context, *domain.AuditMeta, *domain.AuditUser, domain.CreateUserInput) *models.User); ok {
+	if returnFunc, ok := ret.Get(0).(func(context.Context, *services.AuditMeta, *services.AuditUser, services.CreateUserInput) *models.User); ok {
 		r0 = returnFunc(ctx, meta, actor, in)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*models.User)
 		}
 	}
-	if returnFunc, ok := ret.Get(1).(func(context.Context, *domain.AuditMeta, *domain.AuditUser, domain.CreateUserInput) error); ok {
+	if returnFunc, ok := ret.Get(1).(func(context.Context, *services.AuditMeta, *services.AuditUser, services.CreateUserInput) error); ok {
 		r1 = returnFunc(ctx, meta, actor, in)
 	} else {
 		r1 = ret.Error(1)
@@ -76,30 +76,30 @@ type AdminService_CreateUser_Call struct {
 
 // CreateUser is a helper method to define mock.On call
 //   - ctx context.Context
-//   - meta *domain.AuditMeta
-//   - actor *domain.AuditUser
-//   - in domain.CreateUserInput
+//   - meta *services.AuditMeta
+//   - actor *services.AuditUser
+//   - in services.CreateUserInput
 func (_e *AdminService_Expecter) CreateUser(ctx interface{}, meta interface{}, actor interface{}, in interface{}) *AdminService_CreateUser_Call {
 	return &AdminService_CreateUser_Call{Call: _e.mock.On("CreateUser", ctx, meta, actor, in)}
 }
 
-func (_c *AdminService_CreateUser_Call) Run(run func(ctx context.Context, meta *domain.AuditMeta, actor *domain.AuditUser, in domain.CreateUserInput)) *AdminService_CreateUser_Call {
+func (_c *AdminService_CreateUser_Call) Run(run func(ctx context.Context, meta *services.AuditMeta, actor *services.AuditUser, in services.CreateUserInput)) *AdminService_CreateUser_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		var arg0 context.Context
 		if args[0] != nil {
 			arg0 = args[0].(context.Context)
 		}
-		var arg1 *domain.AuditMeta
+		var arg1 *services.AuditMeta
 		if args[1] != nil {
-			arg1 = args[1].(*domain.AuditMeta)
+			arg1 = args[1].(*services.AuditMeta)
 		}
-		var arg2 *domain.AuditUser
+		var arg2 *services.AuditUser
 		if args[2] != nil {
-			arg2 = args[2].(*domain.AuditUser)
+			arg2 = args[2].(*services.AuditUser)
 		}
-		var arg3 domain.CreateUserInput
+		var arg3 services.CreateUserInput
 		if args[3] != nil {
-			arg3 = args[3].(domain.CreateUserInput)
+			arg3 = args[3].(services.CreateUserInput)
 		}
 		run(
 			arg0,
@@ -116,13 +116,13 @@ func (_c *AdminService_CreateUser_Call) Return(user *models.User, err error) *Ad
 	return _c
 }
 
-func (_c *AdminService_CreateUser_Call) RunAndReturn(run func(ctx context.Context, meta *domain.AuditMeta, actor *domain.AuditUser, in domain.CreateUserInput) (*models.User, error)) *AdminService_CreateUser_Call {
+func (_c *AdminService_CreateUser_Call) RunAndReturn(run func(ctx context.Context, meta *services.AuditMeta, actor *services.AuditUser, in services.CreateUserInput) (*models.User, error)) *AdminService_CreateUser_Call {
 	_c.Call.Return(run)
 	return _c
 }
 
 // DeleteUser provides a mock function for the type AdminService
-func (_mock *AdminService) DeleteUser(ctx context.Context, meta *domain.AuditMeta, actor *domain.AuditUser, userID uuid.UUID) (*models.User, error) {
+func (_mock *AdminService) DeleteUser(ctx context.Context, meta *services.AuditMeta, actor *services.AuditUser, userID uuid.UUID) (*models.User, error) {
 	ret := _mock.Called(ctx, meta, actor, userID)
 
 	if len(ret) == 0 {
@@ -131,17 +131,17 @@ func (_mock *AdminService) DeleteUser(ctx context.Context, meta *domain.AuditMet
 
 	var r0 *models.User
 	var r1 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context, *domain.AuditMeta, *domain.AuditUser, uuid.UUID) (*models.User, error)); ok {
+	if returnFunc, ok := ret.Get(0).(func(context.Context, *services.AuditMeta, *services.AuditUser, uuid.UUID) (*models.User, error)); ok {
 		return returnFunc(ctx, meta, actor, userID)
 	}
-	if returnFunc, ok := ret.Get(0).(func(context.Context, *domain.AuditMeta, *domain.AuditUser, uuid.UUID) *models.User); ok {
+	if returnFunc, ok := ret.Get(0).(func(context.Context, *services.AuditMeta, *services.AuditUser, uuid.UUID) *models.User); ok {
 		r0 = returnFunc(ctx, meta, actor, userID)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*models.User)
 		}
 	}
-	if returnFunc, ok := ret.Get(1).(func(context.Context, *domain.AuditMeta, *domain.AuditUser, uuid.UUID) error); ok {
+	if returnFunc, ok := ret.Get(1).(func(context.Context, *services.AuditMeta, *services.AuditUser, uuid.UUID) error); ok {
 		r1 = returnFunc(ctx, meta, actor, userID)
 	} else {
 		r1 = ret.Error(1)
@@ -156,26 +156,26 @@ type AdminService_DeleteUser_Call struct {
 
 // DeleteUser is a helper method to define mock.On call
 //   - ctx context.Context
-//   - meta *domain.AuditMeta
-//   - actor *domain.AuditUser
+//   - meta *services.AuditMeta
+//   - actor *services.AuditUser
 //   - userID uuid.UUID
 func (_e *AdminService_Expecter) DeleteUser(ctx interface{}, meta interface{}, actor interface{}, userID interface{}) *AdminService_DeleteUser_Call {
 	return &AdminService_DeleteUser_Call{Call: _e.mock.On("DeleteUser", ctx, meta, actor, userID)}
 }
 
-func (_c *AdminService_DeleteUser_Call) Run(run func(ctx context.Context, meta *domain.AuditMeta, actor *domain.AuditUser, userID uuid.UUID)) *AdminService_DeleteUser_Call {
+func (_c *AdminService_DeleteUser_Call) Run(run func(ctx context.Context, meta *services.AuditMeta, actor *services.AuditUser, userID uuid.UUID)) *AdminService_DeleteUser_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		var arg0 context.Context
 		if args[0] != nil {
 			arg0 = args[0].(context.Context)
 		}
-		var arg1 *domain.AuditMeta
+		var arg1 *services.AuditMeta
 		if args[1] != nil {
-			arg1 = args[1].(*domain.AuditMeta)
+			arg1 = args[1].(*services.AuditMeta)
 		}
-		var arg2 *domain.AuditUser
+		var arg2 *services.AuditUser
 		if args[2] != nil {
-			arg2 = args[2].(*domain.AuditUser)
+			arg2 = args[2].(*services.AuditUser)
 		}
 		var arg3 uuid.UUID
 		if args[3] != nil {
@@ -196,32 +196,32 @@ func (_c *AdminService_DeleteUser_Call) Return(user *models.User, err error) *Ad
 	return _c
 }
 
-func (_c *AdminService_DeleteUser_Call) RunAndReturn(run func(ctx context.Context, meta *domain.AuditMeta, actor *domain.AuditUser, userID uuid.UUID) (*models.User, error)) *AdminService_DeleteUser_Call {
+func (_c *AdminService_DeleteUser_Call) RunAndReturn(run func(ctx context.Context, meta *services.AuditMeta, actor *services.AuditUser, userID uuid.UUID) (*models.User, error)) *AdminService_DeleteUser_Call {
 	_c.Call.Return(run)
 	return _c
 }
 
 // ListUsers provides a mock function for the type AdminService
-func (_mock *AdminService) ListUsers(ctx context.Context, meta *domain.AuditMeta, actor *domain.AuditUser, in domain.UsersFilter) (*domain.ListUsersResult, error) {
+func (_mock *AdminService) ListUsers(ctx context.Context, meta *services.AuditMeta, actor *services.AuditUser, in services.UsersFilter) (*services.ListUsersResult, error) {
 	ret := _mock.Called(ctx, meta, actor, in)
 
 	if len(ret) == 0 {
 		panic("no return value specified for ListUsers")
 	}
 
-	var r0 *domain.ListUsersResult
+	var r0 *services.ListUsersResult
 	var r1 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context, *domain.AuditMeta, *domain.AuditUser, domain.UsersFilter) (*domain.ListUsersResult, error)); ok {
+	if returnFunc, ok := ret.Get(0).(func(context.Context, *services.AuditMeta, *services.AuditUser, services.UsersFilter) (*services.ListUsersResult, error)); ok {
 		return returnFunc(ctx, meta, actor, in)
 	}
-	if returnFunc, ok := ret.Get(0).(func(context.Context, *domain.AuditMeta, *domain.AuditUser, domain.UsersFilter) *domain.ListUsersResult); ok {
+	if returnFunc, ok := ret.Get(0).(func(context.Context, *services.AuditMeta, *services.AuditUser, services.UsersFilter) *services.ListUsersResult); ok {
 		r0 = returnFunc(ctx, meta, actor, in)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*domain.ListUsersResult)
+			r0 = ret.Get(0).(*services.ListUsersResult)
 		}
 	}
-	if returnFunc, ok := ret.Get(1).(func(context.Context, *domain.AuditMeta, *domain.AuditUser, domain.UsersFilter) error); ok {
+	if returnFunc, ok := ret.Get(1).(func(context.Context, *services.AuditMeta, *services.AuditUser, services.UsersFilter) error); ok {
 		r1 = returnFunc(ctx, meta, actor, in)
 	} else {
 		r1 = ret.Error(1)
@@ -236,30 +236,30 @@ type AdminService_ListUsers_Call struct {
 
 // ListUsers is a helper method to define mock.On call
 //   - ctx context.Context
-//   - meta *domain.AuditMeta
-//   - actor *domain.AuditUser
-//   - in domain.UsersFilter
+//   - meta *services.AuditMeta
+//   - actor *services.AuditUser
+//   - in services.UsersFilter
 func (_e *AdminService_Expecter) ListUsers(ctx interface{}, meta interface{}, actor interface{}, in interface{}) *AdminService_ListUsers_Call {
 	return &AdminService_ListUsers_Call{Call: _e.mock.On("ListUsers", ctx, meta, actor, in)}
 }
 
-func (_c *AdminService_ListUsers_Call) Run(run func(ctx context.Context, meta *domain.AuditMeta, actor *domain.AuditUser, in domain.UsersFilter)) *AdminService_ListUsers_Call {
+func (_c *AdminService_ListUsers_Call) Run(run func(ctx context.Context, meta *services.AuditMeta, actor *services.AuditUser, in services.UsersFilter)) *AdminService_ListUsers_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		var arg0 context.Context
 		if args[0] != nil {
 			arg0 = args[0].(context.Context)
 		}
-		var arg1 *domain.AuditMeta
+		var arg1 *services.AuditMeta
 		if args[1] != nil {
-			arg1 = args[1].(*domain.AuditMeta)
+			arg1 = args[1].(*services.AuditMeta)
 		}
-		var arg2 *domain.AuditUser
+		var arg2 *services.AuditUser
 		if args[2] != nil {
-			arg2 = args[2].(*domain.AuditUser)
+			arg2 = args[2].(*services.AuditUser)
 		}
-		var arg3 domain.UsersFilter
+		var arg3 services.UsersFilter
 		if args[3] != nil {
-			arg3 = args[3].(domain.UsersFilter)
+			arg3 = args[3].(services.UsersFilter)
 		}
 		run(
 			arg0,
@@ -271,18 +271,18 @@ func (_c *AdminService_ListUsers_Call) Run(run func(ctx context.Context, meta *d
 	return _c
 }
 
-func (_c *AdminService_ListUsers_Call) Return(listUsersResult *domain.ListUsersResult, err error) *AdminService_ListUsers_Call {
+func (_c *AdminService_ListUsers_Call) Return(listUsersResult *services.ListUsersResult, err error) *AdminService_ListUsers_Call {
 	_c.Call.Return(listUsersResult, err)
 	return _c
 }
 
-func (_c *AdminService_ListUsers_Call) RunAndReturn(run func(ctx context.Context, meta *domain.AuditMeta, actor *domain.AuditUser, in domain.UsersFilter) (*domain.ListUsersResult, error)) *AdminService_ListUsers_Call {
+func (_c *AdminService_ListUsers_Call) RunAndReturn(run func(ctx context.Context, meta *services.AuditMeta, actor *services.AuditUser, in services.UsersFilter) (*services.ListUsersResult, error)) *AdminService_ListUsers_Call {
 	_c.Call.Return(run)
 	return _c
 }
 
 // RestoreUser provides a mock function for the type AdminService
-func (_mock *AdminService) RestoreUser(ctx context.Context, meta *domain.AuditMeta, actor *domain.AuditUser, userID uuid.UUID) (*models.User, error) {
+func (_mock *AdminService) RestoreUser(ctx context.Context, meta *services.AuditMeta, actor *services.AuditUser, userID uuid.UUID) (*models.User, error) {
 	ret := _mock.Called(ctx, meta, actor, userID)
 
 	if len(ret) == 0 {
@@ -291,17 +291,17 @@ func (_mock *AdminService) RestoreUser(ctx context.Context, meta *domain.AuditMe
 
 	var r0 *models.User
 	var r1 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context, *domain.AuditMeta, *domain.AuditUser, uuid.UUID) (*models.User, error)); ok {
+	if returnFunc, ok := ret.Get(0).(func(context.Context, *services.AuditMeta, *services.AuditUser, uuid.UUID) (*models.User, error)); ok {
 		return returnFunc(ctx, meta, actor, userID)
 	}
-	if returnFunc, ok := ret.Get(0).(func(context.Context, *domain.AuditMeta, *domain.AuditUser, uuid.UUID) *models.User); ok {
+	if returnFunc, ok := ret.Get(0).(func(context.Context, *services.AuditMeta, *services.AuditUser, uuid.UUID) *models.User); ok {
 		r0 = returnFunc(ctx, meta, actor, userID)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*models.User)
 		}
 	}
-	if returnFunc, ok := ret.Get(1).(func(context.Context, *domain.AuditMeta, *domain.AuditUser, uuid.UUID) error); ok {
+	if returnFunc, ok := ret.Get(1).(func(context.Context, *services.AuditMeta, *services.AuditUser, uuid.UUID) error); ok {
 		r1 = returnFunc(ctx, meta, actor, userID)
 	} else {
 		r1 = ret.Error(1)
@@ -316,26 +316,26 @@ type AdminService_RestoreUser_Call struct {
 
 // RestoreUser is a helper method to define mock.On call
 //   - ctx context.Context
-//   - meta *domain.AuditMeta
-//   - actor *domain.AuditUser
+//   - meta *services.AuditMeta
+//   - actor *services.AuditUser
 //   - userID uuid.UUID
 func (_e *AdminService_Expecter) RestoreUser(ctx interface{}, meta interface{}, actor interface{}, userID interface{}) *AdminService_RestoreUser_Call {
 	return &AdminService_RestoreUser_Call{Call: _e.mock.On("RestoreUser", ctx, meta, actor, userID)}
 }
 
-func (_c *AdminService_RestoreUser_Call) Run(run func(ctx context.Context, meta *domain.AuditMeta, actor *domain.AuditUser, userID uuid.UUID)) *AdminService_RestoreUser_Call {
+func (_c *AdminService_RestoreUser_Call) Run(run func(ctx context.Context, meta *services.AuditMeta, actor *services.AuditUser, userID uuid.UUID)) *AdminService_RestoreUser_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		var arg0 context.Context
 		if args[0] != nil {
 			arg0 = args[0].(context.Context)
 		}
-		var arg1 *domain.AuditMeta
+		var arg1 *services.AuditMeta
 		if args[1] != nil {
-			arg1 = args[1].(*domain.AuditMeta)
+			arg1 = args[1].(*services.AuditMeta)
 		}
-		var arg2 *domain.AuditUser
+		var arg2 *services.AuditUser
 		if args[2] != nil {
-			arg2 = args[2].(*domain.AuditUser)
+			arg2 = args[2].(*services.AuditUser)
 		}
 		var arg3 uuid.UUID
 		if args[3] != nil {
@@ -356,13 +356,13 @@ func (_c *AdminService_RestoreUser_Call) Return(user *models.User, err error) *A
 	return _c
 }
 
-func (_c *AdminService_RestoreUser_Call) RunAndReturn(run func(ctx context.Context, meta *domain.AuditMeta, actor *domain.AuditUser, userID uuid.UUID) (*models.User, error)) *AdminService_RestoreUser_Call {
+func (_c *AdminService_RestoreUser_Call) RunAndReturn(run func(ctx context.Context, meta *services.AuditMeta, actor *services.AuditUser, userID uuid.UUID) (*models.User, error)) *AdminService_RestoreUser_Call {
 	_c.Call.Return(run)
 	return _c
 }
 
 // UpdateRole provides a mock function for the type AdminService
-func (_mock *AdminService) UpdateRole(ctx context.Context, meta *domain.AuditMeta, actor *domain.AuditUser, id uuid.UUID, roleCode constants.RoleCode) (*models.User, error) {
+func (_mock *AdminService) UpdateRole(ctx context.Context, meta *services.AuditMeta, actor *services.AuditUser, id uuid.UUID, roleCode domain.RoleCode) (*models.User, error) {
 	ret := _mock.Called(ctx, meta, actor, id, roleCode)
 
 	if len(ret) == 0 {
@@ -371,17 +371,17 @@ func (_mock *AdminService) UpdateRole(ctx context.Context, meta *domain.AuditMet
 
 	var r0 *models.User
 	var r1 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context, *domain.AuditMeta, *domain.AuditUser, uuid.UUID, constants.RoleCode) (*models.User, error)); ok {
+	if returnFunc, ok := ret.Get(0).(func(context.Context, *services.AuditMeta, *services.AuditUser, uuid.UUID, domain.RoleCode) (*models.User, error)); ok {
 		return returnFunc(ctx, meta, actor, id, roleCode)
 	}
-	if returnFunc, ok := ret.Get(0).(func(context.Context, *domain.AuditMeta, *domain.AuditUser, uuid.UUID, constants.RoleCode) *models.User); ok {
+	if returnFunc, ok := ret.Get(0).(func(context.Context, *services.AuditMeta, *services.AuditUser, uuid.UUID, domain.RoleCode) *models.User); ok {
 		r0 = returnFunc(ctx, meta, actor, id, roleCode)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*models.User)
 		}
 	}
-	if returnFunc, ok := ret.Get(1).(func(context.Context, *domain.AuditMeta, *domain.AuditUser, uuid.UUID, constants.RoleCode) error); ok {
+	if returnFunc, ok := ret.Get(1).(func(context.Context, *services.AuditMeta, *services.AuditUser, uuid.UUID, domain.RoleCode) error); ok {
 		r1 = returnFunc(ctx, meta, actor, id, roleCode)
 	} else {
 		r1 = ret.Error(1)
@@ -396,35 +396,35 @@ type AdminService_UpdateRole_Call struct {
 
 // UpdateRole is a helper method to define mock.On call
 //   - ctx context.Context
-//   - meta *domain.AuditMeta
-//   - actor *domain.AuditUser
+//   - meta *services.AuditMeta
+//   - actor *services.AuditUser
 //   - id uuid.UUID
-//   - roleCode constants.RoleCode
+//   - roleCode domain.RoleCode
 func (_e *AdminService_Expecter) UpdateRole(ctx interface{}, meta interface{}, actor interface{}, id interface{}, roleCode interface{}) *AdminService_UpdateRole_Call {
 	return &AdminService_UpdateRole_Call{Call: _e.mock.On("UpdateRole", ctx, meta, actor, id, roleCode)}
 }
 
-func (_c *AdminService_UpdateRole_Call) Run(run func(ctx context.Context, meta *domain.AuditMeta, actor *domain.AuditUser, id uuid.UUID, roleCode constants.RoleCode)) *AdminService_UpdateRole_Call {
+func (_c *AdminService_UpdateRole_Call) Run(run func(ctx context.Context, meta *services.AuditMeta, actor *services.AuditUser, id uuid.UUID, roleCode domain.RoleCode)) *AdminService_UpdateRole_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		var arg0 context.Context
 		if args[0] != nil {
 			arg0 = args[0].(context.Context)
 		}
-		var arg1 *domain.AuditMeta
+		var arg1 *services.AuditMeta
 		if args[1] != nil {
-			arg1 = args[1].(*domain.AuditMeta)
+			arg1 = args[1].(*services.AuditMeta)
 		}
-		var arg2 *domain.AuditUser
+		var arg2 *services.AuditUser
 		if args[2] != nil {
-			arg2 = args[2].(*domain.AuditUser)
+			arg2 = args[2].(*services.AuditUser)
 		}
 		var arg3 uuid.UUID
 		if args[3] != nil {
 			arg3 = args[3].(uuid.UUID)
 		}
-		var arg4 constants.RoleCode
+		var arg4 domain.RoleCode
 		if args[4] != nil {
-			arg4 = args[4].(constants.RoleCode)
+			arg4 = args[4].(domain.RoleCode)
 		}
 		run(
 			arg0,
@@ -442,7 +442,7 @@ func (_c *AdminService_UpdateRole_Call) Return(user *models.User, err error) *Ad
 	return _c
 }
 
-func (_c *AdminService_UpdateRole_Call) RunAndReturn(run func(ctx context.Context, meta *domain.AuditMeta, actor *domain.AuditUser, id uuid.UUID, roleCode constants.RoleCode) (*models.User, error)) *AdminService_UpdateRole_Call {
+func (_c *AdminService_UpdateRole_Call) RunAndReturn(run func(ctx context.Context, meta *services.AuditMeta, actor *services.AuditUser, id uuid.UUID, roleCode domain.RoleCode) (*models.User, error)) *AdminService_UpdateRole_Call {
 	_c.Call.Return(run)
 	return _c
 }

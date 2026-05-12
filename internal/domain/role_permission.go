@@ -1,4 +1,4 @@
-package constants
+package domain
 
 var RolePermissions = map[RoleCode][]PermissionCode{
 	RoleCodeAdmin: {

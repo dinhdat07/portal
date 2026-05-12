@@ -7,7 +7,6 @@ import (
 	"time"
 
 	"portal-system/internal/domain"
-	"portal-system/internal/domain/enum"
 	"portal-system/internal/models"
 	"portal-system/internal/repositories"
 
@@ -169,7 +168,7 @@ func (r *GormUserRepository) MarkEmailVerified(ctx context.Context, id uuid.UUID
 		Where("id = ?", id).
 		Updates(map[string]interface{}{
 			"email_verified_at": &now,
-			"status":            enum.StatusActive,
+			"status":            domain.StatusActive,
 		})
 	if result.Error != nil {
 		return result.Error
@@ -187,7 +186,7 @@ func (r *GormUserRepository) Delete(ctx context.Context, id uuid.UUID, deletedBy
 		Updates(map[string]interface{}{
 			"deleted_at": time.Now(),
 			"deleted_by": deletedBy,
-			"status":     enum.StatusDeleted,
+			"status":     domain.StatusDeleted,
 		})
 	if result.Error != nil {
 		return result.Error
@@ -206,7 +205,7 @@ func (r *GormUserRepository) Restore(ctx context.Context, id uuid.UUID) error {
 		Updates(map[string]interface{}{
 			"deleted_at": nil,
 			"deleted_by": nil,
-			"status":     enum.StatusActive,
+			"status":     domain.StatusActive,
 		})
 	if result.Error != nil {
 		return result.Error
@@ -217,7 +216,7 @@ func (r *GormUserRepository) Restore(ctx context.Context, id uuid.UUID) error {
 	return nil
 }
 
-func (r *GormUserRepository) ListUsers(ctx context.Context, filter domain.UsersFilter) ([]models.User, int64, error) {
+func (r *GormUserRepository) ListUsers(ctx context.Context, filter repositories.UserListFilter) ([]models.User, int64, error) {
 	var user models.User
 
 	db := r.getDB(ctx).Model(&user)

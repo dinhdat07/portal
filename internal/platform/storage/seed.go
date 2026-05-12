@@ -3,8 +3,7 @@ package storage
 import (
 	"errors"
 	"portal-system/internal/config"
-	"portal-system/internal/domain/constants"
-	"portal-system/internal/domain/enum"
+	"portal-system/internal/domain"
 	"portal-system/internal/models"
 	"strings"
 	"time"
@@ -35,7 +34,7 @@ func SeedAdmin(db *gorm.DB, cfg *config.Config) error {
 	now := time.Now()
 
 	var role models.Role
-	if err := db.Where("code = ?", constants.RoleCodeAdmin).First(&role).Error; err != nil {
+	if err := db.Where("code = ?", domain.RoleCodeAdmin).First(&role).Error; err != nil {
 		return err
 	}
 
@@ -46,7 +45,7 @@ func SeedAdmin(db *gorm.DB, cfg *config.Config) error {
 		LastName:        "Admin",
 		PasswordHash:    &hashStr,
 		RoleID:          role.ID,
-		Status:          enum.StatusActive,
+		Status:          domain.StatusActive,
 		EmailVerifiedAt: &now,
 	}
 
@@ -57,13 +56,13 @@ func SeedRoles(db *gorm.DB) error {
 	roles := []models.Role{
 		{
 			ID:       uuid.New(),
-			Code:     constants.RoleCodeAdmin,
+			Code:     domain.RoleCodeAdmin,
 			Name:     "Admin",
 			IsSystem: true,
 		},
 		{
 			ID:       uuid.New(),
-			Code:     constants.RoleCodeUser,
+			Code:     domain.RoleCodeUser,
 			Name:     "User",
 			IsSystem: true,
 		},
@@ -93,7 +92,7 @@ func SeedRoles(db *gorm.DB) error {
 }
 
 func SeedPermissions(db *gorm.DB) error {
-	for _, perm := range constants.AllPermissions {
+	for _, perm := range domain.AllPermissions {
 		code := string(perm)
 
 		var perm models.Permission
@@ -114,7 +113,7 @@ func SeedPermissions(db *gorm.DB) error {
 }
 
 func SeedRolePermissions(db *gorm.DB) error {
-	for roleCode, perms := range constants.RolePermissions {
+	for roleCode, perms := range domain.RolePermissions {
 
 		var role models.Role
 		if err := db.Where("code = ?", string(roleCode)).First(&role).Error; err != nil {

@@ -2,10 +2,10 @@ package mappers
 
 import (
 	authv1 "portal-system/gen/go/auth/v1"
-	"portal-system/internal/domain"
+	"portal-system/internal/services"
 )
 
-func LoginResultToPB(result *domain.LoginResult) *authv1.LoginResponse {
+func LoginResultToPB(result *services.LoginResult) *authv1.LoginResponse {
 	if result == nil {
 		return nil
 	}
@@ -19,7 +19,7 @@ func LoginResultToPB(result *domain.LoginResult) *authv1.LoginResponse {
 	}
 }
 
-func RefreshResultToPB(result *domain.RefreshResult) *authv1.RefreshResponse {
+func RefreshResultToPB(result *services.RefreshResult) *authv1.RefreshResponse {
 	if result == nil {
 		return nil
 	}

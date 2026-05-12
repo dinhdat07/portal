@@ -2,8 +2,8 @@ package impl
 
 import (
 	"context"
-	"portal-system/internal/domain"
 	"portal-system/internal/models"
+	"portal-system/internal/repositories"
 
 	"gorm.io/gorm"
 )
@@ -20,7 +20,7 @@ func (r *GormAuditLogRepository) Create(ctx context.Context, log *models.AuditLo
 	return r.getDB(ctx).Create(log).Error
 }
 
-func (r *GormAuditLogRepository) List(ctx context.Context, filter domain.AuditLogFilter) ([]models.AuditLog, int64, error) {
+func (r *GormAuditLogRepository) List(ctx context.Context, filter repositories.AuditLogListFilter) ([]models.AuditLog, int64, error) {
 	db := r.getDB(ctx).Model(&models.AuditLog{})
 
 	if filter.Action != "" {

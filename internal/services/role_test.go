@@ -4,8 +4,6 @@ import (
 	"context"
 	"errors"
 	"portal-system/internal/domain"
-	"portal-system/internal/domain/constants"
-	"portal-system/internal/domain/enum"
 	"portal-system/internal/models"
 	"portal-system/internal/repositories"
 	repositoriesmocks "portal-system/internal/repositories/mocks"
@@ -19,13 +17,13 @@ import (
 )
 
 func TestRoleService_CreateRole(t *testing.T) {
-	meta := &domain.AuditMeta{IPAddress: "127.0.0.1", UserAgent: "unit-test"}
-	actor := &domain.AuditUser{ID: uuid.New(), RoleCode: constants.RoleCodeAdmin}
-	input := domain.CreateRoleInput{Code: constants.RoleCode("ROLE_CODE_MANAGER"), Name: "Manager"}
+	meta := &AuditMeta{IPAddress: "127.0.0.1", UserAgent: "unit-test"}
+	actor := &AuditUser{ID: uuid.New(), RoleCode: domain.RoleCodeAdmin}
+	input := CreateRoleInput{Code: domain.RoleCode("ROLE_CODE_MANAGER"), Name: "Manager"}
 
 	t.Run("invalid input", func(t *testing.T) {
 		svc := newRoleServiceForTest(nil, nil, nil, nil, nil)
-		role, err := svc.CreateRole(context.Background(), meta, actor, domain.CreateRoleInput{})
+		role, err := svc.CreateRole(context.Background(), meta, actor, CreateRoleInput{})
 		require.Nil(t, role)
 		require.ErrorIs(t, err, ErrInvalidInput)
 	})
@@ -72,7 +70,7 @@ func TestRoleService_CreateRole(t *testing.T) {
 		roleRepo.On("Create", mock.Anything, mock.Anything).Return(nil).Once()
 
 		auditLogger := servicesmocks.NewAuditLogger(t)
-		auditLogger.EXPECT().LogWithMetadata(mock.Anything, meta, enum.ActionCreateRole, actor, (*domain.AuditUser)(nil), mock.Anything).Return(nil).Once()
+		auditLogger.EXPECT().LogWithMetadata(mock.Anything, meta, domain.ActionCreateRole, actor, (*AuditUser)(nil), mock.Anything).Return(nil).Once()
 		tx := repositoriesmocks.NewTxManager(t)
 		tx.EXPECT().WithTx(mock.Anything, mock.Anything).RunAndReturn(func(ctx context.Context, fn func(context.Context) error) error {
 			return fn(ctx)
@@ -113,8 +111,8 @@ func TestRoleService_ListRoles(t *testing.T) {
 }
 
 func TestRoleService_AssignPermission(t *testing.T) {
-	meta := &domain.AuditMeta{IPAddress: "127.0.0.1", UserAgent: "unit-test"}
-	actor := &domain.AuditUser{ID: uuid.New(), RoleCode: constants.RoleCodeAdmin}
+	meta := &AuditMeta{IPAddress: "127.0.0.1", UserAgent: "unit-test"}
+	actor := &AuditUser{ID: uuid.New(), RoleCode: domain.RoleCodeAdmin}
 	roleID := uuid.New()
 	permID := uuid.New()
 
@@ -129,7 +127,7 @@ func TestRoleService_AssignPermission(t *testing.T) {
 
 	t.Run("permission not found", func(t *testing.T) {
 		roleRepo := repositoriesmocks.NewRoleRepository(t)
-		roleRepo.EXPECT().FindByID(mock.Anything, roleID).Return(&models.Role{ID: roleID, Code: constants.RoleCode("ROLE_CODE_MANAGER")}, nil)
+		roleRepo.EXPECT().FindByID(mock.Anything, roleID).Return(&models.Role{ID: roleID, Code: domain.RoleCode("ROLE_CODE_MANAGER")}, nil)
 		permRepo := repositoriesmocks.NewPermissionRepository(t)
 		permRepo.EXPECT().FindByID(mock.Anything, permID).Return(nil, repositories.ErrNotFound)
 
@@ -150,7 +148,7 @@ func TestRoleService_AssignPermission(t *testing.T) {
 	})
 
 	t.Run("success", func(t *testing.T) {
-		role := &models.Role{ID: roleID, Code: constants.RoleCode("ROLE_CODE_MANAGER"), Name: "Manager"}
+		role := &models.Role{ID: roleID, Code: domain.RoleCode("ROLE_CODE_MANAGER"), Name: "Manager"}
 		perm := &models.Permission{ID: permID, Code: "roles:list"}
 
 		roleRepo := repositoriesmocks.NewRoleRepository(t)
@@ -159,7 +157,7 @@ func TestRoleService_AssignPermission(t *testing.T) {
 		permRepo := repositoriesmocks.NewPermissionRepository(t)
 		permRepo.EXPECT().FindByID(mock.Anything, permID).Return(perm, nil)
 		auditLogger := servicesmocks.NewAuditLogger(t)
-		auditLogger.EXPECT().LogWithMetadata(mock.Anything, meta, enum.ActionAssignPermission, actor, (*domain.AuditUser)(nil), mock.Anything).Return(nil).Once()
+		auditLogger.EXPECT().LogWithMetadata(mock.Anything, meta, domain.ActionAssignPermission, actor, (*AuditUser)(nil), mock.Anything).Return(nil).Once()
 
 		svc := newRoleServiceForTest(nil, auditLogger, roleRepo, permRepo, nil)
 		err := svc.AssignPermission(context.Background(), meta, actor, roleID, permID)
@@ -168,11 +166,11 @@ func TestRoleService_AssignPermission(t *testing.T) {
 }
 
 func TestRoleService_RemovePermission(t *testing.T) {
-	meta := &domain.AuditMeta{IPAddress: "127.0.0.1", UserAgent: "unit-test"}
-	actor := &domain.AuditUser{ID: uuid.New(), RoleCode: constants.RoleCodeAdmin}
+	meta := &AuditMeta{IPAddress: "127.0.0.1", UserAgent: "unit-test"}
+	actor := &AuditUser{ID: uuid.New(), RoleCode: domain.RoleCodeAdmin}
 	roleID := uuid.New()
 	permID := uuid.New()
-	role := &models.Role{ID: roleID, Code: constants.RoleCode("ROLE_CODE_MANAGER"), Name: "Manager"}
+	role := &models.Role{ID: roleID, Code: domain.RoleCode("ROLE_CODE_MANAGER"), Name: "Manager"}
 	perm := &models.Permission{ID: permID, Code: "roles:list"}
 
 	roleRepo := repositoriesmocks.NewRoleRepository(t)
@@ -181,7 +179,7 @@ func TestRoleService_RemovePermission(t *testing.T) {
 	permRepo := repositoriesmocks.NewPermissionRepository(t)
 	permRepo.EXPECT().FindByID(mock.Anything, permID).Return(perm, nil)
 	auditLogger := servicesmocks.NewAuditLogger(t)
-	auditLogger.EXPECT().LogWithMetadata(mock.Anything, meta, enum.ActionRemovePermission, actor, (*domain.AuditUser)(nil), mock.Anything).Return(nil).Once()
+	auditLogger.EXPECT().LogWithMetadata(mock.Anything, meta, domain.ActionRemovePermission, actor, (*AuditUser)(nil), mock.Anything).Return(nil).Once()
 
 	svc := newRoleServiceForTest(nil, auditLogger, roleRepo, permRepo, nil)
 	err := svc.RemovePermission(context.Background(), meta, actor, roleID, permID)
@@ -189,11 +187,11 @@ func TestRoleService_RemovePermission(t *testing.T) {
 }
 
 func TestRoleService_DeleteRole(t *testing.T) {
-	meta := &domain.AuditMeta{IPAddress: "127.0.0.1", UserAgent: "unit-test"}
-	actor := &domain.AuditUser{ID: uuid.New(), RoleCode: constants.RoleCodeAdmin}
+	meta := &AuditMeta{IPAddress: "127.0.0.1", UserAgent: "unit-test"}
+	actor := &AuditUser{ID: uuid.New(), RoleCode: domain.RoleCodeAdmin}
 	roleID := uuid.New()
 	replacementID := uuid.New()
-	role := &models.Role{ID: roleID, Code: constants.RoleCode("ROLE_CODE_MANAGER"), Name: "Manager"}
+	role := &models.Role{ID: roleID, Code: domain.RoleCode("ROLE_CODE_MANAGER"), Name: "Manager"}
 
 	t.Run("role not found", func(t *testing.T) {
 		roleRepo := repositoriesmocks.NewRoleRepository(t)
@@ -233,7 +231,7 @@ func TestRoleService_DeleteRole(t *testing.T) {
 	})
 
 	t.Run("success with replacement", func(t *testing.T) {
-		replacementRole := &models.Role{ID: replacementID, Code: constants.RoleCodeUser, Name: "User"}
+		replacementRole := &models.Role{ID: replacementID, Code: domain.RoleCodeUser, Name: "User"}
 		roleRepo := repositoriesmocks.NewRoleRepository(t)
 		roleRepo.EXPECT().FindByID(mock.Anything, roleID).Return(role, nil)
 		roleRepo.EXPECT().FindByID(mock.Anything, replacementID).Return(replacementRole, nil)
@@ -242,7 +240,7 @@ func TestRoleService_DeleteRole(t *testing.T) {
 		userRepo.On("ExistsByRoleIDUnscoped", mock.Anything, roleID).Return(true, nil).Once()
 		userRepo.On("UpdateRoleByRoleIDUnscoped", mock.Anything, roleID, replacementID).Return(nil).Once()
 		auditLogger := servicesmocks.NewAuditLogger(t)
-		auditLogger.EXPECT().LogWithMetadata(mock.Anything, meta, enum.ActionDeleteRole, actor, (*domain.AuditUser)(nil), mock.Anything).Return(nil).Once()
+		auditLogger.EXPECT().LogWithMetadata(mock.Anything, meta, domain.ActionDeleteRole, actor, (*AuditUser)(nil), mock.Anything).Return(nil).Once()
 		tx := repositoriesmocks.NewTxManager(t)
 		tx.EXPECT().WithTx(mock.Anything, mock.Anything).RunAndReturn(func(ctx context.Context, fn func(context.Context) error) error {
 			return fn(ctx)

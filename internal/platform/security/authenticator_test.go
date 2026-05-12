@@ -3,7 +3,7 @@ package auth_test
 import (
 	"context"
 	"errors"
-	"portal-system/internal/domain/constants"
+	"portal-system/internal/domain"
 	"portal-system/internal/models"
 	auth "portal-system/internal/platform/security"
 	repositoriesmocks "portal-system/internal/repositories/mocks"
@@ -22,7 +22,7 @@ func TestAuthenticator_Authenticate_Table(t *testing.T) {
 
 	role := &models.Role{
 		ID:   roleID,
-		Code: constants.RoleCodeUser,
+		Code: domain.RoleCodeUser,
 		Permissions: []models.Permission{
 			{ID: uuid.New(), Code: "user.read", Name: "User Read"},
 			{ID: uuid.New(), Code: "user.write", Name: "User Write"},
@@ -61,7 +61,7 @@ func TestAuthenticator_Authenticate_Table(t *testing.T) {
 					Username:  "john",
 					Email:     "john@example.com",
 					RoleID:    roleID,
-					RoleCode:  string(constants.RoleCodeUser),
+					RoleCode:  string(domain.RoleCodeUser),
 				}, nil
 			}).Maybe()
 

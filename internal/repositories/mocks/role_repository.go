@@ -6,7 +6,7 @@ package mocks
 
 import (
 	"context"
-	"portal-system/internal/domain/constants"
+	"portal-system/internal/domain"
 	"portal-system/internal/models"
 
 	"github.com/google/uuid"
@@ -218,7 +218,7 @@ func (_c *RoleRepository_Delete_Call) RunAndReturn(run func(ctx context.Context,
 }
 
 // FindByCode provides a mock function for the type RoleRepository
-func (_mock *RoleRepository) FindByCode(ctx context.Context, code constants.RoleCode) (*models.Role, error) {
+func (_mock *RoleRepository) FindByCode(ctx context.Context, code domain.RoleCode) (*models.Role, error) {
 	ret := _mock.Called(ctx, code)
 
 	if len(ret) == 0 {
@@ -227,17 +227,17 @@ func (_mock *RoleRepository) FindByCode(ctx context.Context, code constants.Role
 
 	var r0 *models.Role
 	var r1 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context, constants.RoleCode) (*models.Role, error)); ok {
+	if returnFunc, ok := ret.Get(0).(func(context.Context, domain.RoleCode) (*models.Role, error)); ok {
 		return returnFunc(ctx, code)
 	}
-	if returnFunc, ok := ret.Get(0).(func(context.Context, constants.RoleCode) *models.Role); ok {
+	if returnFunc, ok := ret.Get(0).(func(context.Context, domain.RoleCode) *models.Role); ok {
 		r0 = returnFunc(ctx, code)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*models.Role)
 		}
 	}
-	if returnFunc, ok := ret.Get(1).(func(context.Context, constants.RoleCode) error); ok {
+	if returnFunc, ok := ret.Get(1).(func(context.Context, domain.RoleCode) error); ok {
 		r1 = returnFunc(ctx, code)
 	} else {
 		r1 = ret.Error(1)
@@ -252,20 +252,20 @@ type RoleRepository_FindByCode_Call struct {
 
 // FindByCode is a helper method to define mock.On call
 //   - ctx context.Context
-//   - code constants.RoleCode
+//   - code domain.RoleCode
 func (_e *RoleRepository_Expecter) FindByCode(ctx interface{}, code interface{}) *RoleRepository_FindByCode_Call {
 	return &RoleRepository_FindByCode_Call{Call: _e.mock.On("FindByCode", ctx, code)}
 }
 
-func (_c *RoleRepository_FindByCode_Call) Run(run func(ctx context.Context, code constants.RoleCode)) *RoleRepository_FindByCode_Call {
+func (_c *RoleRepository_FindByCode_Call) Run(run func(ctx context.Context, code domain.RoleCode)) *RoleRepository_FindByCode_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		var arg0 context.Context
 		if args[0] != nil {
 			arg0 = args[0].(context.Context)
 		}
-		var arg1 constants.RoleCode
+		var arg1 domain.RoleCode
 		if args[1] != nil {
-			arg1 = args[1].(constants.RoleCode)
+			arg1 = args[1].(domain.RoleCode)
 		}
 		run(
 			arg0,
@@ -280,7 +280,7 @@ func (_c *RoleRepository_FindByCode_Call) Return(role *models.Role, err error) *
 	return _c
 }
 
-func (_c *RoleRepository_FindByCode_Call) RunAndReturn(run func(ctx context.Context, code constants.RoleCode) (*models.Role, error)) *RoleRepository_FindByCode_Call {
+func (_c *RoleRepository_FindByCode_Call) RunAndReturn(run func(ctx context.Context, code domain.RoleCode) (*models.Role, error)) *RoleRepository_FindByCode_Call {
 	_c.Call.Return(run)
 	return _c
 }

@@ -4,8 +4,6 @@ import (
 	"context"
 	"errors"
 	"portal-system/internal/domain"
-	"portal-system/internal/domain/constants"
-	"portal-system/internal/domain/enum"
 	"portal-system/internal/models"
 	"portal-system/internal/repositories"
 	repositoriesmocks "portal-system/internal/repositories/mocks"
@@ -23,7 +21,7 @@ func TestUserService_UpdateProfile_Table(t *testing.T) {
 	adminRoleID := uuid.New()
 	userRoleID := uuid.New()
 	userID := uuid.New()
-	meta := &domain.AuditMeta{IPAddress: "127.0.0.1", UserAgent: "unit-test"}
+	meta := &AuditMeta{IPAddress: "127.0.0.1", UserAgent: "unit-test"}
 	baseUser := &models.User{
 		ID:        userID,
 		Username:  "alice",
@@ -32,7 +30,7 @@ func TestUserService_UpdateProfile_Table(t *testing.T) {
 		Email:     "alice@example.com",
 		RoleID:    userRoleID,
 		Role: models.Role{
-			Code: constants.RoleCodeUser,
+			Code: domain.RoleCodeUser,
 		},
 	}
 
@@ -43,8 +41,8 @@ func TestUserService_UpdateProfile_Table(t *testing.T) {
 
 	tests := []struct {
 		name            string
-		actor           *domain.AuditUser
-		input           domain.UpdateUserInput
+		actor           *AuditUser
+		input           UpdateUserInput
 		findByIDErr     error
 		roleFindErr     error
 		foundUser       *models.User
@@ -56,27 +54,27 @@ func TestUserService_UpdateProfile_Table(t *testing.T) {
 		expectTx        bool
 		expectUpdate    bool
 		expectAudit     bool
-		expectAction    enum.ActionName
+		expectAction    domain.ActionName
 	}{
 		{
 			name:        "user not found",
-			actor:       &domain.AuditUser{ID: userID, RoleCode: constants.RoleCodeUser},
-			input:       domain.UpdateUserInput{},
+			actor:       &AuditUser{ID: userID, RoleCode: domain.RoleCodeUser},
+			input:       UpdateUserInput{},
 			findByIDErr: repositories.ErrNotFound,
 			expectedErr: ErrUserNotFound,
 		},
 		{
 			name:        "role repo error",
-			actor:       &domain.AuditUser{ID: userID, RoleCode: constants.RoleCodeUser},
-			input:       domain.UpdateUserInput{},
+			actor:       &AuditUser{ID: userID, RoleCode: domain.RoleCodeUser},
+			input:       UpdateUserInput{},
 			foundUser:   cloneUser(baseUser),
 			roleFindErr: errors.New("role repo failed"),
 			expectedErr: ErrInternalServer,
 		},
 		{
 			name:  "cannot update other admin",
-			actor: &domain.AuditUser{ID: uuid.New(), RoleCode: constants.RoleCodeUser},
-			input: domain.UpdateUserInput{},
+			actor: &AuditUser{ID: uuid.New(), RoleCode: domain.RoleCodeUser},
+			input: UpdateUserInput{},
 			foundUser: &models.User{
 				ID:        uuid.New(),
 				Username:  "boss",
@@ -85,15 +83,15 @@ func TestUserService_UpdateProfile_Table(t *testing.T) {
 				LastName:  "Admin",
 				RoleID:    adminRoleID,
 				Role: models.Role{
-					Code: constants.RoleCodeAdmin,
+					Code: domain.RoleCodeAdmin,
 				},
 			},
 			expectedErr: ErrForbidden,
 		},
 		{
 			name:      "duplicate username",
-			actor:     &domain.AuditUser{ID: userID, RoleCode: constants.RoleCodeUser},
-			input:     domain.UpdateUserInput{Username: &newUsername},
+			actor:     &AuditUser{ID: userID, RoleCode: domain.RoleCodeUser},
+			input:     UpdateUserInput{Username: &newUsername},
 			foundUser: cloneUser(baseUser),
 			duplicateUser: &models.User{
 				ID:       uuid.New(),
@@ -103,16 +101,16 @@ func TestUserService_UpdateProfile_Table(t *testing.T) {
 		},
 		{
 			name:            "find username repository error",
-			actor:           &domain.AuditUser{ID: userID, RoleCode: constants.RoleCodeUser},
-			input:           domain.UpdateUserInput{Username: &newUsername},
+			actor:           &AuditUser{ID: userID, RoleCode: domain.RoleCodeUser},
+			input:           UpdateUserInput{Username: &newUsername},
 			foundUser:       cloneUser(baseUser),
 			findUsernameErr: errors.New("query failed"),
 			expectedErr:     errors.New("query failed"),
 		},
 		{
 			name:         "update repository error in tx",
-			actor:        &domain.AuditUser{ID: userID, RoleCode: constants.RoleCodeUser},
-			input:        domain.UpdateUserInput{FirstName: &newFirstName},
+			actor:        &AuditUser{ID: userID, RoleCode: domain.RoleCodeUser},
+			input:        UpdateUserInput{FirstName: &newFirstName},
 			foundUser:    cloneUser(baseUser),
 			updateErr:    errors.New("save failed"),
 			expectedErr:  ErrInternalServer,
@@ -121,20 +119,20 @@ func TestUserService_UpdateProfile_Table(t *testing.T) {
 		},
 		{
 			name:         "audit error in tx",
-			actor:        &domain.AuditUser{ID: userID, RoleCode: constants.RoleCodeUser},
-			input:        domain.UpdateUserInput{LastName: &newLastName},
+			actor:        &AuditUser{ID: userID, RoleCode: domain.RoleCodeUser},
+			input:        UpdateUserInput{LastName: &newLastName},
 			foundUser:    cloneUser(baseUser),
 			auditErr:     errors.New("audit failed"),
 			expectedErr:  ErrAuditLogger,
 			expectTx:     true,
 			expectUpdate: true,
 			expectAudit:  true,
-			expectAction: enum.ActionUpdateProfile,
+			expectAction: domain.ActionUpdateProfile,
 		},
 		{
 			name:  "success user updates own profile",
-			actor: &domain.AuditUser{ID: userID, RoleCode: constants.RoleCodeUser, Username: "alice", Email: "alice@example.com"},
-			input: domain.UpdateUserInput{
+			actor: &AuditUser{ID: userID, RoleCode: domain.RoleCodeUser, Username: "alice", Email: "alice@example.com"},
+			input: UpdateUserInput{
 				Username:  &newUsername,
 				FirstName: &newFirstName,
 				LastName:  &newLastName,
@@ -144,25 +142,25 @@ func TestUserService_UpdateProfile_Table(t *testing.T) {
 			expectTx:     true,
 			expectUpdate: true,
 			expectAudit:  true,
-			expectAction: enum.ActionUpdateProfile,
+			expectAction: domain.ActionUpdateProfile,
 		},
 		{
 			name:         "success admin updates user uses admin action",
-			actor:        &domain.AuditUser{ID: userID, RoleCode: constants.RoleCodeAdmin, Username: "admin", Email: "admin@example.com"},
-			input:        domain.UpdateUserInput{FirstName: &newFirstName},
+			actor:        &AuditUser{ID: userID, RoleCode: domain.RoleCodeAdmin, Username: "admin", Email: "admin@example.com"},
+			input:        UpdateUserInput{FirstName: &newFirstName},
 			foundUser:    cloneUser(baseUser),
 			expectTx:     true,
 			expectUpdate: true,
 			expectAudit:  true,
-			expectAction: enum.ActionAdminUpdateUser,
+			expectAction: domain.ActionAdminUpdateUser,
 		},
 	}
 
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
-			adminRole := &models.Role{ID: adminRoleID, Code: constants.RoleCodeAdmin}
+			adminRole := &models.Role{ID: adminRoleID, Code: domain.RoleCodeAdmin}
 			auditLogger := servicesmocks.NewAuditLogger(t)
-			auditLogger.EXPECT().LogWithMetadata(mock.Anything, meta, mock.Anything, tc.actor, mock.Anything, mock.Anything).RunAndReturn(func(ctx context.Context, meta *domain.AuditMeta, action enum.ActionName, actor *domain.AuditUser, target *domain.AuditUser, data map[string]any) error {
+			auditLogger.EXPECT().LogWithMetadata(mock.Anything, meta, mock.Anything, tc.actor, mock.Anything, mock.Anything).RunAndReturn(func(ctx context.Context, meta *AuditMeta, action domain.ActionName, actor *AuditUser, target *AuditUser, data map[string]any) error {
 				if tc.expectAction != "" && action != tc.expectAction {
 					t.Fatalf("expected audit action %s, got %s", tc.expectAction, action)
 				}
@@ -185,7 +183,7 @@ func TestUserService_UpdateProfile_Table(t *testing.T) {
 				return tc.updateErr
 			}).Maybe()
 			roleRepo := repositoriesmocks.NewRoleRepository(t)
-			roleRepo.EXPECT().FindByCode(mock.Anything, constants.RoleCodeAdmin).RunAndReturn(func(ctx context.Context, code constants.RoleCode) (*models.Role, error) {
+			roleRepo.EXPECT().FindByCode(mock.Anything, domain.RoleCodeAdmin).RunAndReturn(func(ctx context.Context, code domain.RoleCode) (*models.Role, error) {
 				if tc.roleFindErr != nil {
 					return nil, tc.roleFindErr
 				}
@@ -243,8 +241,8 @@ func TestUserService_UpdateProfile_Table(t *testing.T) {
 func TestUserService_UpdateProfile_NormalizesCaseOnlyUsernameChange(t *testing.T) {
 	userID := uuid.New()
 	roleID := uuid.New()
-	meta := &domain.AuditMeta{IPAddress: "127.0.0.1", UserAgent: "unit-test"}
-	actor := &domain.AuditUser{ID: userID, RoleCode: constants.RoleCodeUser, Username: "alice", Email: "alice@example.com"}
+	meta := &AuditMeta{IPAddress: "127.0.0.1", UserAgent: "unit-test"}
+	actor := &AuditUser{ID: userID, RoleCode: domain.RoleCodeUser, Username: "alice", Email: "alice@example.com"}
 	inputUsername := " ALICE "
 
 	userRepo := repositoriesmocks.NewUserRepository(t)
@@ -253,7 +251,7 @@ func TestUserService_UpdateProfile_NormalizesCaseOnlyUsernameChange(t *testing.T
 		Username: "Alice",
 		Email:    "alice@example.com",
 		RoleID:   roleID,
-		Role:     models.Role{Code: constants.RoleCodeUser},
+		Role:     models.Role{Code: domain.RoleCodeUser},
 	}, nil)
 
 	var updatedUsername string
@@ -263,7 +261,7 @@ func TestUserService_UpdateProfile_NormalizesCaseOnlyUsernameChange(t *testing.T
 	})
 
 	roleRepo := repositoriesmocks.NewRoleRepository(t)
-	roleRepo.EXPECT().FindByCode(mock.Anything, constants.RoleCodeAdmin).Return(&models.Role{ID: uuid.New(), Code: constants.RoleCodeAdmin}, nil)
+	roleRepo.EXPECT().FindByCode(mock.Anything, domain.RoleCodeAdmin).Return(&models.Role{ID: uuid.New(), Code: domain.RoleCodeAdmin}, nil)
 
 	svc := NewUserService(UserServiceDeps{
 		TxManager:   newPassthroughTxManager(),
@@ -272,7 +270,7 @@ func TestUserService_UpdateProfile_NormalizesCaseOnlyUsernameChange(t *testing.T
 		UserRepo:    userRepo,
 	})
 
-	user, err := svc.UpdateProfile(context.Background(), meta, actor, userID, domain.UpdateUserInput{Username: &inputUsername})
+	user, err := svc.UpdateProfile(context.Background(), meta, actor, userID, UpdateUserInput{Username: &inputUsername})
 	if err != nil {
 		t.Fatalf("expected nil error, got %v", err)
 	}
@@ -295,8 +293,8 @@ func TestUserService_GetProfile_UserNotFound(t *testing.T) {
 		AuditLogger: auditLogger,
 	})
 
-	actor := &domain.AuditUser{ID: uuid.New(), RoleCode: constants.RoleCodeUser}
-	_, err := svc.GetProfile(context.Background(), &domain.AuditMeta{}, actor, uuid.New())
+	actor := &AuditUser{ID: uuid.New(), RoleCode: domain.RoleCodeUser}
+	_, err := svc.GetProfile(context.Background(), &AuditMeta{}, actor, uuid.New())
 
 	if !errors.Is(err, ErrUserNotFound) {
 		t.Fatalf("expected ErrUserNotFound, got %v", err)
@@ -305,9 +303,9 @@ func TestUserService_GetProfile_UserNotFound(t *testing.T) {
 
 func TestUserService_GetProfile_AdminWritesAuditLog(t *testing.T) {
 	userID := uuid.New()
-	var capturedAction enum.ActionName
+	var capturedAction domain.ActionName
 	auditLogger := servicesmocks.NewAuditLogger(t)
-	auditLogger.EXPECT().Log(mock.Anything, mock.Anything, enum.ActionAdminViewUser, mock.Anything, mock.Anything).RunAndReturn(func(ctx context.Context, meta *domain.AuditMeta, action enum.ActionName, actor *domain.AuditUser, target *domain.AuditUser) error {
+	auditLogger.EXPECT().Log(mock.Anything, mock.Anything, domain.ActionAdminViewUser, mock.Anything, mock.Anything).RunAndReturn(func(ctx context.Context, meta *AuditMeta, action domain.ActionName, actor *AuditUser, target *AuditUser) error {
 		capturedAction = action
 		return nil
 	}).Once()
@@ -317,7 +315,7 @@ func TestUserService_GetProfile_AdminWritesAuditLog(t *testing.T) {
 		Username: "target",
 		Email:    "target@example.com",
 		Role: models.Role{
-			Code: constants.RoleCodeUser,
+			Code: domain.RoleCodeUser,
 		},
 	}, nil)
 	roleRepo := repositoriesmocks.NewRoleRepository(t)
@@ -329,8 +327,8 @@ func TestUserService_GetProfile_AdminWritesAuditLog(t *testing.T) {
 		AuditLogger: auditLogger,
 	})
 
-	actor := &domain.AuditUser{ID: uuid.New(), RoleCode: constants.RoleCodeAdmin, Username: "admin", Email: "admin@example.com"}
-	meta := &domain.AuditMeta{IPAddress: "127.0.0.1", UserAgent: "unit-test"}
+	actor := &AuditUser{ID: uuid.New(), RoleCode: domain.RoleCodeAdmin, Username: "admin", Email: "admin@example.com"}
+	meta := &AuditMeta{IPAddress: "127.0.0.1", UserAgent: "unit-test"}
 	user, err := svc.GetProfile(context.Background(), meta, actor, userID)
 	if err != nil {
 		t.Fatalf("expected nil error, got %v", err)
@@ -341,15 +339,15 @@ func TestUserService_GetProfile_AdminWritesAuditLog(t *testing.T) {
 	if !auditLogger.AssertNumberOfCalls(t, "Log", 1) {
 		t.Fatal("expected exactly one audit log create call")
 	}
-	if capturedAction != enum.ActionAdminViewUser {
-		t.Fatalf("expected action %s, got %s", enum.ActionAdminViewUser, capturedAction)
+	if capturedAction != domain.ActionAdminViewUser {
+		t.Fatalf("expected action %s, got %s", domain.ActionAdminViewUser, capturedAction)
 	}
 }
 
 func TestUserService_ChangePassword_Table(t *testing.T) {
 	actorID := uuid.New()
-	meta := &domain.AuditMeta{IPAddress: "127.0.0.1", UserAgent: "unit-test"}
-	actor := &domain.AuditUser{ID: actorID, Username: "user1", Email: "u1@example.com", RoleCode: constants.RoleCodeUser}
+	meta := &AuditMeta{IPAddress: "127.0.0.1", UserAgent: "unit-test"}
+	actor := &AuditUser{ID: actorID, Username: "user1", Email: "u1@example.com", RoleCode: domain.RoleCodeUser}
 	hashedCurrent, err := bcrypt.GenerateFromPassword([]byte("current-pass"), bcrypt.DefaultCost)
 	if err != nil {
 		t.Fatalf("cannot hash password for test: %v", err)
@@ -455,7 +453,7 @@ func TestUserService_ChangePassword_Table(t *testing.T) {
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
 			auditLogger := servicesmocks.NewAuditLogger(t)
-			auditLogger.EXPECT().Log(mock.Anything, meta, enum.ActionChangePassword, actor, actor).RunAndReturn(func(ctx context.Context, meta *domain.AuditMeta, action enum.ActionName, actor *domain.AuditUser, target *domain.AuditUser) error {
+			auditLogger.EXPECT().Log(mock.Anything, meta, domain.ActionChangePassword, actor, actor).RunAndReturn(func(ctx context.Context, meta *AuditMeta, action domain.ActionName, actor *AuditUser, target *AuditUser) error {
 				return tc.auditErr
 			}).Maybe()
 			userRepo := repositoriesmocks.NewUserRepository(t)

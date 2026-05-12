@@ -4,8 +4,6 @@ import (
 	"context"
 	"errors"
 	"portal-system/internal/domain"
-	"portal-system/internal/domain/constants"
-	"portal-system/internal/domain/enum"
 	"portal-system/internal/models"
 	"portal-system/internal/repositories"
 	repositoriesmocks "portal-system/internal/repositories/mocks"
@@ -21,9 +19,9 @@ import (
 )
 
 func TestAuthService_Register_Table(t *testing.T) {
-	meta := &domain.AuditMeta{IPAddress: "127.0.0.1", UserAgent: "unit-test"}
+	meta := &AuditMeta{IPAddress: "127.0.0.1", UserAgent: "unit-test"}
 	dob := time.Date(1999, 1, 1, 0, 0, 0, 0, time.UTC)
-	role := &models.Role{ID: uuid.New(), Code: constants.RoleCodeUser}
+	role := &models.Role{ID: uuid.New(), Code: domain.RoleCodeUser}
 
 	tests := []struct {
 		name            string
@@ -70,14 +68,14 @@ func TestAuthService_Register_Table(t *testing.T) {
 				return tc.createErr
 			}).Maybe()
 			tokenRepo := repositoriesmocks.NewUserTokenRepository(t)
-			tokenRepo.EXPECT().RevokeByUserAndType(mock.Anything, mock.Anything, enum.TokenTypeEmailVerification).RunAndReturn(func(ctx context.Context, userID uuid.UUID, tokenType enum.TokenType) error {
+			tokenRepo.EXPECT().RevokeByUserAndType(mock.Anything, mock.Anything, domain.TokenTypeEmailVerification).RunAndReturn(func(ctx context.Context, userID uuid.UUID, tokenType domain.TokenType) error {
 				return tc.revokeErr
 			}).Maybe()
 			tokenRepo.EXPECT().Create(mock.Anything, mock.Anything).RunAndReturn(func(ctx context.Context, token *models.UserToken) error {
 				return tc.tokenCreateErr
 			}).Maybe()
 			roleRepo := repositoriesmocks.NewRoleRepository(t)
-			roleRepo.EXPECT().FindByCode(mock.Anything, constants.RoleCodeUser).RunAndReturn(func(ctx context.Context, code constants.RoleCode) (*models.Role, error) {
+			roleRepo.EXPECT().FindByCode(mock.Anything, domain.RoleCodeUser).RunAndReturn(func(ctx context.Context, code domain.RoleCode) (*models.Role, error) {
 				if tc.roleErr != nil {
 					return nil, tc.roleErr
 				}
@@ -87,7 +85,7 @@ func TestAuthService_Register_Table(t *testing.T) {
 				return role, nil
 			}).Maybe()
 			auditLogger := servicesmocks.NewAuditLogger(t)
-			auditLogger.EXPECT().Log(mock.Anything, mock.Anything, enum.ActionRegister, mock.Anything, mock.Anything).Return(tc.auditErr).Maybe()
+			auditLogger.EXPECT().Log(mock.Anything, mock.Anything, domain.ActionRegister, mock.Anything, mock.Anything).Return(tc.auditErr).Maybe()
 			email := servicesmocks.NewEmailSender(t)
 			email.EXPECT().SendVerificationEmail(mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(tc.emailErr).Maybe()
 			tx := repositoriesmocks.NewTxManager(t)
@@ -121,9 +119,9 @@ func TestAuthService_Register_Table(t *testing.T) {
 }
 
 func TestAuthService_Register_NormalizesIdentity(t *testing.T) {
-	meta := &domain.AuditMeta{IPAddress: "127.0.0.1", UserAgent: "unit-test"}
+	meta := &AuditMeta{IPAddress: "127.0.0.1", UserAgent: "unit-test"}
 	dob := time.Date(1999, 1, 1, 0, 0, 0, 0, time.UTC)
-	role := &models.Role{ID: uuid.New(), Code: constants.RoleCodeUser}
+	role := &models.Role{ID: uuid.New(), Code: domain.RoleCodeUser}
 
 	userRepo := repositoriesmocks.NewUserRepository(t)
 	userRepo.EXPECT().FindByEmail(mock.Anything, "john@example.com").Return((*models.User)(nil), nil)
@@ -137,11 +135,11 @@ func TestAuthService_Register_NormalizesIdentity(t *testing.T) {
 	})
 
 	tokenRepo := repositoriesmocks.NewUserTokenRepository(t)
-	tokenRepo.EXPECT().RevokeByUserAndType(mock.Anything, mock.Anything, enum.TokenTypeEmailVerification).Return(nil)
+	tokenRepo.EXPECT().RevokeByUserAndType(mock.Anything, mock.Anything, domain.TokenTypeEmailVerification).Return(nil)
 	tokenRepo.EXPECT().Create(mock.Anything, mock.Anything).Return(nil)
 
 	roleRepo := repositoriesmocks.NewRoleRepository(t)
-	roleRepo.EXPECT().FindByCode(mock.Anything, constants.RoleCodeUser).Return(role, nil)
+	roleRepo.EXPECT().FindByCode(mock.Anything, domain.RoleCodeUser).Return(role, nil)
 
 	email := servicesmocks.NewEmailSender(t)
 	email.EXPECT().SendVerificationEmail(mock.Anything, "john@example.com", "John", mock.Anything).Return(nil)
@@ -175,7 +173,7 @@ func TestAuthService_LogIn_Table(t *testing.T) {
 		Username:        "john",
 		PasswordHash:    ptrString(string(hashed)),
 		EmailVerifiedAt: ptrTime(now),
-		Role:            models.Role{ID: uuid.New(), Code: constants.RoleCodeUser},
+		Role:            models.Role{ID: uuid.New(), Code: domain.RoleCodeUser},
 	}
 
 	tests := []struct {
@@ -251,7 +249,7 @@ func TestAuthService_LogIn_Table(t *testing.T) {
 				sessionRepo: sessionRepo,
 				tokenMgr:    tokenMgr,
 			})
-			result, err := svc.LogIn(context.Background(), &domain.AuditMeta{IPAddress: "127.0.0.1", UserAgent: "ua"}, tc.identifier, tc.password)
+			result, err := svc.LogIn(context.Background(), &AuditMeta{IPAddress: "127.0.0.1", UserAgent: "ua"}, tc.identifier, tc.password)
 			switch {
 			case tc.expectedErr == nil:
 				if err != nil {
@@ -272,9 +270,9 @@ func TestAuthService_LogIn_Table(t *testing.T) {
 }
 
 func TestAuthService_VerifyEmail_Table(t *testing.T) {
-	meta := &domain.AuditMeta{IPAddress: "127.0.0.1", UserAgent: "ua"}
-	foundToken := &models.UserToken{ID: uuid.New(), UserID: uuid.New(), TokenType: enum.TokenTypeEmailVerification}
-	baseUser := &models.User{ID: foundToken.UserID, Email: "john@example.com", Username: "john", Role: models.Role{Code: constants.RoleCodeUser}}
+	meta := &AuditMeta{IPAddress: "127.0.0.1", UserAgent: "ua"}
+	foundToken := &models.UserToken{ID: uuid.New(), UserID: uuid.New(), TokenType: domain.TokenTypeEmailVerification}
+	baseUser := &models.User{ID: foundToken.UserID, Email: "john@example.com", Username: "john", Role: models.Role{Code: domain.RoleCodeUser}}
 
 	tests := []struct {
 		name             string
@@ -285,24 +283,24 @@ func TestAuthService_VerifyEmail_Table(t *testing.T) {
 		markUsedErr      error
 		auditErr         error
 		expectedErr      error
-		tokenType        enum.TokenType
+		tokenType        domain.TokenType
 		expectMarkUsed   bool
 		expectMarkVerify bool
 	}{
-		{name: "invalid token", findTokenErr: errors.New("not found"), tokenType: enum.TokenTypeEmailVerification, expectedErr: ErrInvalidToken},
-		{name: "user not found", findUserErr: errors.New("missing"), tokenType: enum.TokenTypeEmailVerification, expectedErr: ErrUserNotFound},
-		{name: "already deleted", user: &models.User{ID: foundToken.UserID, Status: enum.StatusDeleted}, tokenType: enum.TokenTypeEmailVerification, expectedErr: ErrUserAlreadyDeleted},
-		{name: "already active", user: &models.User{ID: foundToken.UserID, Status: enum.StatusActive}, tokenType: enum.TokenTypeEmailVerification},
-		{name: "mark verified fails", user: cloneUser(baseUser), markVerifiedErr: errors.New("update failed"), tokenType: enum.TokenTypeEmailVerification, expectedErr: ErrInternalServer, expectMarkVerify: true},
-		{name: "mark used fails", user: cloneUser(baseUser), markUsedErr: errors.New("mark failed"), tokenType: enum.TokenTypeEmailVerification, expectedErr: ErrInternalServer, expectMarkVerify: true, expectMarkUsed: true},
-		{name: "audit fails", user: cloneUser(baseUser), auditErr: errors.New("audit failed"), tokenType: enum.TokenTypeEmailVerification, expectedErr: ErrInternalServer, expectMarkVerify: true, expectMarkUsed: true},
-		{name: "success", user: cloneUser(baseUser), tokenType: enum.TokenTypeEmailVerification, expectMarkVerify: true, expectMarkUsed: true},
+		{name: "invalid token", findTokenErr: errors.New("not found"), tokenType: domain.TokenTypeEmailVerification, expectedErr: ErrInvalidToken},
+		{name: "user not found", findUserErr: errors.New("missing"), tokenType: domain.TokenTypeEmailVerification, expectedErr: ErrUserNotFound},
+		{name: "already deleted", user: &models.User{ID: foundToken.UserID, Status: domain.StatusDeleted}, tokenType: domain.TokenTypeEmailVerification, expectedErr: ErrUserAlreadyDeleted},
+		{name: "already active", user: &models.User{ID: foundToken.UserID, Status: domain.StatusActive}, tokenType: domain.TokenTypeEmailVerification},
+		{name: "mark verified fails", user: cloneUser(baseUser), markVerifiedErr: errors.New("update failed"), tokenType: domain.TokenTypeEmailVerification, expectedErr: ErrInternalServer, expectMarkVerify: true},
+		{name: "mark used fails", user: cloneUser(baseUser), markUsedErr: errors.New("mark failed"), tokenType: domain.TokenTypeEmailVerification, expectedErr: ErrInternalServer, expectMarkVerify: true, expectMarkUsed: true},
+		{name: "audit fails", user: cloneUser(baseUser), auditErr: errors.New("audit failed"), tokenType: domain.TokenTypeEmailVerification, expectedErr: ErrInternalServer, expectMarkVerify: true, expectMarkUsed: true},
+		{name: "success", user: cloneUser(baseUser), tokenType: domain.TokenTypeEmailVerification, expectMarkVerify: true, expectMarkUsed: true},
 	}
 
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
 			tokenRepo := repositoriesmocks.NewUserTokenRepository(t)
-			tokenRepo.EXPECT().FindValidToken(mock.Anything, mock.Anything, tc.tokenType).RunAndReturn(func(ctx context.Context, tokenHash string, tokenType enum.TokenType) (*models.UserToken, error) {
+			tokenRepo.EXPECT().FindValidToken(mock.Anything, mock.Anything, tc.tokenType).RunAndReturn(func(ctx context.Context, tokenHash string, tokenType domain.TokenType) (*models.UserToken, error) {
 				if tc.findTokenErr != nil {
 					return nil, tc.findTokenErr
 				}
@@ -322,7 +320,7 @@ func TestAuthService_VerifyEmail_Table(t *testing.T) {
 				return tc.markVerifiedErr
 			}).Maybe()
 			auditLogger := servicesmocks.NewAuditLogger(t)
-			auditLogger.EXPECT().Log(mock.Anything, meta, enum.ActionVerifyEmail, mock.Anything, mock.Anything).Return(tc.auditErr).Maybe()
+			auditLogger.EXPECT().Log(mock.Anything, meta, domain.ActionVerifyEmail, mock.Anything, mock.Anything).Return(tc.auditErr).Maybe()
 			svc := newAuthServiceForTest(authServiceTestDeps{
 				auditLogger: auditLogger,
 				userRepo:    userRepo,
@@ -342,8 +340,8 @@ func TestAuthService_VerifyEmail_Table(t *testing.T) {
 }
 
 func TestAuthService_ResendVerification_Table(t *testing.T) {
-	meta := &domain.AuditMeta{IPAddress: "127.0.0.1", UserAgent: "ua"}
-	user := &models.User{ID: uuid.New(), Email: "john@example.com", FirstName: "John", Username: "john", Role: models.Role{Code: constants.RoleCodeUser}}
+	meta := &AuditMeta{IPAddress: "127.0.0.1", UserAgent: "ua"}
+	user := &models.User{ID: uuid.New(), Email: "john@example.com", FirstName: "John", Username: "john", Role: models.Role{Code: domain.RoleCodeUser}}
 
 	tests := []struct {
 		name           string
@@ -372,7 +370,7 @@ func TestAuthService_ResendVerification_Table(t *testing.T) {
 				return cloneUser(user), nil
 			})
 			tokenRepo := repositoriesmocks.NewUserTokenRepository(t)
-			tokenRepo.EXPECT().RevokeByUserAndType(mock.Anything, user.ID, enum.TokenTypeEmailVerification).RunAndReturn(func(ctx context.Context, userID uuid.UUID, tokenType enum.TokenType) error {
+			tokenRepo.EXPECT().RevokeByUserAndType(mock.Anything, user.ID, domain.TokenTypeEmailVerification).RunAndReturn(func(ctx context.Context, userID uuid.UUID, tokenType domain.TokenType) error {
 				return tc.revokeErr
 			}).Maybe()
 			tokenRepo.EXPECT().Create(mock.Anything, mock.Anything).RunAndReturn(func(ctx context.Context, token *models.UserToken) error {
@@ -381,7 +379,7 @@ func TestAuthService_ResendVerification_Table(t *testing.T) {
 			email := servicesmocks.NewEmailSender(t)
 			email.EXPECT().SendVerificationEmail(mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(tc.emailErr).Maybe()
 			auditLogger := servicesmocks.NewAuditLogger(t)
-			auditLogger.EXPECT().Log(mock.Anything, meta, enum.ActionResendVerification, mock.Anything, mock.Anything).Return(tc.auditErr).Maybe()
+			auditLogger.EXPECT().Log(mock.Anything, meta, domain.ActionResendVerification, mock.Anything, mock.Anything).Return(tc.auditErr).Maybe()
 			svc := newAuthServiceForTest(authServiceTestDeps{
 				auditLogger: auditLogger,
 				userRepo:    userRepo,
@@ -389,7 +387,7 @@ func TestAuthService_ResendVerification_Table(t *testing.T) {
 				email:       email,
 			})
 
-			err := svc.ResendVerification(context.Background(), meta, user.Email, enum.TokenTypeEmailVerification)
+			err := svc.ResendVerification(context.Background(), meta, user.Email, domain.TokenTypeEmailVerification)
 			if tc.expectedErr == nil {
 				if err != nil {
 					t.Fatalf("expected nil error, got %v", err)
@@ -402,8 +400,8 @@ func TestAuthService_ResendVerification_Table(t *testing.T) {
 }
 
 func TestAuthService_ForgotPassword_Table(t *testing.T) {
-	meta := &domain.AuditMeta{IPAddress: "127.0.0.1", UserAgent: "ua"}
-	user := &models.User{ID: uuid.New(), Email: "john@example.com", FirstName: "John", Username: "john", Role: models.Role{Code: constants.RoleCodeUser}}
+	meta := &AuditMeta{IPAddress: "127.0.0.1", UserAgent: "ua"}
+	user := &models.User{ID: uuid.New(), Email: "john@example.com", FirstName: "John", Username: "john", Role: models.Role{Code: domain.RoleCodeUser}}
 
 	tests := []struct {
 		name           string
@@ -417,7 +415,7 @@ func TestAuthService_ForgotPassword_Table(t *testing.T) {
 	}{
 		{name: "find user error", findErr: errors.New("db failed"), expectedErr: ErrInternalServer},
 		{name: "user nil", user: nil},
-		{name: "user deleted", user: &models.User{ID: uuid.New(), Status: enum.StatusDeleted}},
+		{name: "user deleted", user: &models.User{ID: uuid.New(), Status: domain.StatusDeleted}},
 		{name: "revoke error", user: cloneUser(user), revokeErr: errors.New("revoke failed"), expectedErr: ErrInternalServer},
 		{name: "token create error", user: cloneUser(user), tokenCreateErr: errors.New("create failed"), expectedErr: ErrInternalServer},
 		{name: "audit error", user: cloneUser(user), auditErr: errors.New("audit failed"), expectedErr: ErrInternalServer},
@@ -435,14 +433,14 @@ func TestAuthService_ForgotPassword_Table(t *testing.T) {
 				return cloneUser(tc.user), nil
 			})
 			tokenRepo := repositoriesmocks.NewUserTokenRepository(t)
-			tokenRepo.EXPECT().RevokeByUserAndType(mock.Anything, mock.Anything, enum.TokenTypePasswordReset).RunAndReturn(func(ctx context.Context, userID uuid.UUID, tokenType enum.TokenType) error {
+			tokenRepo.EXPECT().RevokeByUserAndType(mock.Anything, mock.Anything, domain.TokenTypePasswordReset).RunAndReturn(func(ctx context.Context, userID uuid.UUID, tokenType domain.TokenType) error {
 				return tc.revokeErr
 			}).Maybe()
 			tokenRepo.EXPECT().Create(mock.Anything, mock.Anything).RunAndReturn(func(ctx context.Context, token *models.UserToken) error {
 				return tc.tokenCreateErr
 			}).Maybe()
 			auditLogger := servicesmocks.NewAuditLogger(t)
-			auditLogger.EXPECT().Log(mock.Anything, meta, enum.ActionForgotPassword, mock.Anything, mock.Anything).Return(tc.auditErr).Maybe()
+			auditLogger.EXPECT().Log(mock.Anything, meta, domain.ActionForgotPassword, mock.Anything, mock.Anything).Return(tc.auditErr).Maybe()
 			email := servicesmocks.NewEmailSender(t)
 			email.EXPECT().SendResetPasswordEmail(mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(tc.emailErr).Maybe()
 			svc := newAuthServiceForTest(authServiceTestDeps{
@@ -465,22 +463,22 @@ func TestAuthService_ForgotPassword_Table(t *testing.T) {
 }
 
 func TestAuthService_SetAndResetPassword_Table(t *testing.T) {
-	meta := &domain.AuditMeta{IPAddress: "127.0.0.1", UserAgent: "ua"}
+	meta := &AuditMeta{IPAddress: "127.0.0.1", UserAgent: "ua"}
 	userID := uuid.New()
 	tokenID := uuid.New()
 	baseUser := &models.User{
 		ID:       userID,
 		Email:    "john@example.com",
 		Username: "john",
-		Status:   enum.StatusActive,
-		Role:     models.Role{Code: constants.RoleCodeUser},
+		Status:   domain.StatusActive,
+		Role:     models.Role{Code: domain.RoleCodeUser},
 	}
 
 	tests := []struct {
 		name          string
 		useReset      bool
-		input         *domain.SetPasswordInput
-		tokenType     enum.TokenType
+		input         *SetPasswordInput
+		tokenType     domain.TokenType
 		findTokenErr  error
 		findUserErr   error
 		user          *models.User
@@ -490,26 +488,26 @@ func TestAuthService_SetAndResetPassword_Table(t *testing.T) {
 		auditErr      error
 		expectedErr   error
 	}{
-		{name: "nil input", input: nil, tokenType: enum.TokenTypePasswordSet, expectedErr: ErrInvalidInput},
-		{name: "blank token", input: &domain.SetPasswordInput{Token: " ", Password: "a", ConfirmPassword: "a"}, tokenType: enum.TokenTypePasswordSet, expectedErr: ErrInvalidInput},
-		{name: "password mismatch", input: &domain.SetPasswordInput{Token: "t", Password: "a", ConfirmPassword: "b"}, tokenType: enum.TokenTypePasswordSet, expectedErr: ErrPasswordConfirmationMismatch},
-		{name: "token invalid", input: &domain.SetPasswordInput{Token: "t", Password: "a", ConfirmPassword: "a"}, tokenType: enum.TokenTypePasswordSet, findTokenErr: errors.New("not found"), expectedErr: ErrInvalidToken},
-		{name: "user not found", input: &domain.SetPasswordInput{Token: "t", Password: "a", ConfirmPassword: "a"}, tokenType: enum.TokenTypePasswordSet, findUserErr: errors.New("missing"), expectedErr: ErrUserNotFound},
-		{name: "user deleted", input: &domain.SetPasswordInput{Token: "t", Password: "a", ConfirmPassword: "a"}, tokenType: enum.TokenTypePasswordSet, user: &models.User{ID: userID, Status: enum.StatusDeleted}, expectedErr: ErrUserAlreadyDeleted},
-		{name: "password already set", input: &domain.SetPasswordInput{Token: "t", Password: "a", ConfirmPassword: "a"}, tokenType: enum.TokenTypePasswordSet, user: &models.User{ID: userID, Status: enum.StatusActive, PasswordHash: ptrString("hash")}, expectedErr: ErrPasswordAlreadySet},
-		{name: "invalid token type", input: &domain.SetPasswordInput{Token: "t", Password: "a", ConfirmPassword: "a"}, tokenType: enum.TokenType("invalid"), user: cloneUser(baseUser), expectedErr: ErrInvalidInput},
-		{name: "update password error", input: &domain.SetPasswordInput{Token: "t", Password: "a", ConfirmPassword: "a"}, tokenType: enum.TokenTypePasswordReset, user: cloneUser(baseUser), updateErr: errors.New("save failed"), expectedErr: ErrInternalServer},
-		{name: "mark verified error", input: &domain.SetPasswordInput{Token: "t", Password: "a", ConfirmPassword: "a"}, tokenType: enum.TokenTypePasswordSet, user: cloneUser(baseUser), markVerifyErr: errors.New("mark failed"), expectedErr: ErrInternalServer},
-		{name: "mark used error", input: &domain.SetPasswordInput{Token: "t", Password: "a", ConfirmPassword: "a"}, tokenType: enum.TokenTypePasswordReset, user: cloneUser(baseUser), markUsedErr: errors.New("mark used failed"), expectedErr: ErrInternalServer},
-		{name: "audit error", input: &domain.SetPasswordInput{Token: "t", Password: "a", ConfirmPassword: "a"}, tokenType: enum.TokenTypePasswordReset, user: cloneUser(baseUser), auditErr: errors.New("audit failed"), expectedErr: ErrInternalServer},
-		{name: "set password success", input: &domain.SetPasswordInput{Token: "t", Password: "abc12345", ConfirmPassword: "abc12345"}, tokenType: enum.TokenTypePasswordSet, user: cloneUser(baseUser)},
-		{name: "reset password success via wrapper", useReset: true, input: &domain.SetPasswordInput{Token: "t", Password: "abc12345", ConfirmPassword: "abc12345"}, tokenType: enum.TokenTypePasswordReset, user: cloneUser(baseUser)},
+		{name: "nil input", input: nil, tokenType: domain.TokenTypePasswordSet, expectedErr: ErrInvalidInput},
+		{name: "blank token", input: &SetPasswordInput{Token: " ", Password: "a", ConfirmPassword: "a"}, tokenType: domain.TokenTypePasswordSet, expectedErr: ErrInvalidInput},
+		{name: "password mismatch", input: &SetPasswordInput{Token: "t", Password: "a", ConfirmPassword: "b"}, tokenType: domain.TokenTypePasswordSet, expectedErr: ErrPasswordConfirmationMismatch},
+		{name: "token invalid", input: &SetPasswordInput{Token: "t", Password: "a", ConfirmPassword: "a"}, tokenType: domain.TokenTypePasswordSet, findTokenErr: errors.New("not found"), expectedErr: ErrInvalidToken},
+		{name: "user not found", input: &SetPasswordInput{Token: "t", Password: "a", ConfirmPassword: "a"}, tokenType: domain.TokenTypePasswordSet, findUserErr: errors.New("missing"), expectedErr: ErrUserNotFound},
+		{name: "user deleted", input: &SetPasswordInput{Token: "t", Password: "a", ConfirmPassword: "a"}, tokenType: domain.TokenTypePasswordSet, user: &models.User{ID: userID, Status: domain.StatusDeleted}, expectedErr: ErrUserAlreadyDeleted},
+		{name: "password already set", input: &SetPasswordInput{Token: "t", Password: "a", ConfirmPassword: "a"}, tokenType: domain.TokenTypePasswordSet, user: &models.User{ID: userID, Status: domain.StatusActive, PasswordHash: ptrString("hash")}, expectedErr: ErrPasswordAlreadySet},
+		{name: "invalid token type", input: &SetPasswordInput{Token: "t", Password: "a", ConfirmPassword: "a"}, tokenType: domain.TokenType("invalid"), user: cloneUser(baseUser), expectedErr: ErrInvalidInput},
+		{name: "update password error", input: &SetPasswordInput{Token: "t", Password: "a", ConfirmPassword: "a"}, tokenType: domain.TokenTypePasswordReset, user: cloneUser(baseUser), updateErr: errors.New("save failed"), expectedErr: ErrInternalServer},
+		{name: "mark verified error", input: &SetPasswordInput{Token: "t", Password: "a", ConfirmPassword: "a"}, tokenType: domain.TokenTypePasswordSet, user: cloneUser(baseUser), markVerifyErr: errors.New("mark failed"), expectedErr: ErrInternalServer},
+		{name: "mark used error", input: &SetPasswordInput{Token: "t", Password: "a", ConfirmPassword: "a"}, tokenType: domain.TokenTypePasswordReset, user: cloneUser(baseUser), markUsedErr: errors.New("mark used failed"), expectedErr: ErrInternalServer},
+		{name: "audit error", input: &SetPasswordInput{Token: "t", Password: "a", ConfirmPassword: "a"}, tokenType: domain.TokenTypePasswordReset, user: cloneUser(baseUser), auditErr: errors.New("audit failed"), expectedErr: ErrInternalServer},
+		{name: "set password success", input: &SetPasswordInput{Token: "t", Password: "abc12345", ConfirmPassword: "abc12345"}, tokenType: domain.TokenTypePasswordSet, user: cloneUser(baseUser)},
+		{name: "reset password success via wrapper", useReset: true, input: &SetPasswordInput{Token: "t", Password: "abc12345", ConfirmPassword: "abc12345"}, tokenType: domain.TokenTypePasswordReset, user: cloneUser(baseUser)},
 	}
 
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
 			tokenRepo := repositoriesmocks.NewUserTokenRepository(t)
-			tokenRepo.EXPECT().FindValidToken(mock.Anything, mock.Anything, tc.tokenType).RunAndReturn(func(ctx context.Context, tokenHash string, tokenType enum.TokenType) (*models.UserToken, error) {
+			tokenRepo.EXPECT().FindValidToken(mock.Anything, mock.Anything, tc.tokenType).RunAndReturn(func(ctx context.Context, tokenHash string, tokenType domain.TokenType) (*models.UserToken, error) {
 				if tc.findTokenErr != nil {
 					return nil, tc.findTokenErr
 				}
@@ -532,7 +530,7 @@ func TestAuthService_SetAndResetPassword_Table(t *testing.T) {
 				return tc.markVerifyErr
 			}).Maybe()
 			auditLogger := servicesmocks.NewAuditLogger(t)
-			auditLogger.EXPECT().Log(mock.Anything, meta, mock.Anything, mock.Anything, mock.Anything).RunAndReturn(func(ctx context.Context, meta *domain.AuditMeta, action enum.ActionName, actor *domain.AuditUser, target *domain.AuditUser) error {
+			auditLogger.EXPECT().Log(mock.Anything, meta, mock.Anything, mock.Anything, mock.Anything).RunAndReturn(func(ctx context.Context, meta *AuditMeta, action domain.ActionName, actor *AuditUser, target *AuditUser) error {
 				return tc.auditErr
 			}).Maybe()
 			svc := newAuthServiceForTest(authServiceTestDeps{
@@ -568,7 +566,7 @@ func TestAuthService_Refresh_Table(t *testing.T) {
 		Email:           "john@example.com",
 		Username:        "john",
 		EmailVerifiedAt: ptrTime(now),
-		Role:            models.Role{ID: uuid.New(), Code: constants.RoleCodeUser},
+		Role:            models.Role{ID: uuid.New(), Code: domain.RoleCodeUser},
 	}
 	baseSession := &models.AuthSession{ID: sessionID, UserID: userID, ExpiresAt: now.Add(24 * time.Hour)}
 	baseRefreshToken := &models.RefreshToken{ID: refreshTokenID, SessionID: sessionID, UserID: userID, ExpiresAt: now.Add(1 * time.Hour)}
@@ -655,7 +653,7 @@ func TestAuthService_Refresh_Table(t *testing.T) {
 				tokenMgr:    tokenMgr,
 			})
 
-			res, err := svc.Refresh(context.Background(), &domain.AuditMeta{}, tc.token)
+			res, err := svc.Refresh(context.Background(), &AuditMeta{}, tc.token)
 			if tc.expected == nil {
 				if err != nil {
 					t.Fatalf("expected nil error, got %v", err)
@@ -671,11 +669,11 @@ func TestAuthService_Refresh_Table(t *testing.T) {
 }
 
 func TestAuthService_Logout_Table(t *testing.T) {
-	actor := &domain.AuditUser{ID: uuid.New()}
+	actor := &AuditUser{ID: uuid.New()}
 	session := &models.AuthSession{ID: uuid.New(), UserID: actor.ID, ExpiresAt: time.Now().Add(1 * time.Hour)}
 	tests := []struct {
 		name         string
-		actor        *domain.AuditUser
+		actor        *AuditUser
 		sessionID    uuid.UUID
 		foundSession *models.AuthSession
 		findErr      error
@@ -709,7 +707,7 @@ func TestAuthService_Logout_Table(t *testing.T) {
 				refreshRepo: refreshRepo,
 				sessionRepo: sessionRepo,
 			})
-			err := svc.Logout(context.Background(), &domain.AuditMeta{}, tc.actor, tc.sessionID)
+			err := svc.Logout(context.Background(), &AuditMeta{}, tc.actor, tc.sessionID)
 			if tc.expected == nil {
 				if err != nil {
 					t.Fatalf("expected nil error, got %v", err)
@@ -722,21 +720,21 @@ func TestAuthService_Logout_Table(t *testing.T) {
 }
 
 func TestAuthService_LogoutAll_Table(t *testing.T) {
-	actor := &domain.AuditUser{ID: uuid.New()}
+	actor := &AuditUser{ID: uuid.New()}
 	sessions := []models.AuthSession{
 		{ID: uuid.New(), UserID: actor.ID, ExpiresAt: time.Now().Add(1 * time.Hour)},
 		{ID: uuid.New(), UserID: actor.ID, ExpiresAt: time.Now().Add(2 * time.Hour)},
 	}
 	tests := []struct {
 		name      string
-		actor     *domain.AuditUser
+		actor     *AuditUser
 		sessions  []models.AuthSession
 		listErr   error
 		revokeErr error
 		expected  error
 	}{
 		{name: "nil actor", actor: nil, expected: ErrUnauthorized},
-		{name: "nil actor id", actor: &domain.AuditUser{ID: uuid.Nil}, expected: ErrInvalidInput},
+		{name: "nil actor id", actor: &AuditUser{ID: uuid.Nil}, expected: ErrInvalidInput},
 		{name: "list sessions fails", actor: actor, listErr: errors.New("db failed"), expected: ErrInternalServer},
 		{name: "revoke fails", actor: actor, sessions: sessions, revokeErr: errors.New("db failed"), expected: ErrInternalServer},
 		{name: "success", actor: actor, sessions: sessions},
@@ -762,7 +760,7 @@ func TestAuthService_LogoutAll_Table(t *testing.T) {
 				refreshRepo: refreshRepo,
 				sessionRepo: sessionRepo,
 			})
-			err := svc.LogoutAll(context.Background(), &domain.AuditMeta{}, tc.actor)
+			err := svc.LogoutAll(context.Background(), &AuditMeta{}, tc.actor)
 			if tc.expected == nil {
 				if err != nil {
 					t.Fatalf("expected nil error, got %v", err)

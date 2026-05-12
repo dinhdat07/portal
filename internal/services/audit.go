@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"portal-system/internal/domain"
-	"portal-system/internal/domain/enum"
 	"portal-system/internal/models"
 	"portal-system/internal/repositories"
 
@@ -14,8 +13,8 @@ import (
 )
 
 type AuditLogger interface {
-	Log(ctx context.Context, meta *domain.AuditMeta, action enum.ActionName, actor *domain.AuditUser, target *domain.AuditUser) error
-	LogWithMetadata(ctx context.Context, meta *domain.AuditMeta, action enum.ActionName, actor *domain.AuditUser, target *domain.AuditUser, data map[string]any) error
+	Log(ctx context.Context, meta *AuditMeta, action domain.ActionName, actor *AuditUser, target *AuditUser) error
+	LogWithMetadata(ctx context.Context, meta *AuditMeta, action domain.ActionName, actor *AuditUser, target *AuditUser, data map[string]any) error
 }
 
 type auditLogService struct {
@@ -26,7 +25,7 @@ func NewAuditLogService(repo repositories.AuditLogRepository) *auditLogService {
 	return &auditLogService{repo: repo}
 }
 
-func (s *auditLogService) Log(ctx context.Context, meta *domain.AuditMeta, action enum.ActionName, actor *domain.AuditUser, target *domain.AuditUser) error {
+func (s *auditLogService) Log(ctx context.Context, meta *AuditMeta, action domain.ActionName, actor *AuditUser, target *AuditUser) error {
 	log := &models.AuditLog{Action: action}
 
 	if actor != nil {
@@ -55,7 +54,7 @@ func (s *auditLogService) Log(ctx context.Context, meta *domain.AuditMeta, actio
 	return err
 }
 
-func (s *auditLogService) List(ctx context.Context, filter domain.AuditLogFilter) ([]models.AuditLog, int64, error) {
+func (s *auditLogService) List(ctx context.Context, filter AuditLogFilter) ([]models.AuditLog, int64, error) {
 	if filter.Page <= 0 {
 		filter.Page = 1
 	}
@@ -70,7 +69,15 @@ func (s *auditLogService) List(ctx context.Context, filter domain.AuditLogFilter
 		}
 	}
 
-	logs, total, err := s.repo.List(ctx, filter)
+	logs, total, err := s.repo.List(ctx, repositories.AuditLogListFilter{
+		Action:       filter.Action,
+		ActorUserID:  filter.ActorUserID,
+		TargetUserID: filter.TargetUserID,
+		From:         filter.From,
+		To:           filter.To,
+		Page:         filter.Page,
+		PageSize:     filter.PageSize,
+	})
 	if err != nil {
 		return nil, 0, err
 	}
@@ -78,7 +85,7 @@ func (s *auditLogService) List(ctx context.Context, filter domain.AuditLogFilter
 	return logs, total, nil
 }
 
-func (svc *auditLogService) LogWithMetadata(ctx context.Context, meta *domain.AuditMeta, action enum.ActionName, actor *domain.AuditUser, target *domain.AuditUser, data map[string]any) error {
+func (svc *auditLogService) LogWithMetadata(ctx context.Context, meta *AuditMeta, action domain.ActionName, actor *AuditUser, target *AuditUser, data map[string]any) error {
 	var metadata *datatypes.JSON
 	if data != nil {
 		b, err := json.Marshal(data)

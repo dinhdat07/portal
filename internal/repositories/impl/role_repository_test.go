@@ -3,7 +3,7 @@ package impl
 import (
 	"testing"
 
-	"portal-system/internal/domain/constants"
+	"portal-system/internal/domain"
 	"portal-system/internal/models"
 	"portal-system/internal/repositories"
 
@@ -15,7 +15,7 @@ func TestGormRoleRepository_Finders(t *testing.T) {
 	t.Run("find by code success", func(t *testing.T) {
 		ctx, tx := newTestTx(t)
 		repo := NewGormRoleRepository(testDB)
-		role := mustCreateRole(t, tx, constants.RoleCodeUser)
+		role := mustCreateRole(t, tx, domain.RoleCodeUser)
 
 		found, err := repo.FindByCode(ctx, role.Code)
 		require.NoError(t, err)
@@ -26,7 +26,7 @@ func TestGormRoleRepository_Finders(t *testing.T) {
 	t.Run("find by code not found", func(t *testing.T) {
 		ctx, _ := newTestTx(t)
 		repo := NewGormRoleRepository(testDB)
-		found, err := repo.FindByCode(ctx, constants.RoleCode("missing"))
+		found, err := repo.FindByCode(ctx, domain.RoleCode("missing"))
 		require.Nil(t, found)
 		require.ErrorIs(t, err, repositories.ErrNotFound)
 	})
@@ -34,7 +34,7 @@ func TestGormRoleRepository_Finders(t *testing.T) {
 	t.Run("find by id success", func(t *testing.T) {
 		ctx, tx := newTestTx(t)
 		repo := NewGormRoleRepository(testDB)
-		role := mustCreateRole(t, tx, constants.RoleCodeUser)
+		role := mustCreateRole(t, tx, domain.RoleCodeUser)
 
 		found, err := repo.FindByID(ctx, role.ID)
 		require.NoError(t, err)
@@ -55,7 +55,7 @@ func TestGormRoleRepository_List(t *testing.T) {
 	t.Run("list returns roles with permissions", func(t *testing.T) {
 		ctx, tx := newTestTx(t)
 		repo := NewGormRoleRepository(testDB)
-		role := mustCreateRole(t, tx, constants.RoleCodeUser)
+		role := mustCreateRole(t, tx, domain.RoleCodeUser)
 		perm := mustCreatePermission(t, tx, "role.list.read", "Role List Read")
 		require.NoError(t, tx.Model(role).Association("Permissions").Append(perm))
 
@@ -82,7 +82,7 @@ func TestGormRoleRepository_CreateDelete(t *testing.T) {
 		repo := NewGormRoleRepository(testDB)
 		role := &models.Role{
 			ID:       uuid.New(),
-			Code:     constants.RoleCode("ROLE_CODE_MANAGER"),
+			Code:     domain.RoleCode("ROLE_CODE_MANAGER"),
 			Name:     "Manager",
 			IsSystem: false,
 		}
@@ -100,7 +100,7 @@ func TestGormRoleRepository_CreateDelete(t *testing.T) {
 	t.Run("delete success", func(t *testing.T) {
 		ctx, tx := newTestTx(t)
 		repo := NewGormRoleRepository(testDB)
-		role := mustCreateRole(t, tx, constants.RoleCode("ROLE_CODE_TEMP"))
+		role := mustCreateRole(t, tx, domain.RoleCode("ROLE_CODE_TEMP"))
 
 		err := repo.Delete(ctx, role.ID)
 		require.NoError(t, err)
@@ -115,7 +115,7 @@ func TestGormRoleRepository_Permissions(t *testing.T) {
 	t.Run("get with permissions success", func(t *testing.T) {
 		ctx, tx := newTestTx(t)
 		repo := NewGormRoleRepository(testDB)
-		role := mustCreateRole(t, tx, constants.RoleCodeUser)
+		role := mustCreateRole(t, tx, domain.RoleCodeUser)
 		perm := mustCreatePermission(t, tx, "user.read", "User Read")
 		require.NoError(t, tx.Model(role).Association("Permissions").Append(perm))
 
@@ -137,7 +137,7 @@ func TestGormRoleRepository_Permissions(t *testing.T) {
 	t.Run("assign and remove permission", func(t *testing.T) {
 		ctx, tx := newTestTx(t)
 		repo := NewGormRoleRepository(testDB)
-		role := mustCreateRole(t, tx, constants.RoleCodeUser)
+		role := mustCreateRole(t, tx, domain.RoleCodeUser)
 		perm := mustCreatePermission(t, tx, "user.write", "User Write")
 
 		require.NoError(t, repo.AssignPermission(ctx, role.ID, perm.ID))

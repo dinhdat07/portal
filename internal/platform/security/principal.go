@@ -1,7 +1,7 @@
 package auth
 
 import (
-	"portal-system/internal/domain/constants"
+	"portal-system/internal/domain"
 
 	"github.com/google/uuid"
 )
@@ -11,7 +11,7 @@ type Principal struct {
 	Username    string    `json:"username"`
 	Email       string    `json:"email"`
 	RoleID      uuid.UUID `json:"role_id"`
-	RoleCode    constants.RoleCode
+	RoleCode    domain.RoleCode
 	SessionID   uuid.UUID
 	Permissions []string
 }

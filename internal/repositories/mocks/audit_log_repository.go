@@ -6,8 +6,8 @@ package mocks
 
 import (
 	"context"
-	"portal-system/internal/domain"
 	"portal-system/internal/models"
+	"portal-system/internal/repositories"
 
 	mock "github.com/stretchr/testify/mock"
 )
@@ -97,7 +97,7 @@ func (_c *AuditLogRepository_Create_Call) RunAndReturn(run func(ctx context.Cont
 }
 
 // List provides a mock function for the type AuditLogRepository
-func (_mock *AuditLogRepository) List(ctx context.Context, filter domain.AuditLogFilter) ([]models.AuditLog, int64, error) {
+func (_mock *AuditLogRepository) List(ctx context.Context, filter repositories.AuditLogListFilter) ([]models.AuditLog, int64, error) {
 	ret := _mock.Called(ctx, filter)
 
 	if len(ret) == 0 {
@@ -107,22 +107,22 @@ func (_mock *AuditLogRepository) List(ctx context.Context, filter domain.AuditLo
 	var r0 []models.AuditLog
 	var r1 int64
 	var r2 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context, domain.AuditLogFilter) ([]models.AuditLog, int64, error)); ok {
+	if returnFunc, ok := ret.Get(0).(func(context.Context, repositories.AuditLogListFilter) ([]models.AuditLog, int64, error)); ok {
 		return returnFunc(ctx, filter)
 	}
-	if returnFunc, ok := ret.Get(0).(func(context.Context, domain.AuditLogFilter) []models.AuditLog); ok {
+	if returnFunc, ok := ret.Get(0).(func(context.Context, repositories.AuditLogListFilter) []models.AuditLog); ok {
 		r0 = returnFunc(ctx, filter)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]models.AuditLog)
 		}
 	}
-	if returnFunc, ok := ret.Get(1).(func(context.Context, domain.AuditLogFilter) int64); ok {
+	if returnFunc, ok := ret.Get(1).(func(context.Context, repositories.AuditLogListFilter) int64); ok {
 		r1 = returnFunc(ctx, filter)
 	} else {
 		r1 = ret.Get(1).(int64)
 	}
-	if returnFunc, ok := ret.Get(2).(func(context.Context, domain.AuditLogFilter) error); ok {
+	if returnFunc, ok := ret.Get(2).(func(context.Context, repositories.AuditLogListFilter) error); ok {
 		r2 = returnFunc(ctx, filter)
 	} else {
 		r2 = ret.Error(2)
@@ -137,20 +137,20 @@ type AuditLogRepository_List_Call struct {
 
 // List is a helper method to define mock.On call
 //   - ctx context.Context
-//   - filter domain.AuditLogFilter
+//   - filter repositories.AuditLogListFilter
 func (_e *AuditLogRepository_Expecter) List(ctx interface{}, filter interface{}) *AuditLogRepository_List_Call {
 	return &AuditLogRepository_List_Call{Call: _e.mock.On("List", ctx, filter)}
 }
 
-func (_c *AuditLogRepository_List_Call) Run(run func(ctx context.Context, filter domain.AuditLogFilter)) *AuditLogRepository_List_Call {
+func (_c *AuditLogRepository_List_Call) Run(run func(ctx context.Context, filter repositories.AuditLogListFilter)) *AuditLogRepository_List_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		var arg0 context.Context
 		if args[0] != nil {
 			arg0 = args[0].(context.Context)
 		}
-		var arg1 domain.AuditLogFilter
+		var arg1 repositories.AuditLogListFilter
 		if args[1] != nil {
-			arg1 = args[1].(domain.AuditLogFilter)
+			arg1 = args[1].(repositories.AuditLogListFilter)
 		}
 		run(
 			arg0,
@@ -165,7 +165,7 @@ func (_c *AuditLogRepository_List_Call) Return(auditLogs []models.AuditLog, n in
 	return _c
 }
 
-func (_c *AuditLogRepository_List_Call) RunAndReturn(run func(ctx context.Context, filter domain.AuditLogFilter) ([]models.AuditLog, int64, error)) *AuditLogRepository_List_Call {
+func (_c *AuditLogRepository_List_Call) RunAndReturn(run func(ctx context.Context, filter repositories.AuditLogListFilter) ([]models.AuditLog, int64, error)) *AuditLogRepository_List_Call {
 	_c.Call.Return(run)
 	return _c
 }

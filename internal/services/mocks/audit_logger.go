@@ -7,7 +7,7 @@ package mocks
 import (
 	"context"
 	"portal-system/internal/domain"
-	"portal-system/internal/domain/enum"
+	"portal-system/internal/services"
 
 	mock "github.com/stretchr/testify/mock"
 )
@@ -40,7 +40,7 @@ func (_m *AuditLogger) EXPECT() *AuditLogger_Expecter {
 }
 
 // Log provides a mock function for the type AuditLogger
-func (_mock *AuditLogger) Log(ctx context.Context, meta *domain.AuditMeta, action enum.ActionName, actor *domain.AuditUser, target *domain.AuditUser) error {
+func (_mock *AuditLogger) Log(ctx context.Context, meta *services.AuditMeta, action domain.ActionName, actor *services.AuditUser, target *services.AuditUser) error {
 	ret := _mock.Called(ctx, meta, action, actor, target)
 
 	if len(ret) == 0 {
@@ -48,7 +48,7 @@ func (_mock *AuditLogger) Log(ctx context.Context, meta *domain.AuditMeta, actio
 	}
 
 	var r0 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context, *domain.AuditMeta, enum.ActionName, *domain.AuditUser, *domain.AuditUser) error); ok {
+	if returnFunc, ok := ret.Get(0).(func(context.Context, *services.AuditMeta, domain.ActionName, *services.AuditUser, *services.AuditUser) error); ok {
 		r0 = returnFunc(ctx, meta, action, actor, target)
 	} else {
 		r0 = ret.Error(0)
@@ -63,35 +63,35 @@ type AuditLogger_Log_Call struct {
 
 // Log is a helper method to define mock.On call
 //   - ctx context.Context
-//   - meta *domain.AuditMeta
-//   - action enum.ActionName
-//   - actor *domain.AuditUser
-//   - target *domain.AuditUser
+//   - meta *services.AuditMeta
+//   - action domain.ActionName
+//   - actor *services.AuditUser
+//   - target *services.AuditUser
 func (_e *AuditLogger_Expecter) Log(ctx interface{}, meta interface{}, action interface{}, actor interface{}, target interface{}) *AuditLogger_Log_Call {
 	return &AuditLogger_Log_Call{Call: _e.mock.On("Log", ctx, meta, action, actor, target)}
 }
 
-func (_c *AuditLogger_Log_Call) Run(run func(ctx context.Context, meta *domain.AuditMeta, action enum.ActionName, actor *domain.AuditUser, target *domain.AuditUser)) *AuditLogger_Log_Call {
+func (_c *AuditLogger_Log_Call) Run(run func(ctx context.Context, meta *services.AuditMeta, action domain.ActionName, actor *services.AuditUser, target *services.AuditUser)) *AuditLogger_Log_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		var arg0 context.Context
 		if args[0] != nil {
 			arg0 = args[0].(context.Context)
 		}
-		var arg1 *domain.AuditMeta
+		var arg1 *services.AuditMeta
 		if args[1] != nil {
-			arg1 = args[1].(*domain.AuditMeta)
+			arg1 = args[1].(*services.AuditMeta)
 		}
-		var arg2 enum.ActionName
+		var arg2 domain.ActionName
 		if args[2] != nil {
-			arg2 = args[2].(enum.ActionName)
+			arg2 = args[2].(domain.ActionName)
 		}
-		var arg3 *domain.AuditUser
+		var arg3 *services.AuditUser
 		if args[3] != nil {
-			arg3 = args[3].(*domain.AuditUser)
+			arg3 = args[3].(*services.AuditUser)
 		}
-		var arg4 *domain.AuditUser
+		var arg4 *services.AuditUser
 		if args[4] != nil {
-			arg4 = args[4].(*domain.AuditUser)
+			arg4 = args[4].(*services.AuditUser)
 		}
 		run(
 			arg0,
@@ -109,13 +109,13 @@ func (_c *AuditLogger_Log_Call) Return(err error) *AuditLogger_Log_Call {
 	return _c
 }
 
-func (_c *AuditLogger_Log_Call) RunAndReturn(run func(ctx context.Context, meta *domain.AuditMeta, action enum.ActionName, actor *domain.AuditUser, target *domain.AuditUser) error) *AuditLogger_Log_Call {
+func (_c *AuditLogger_Log_Call) RunAndReturn(run func(ctx context.Context, meta *services.AuditMeta, action domain.ActionName, actor *services.AuditUser, target *services.AuditUser) error) *AuditLogger_Log_Call {
 	_c.Call.Return(run)
 	return _c
 }
 
 // LogWithMetadata provides a mock function for the type AuditLogger
-func (_mock *AuditLogger) LogWithMetadata(ctx context.Context, meta *domain.AuditMeta, action enum.ActionName, actor *domain.AuditUser, target *domain.AuditUser, data map[string]any) error {
+func (_mock *AuditLogger) LogWithMetadata(ctx context.Context, meta *services.AuditMeta, action domain.ActionName, actor *services.AuditUser, target *services.AuditUser, data map[string]any) error {
 	ret := _mock.Called(ctx, meta, action, actor, target, data)
 
 	if len(ret) == 0 {
@@ -123,7 +123,7 @@ func (_mock *AuditLogger) LogWithMetadata(ctx context.Context, meta *domain.Audi
 	}
 
 	var r0 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context, *domain.AuditMeta, enum.ActionName, *domain.AuditUser, *domain.AuditUser, map[string]any) error); ok {
+	if returnFunc, ok := ret.Get(0).(func(context.Context, *services.AuditMeta, domain.ActionName, *services.AuditUser, *services.AuditUser, map[string]any) error); ok {
 		r0 = returnFunc(ctx, meta, action, actor, target, data)
 	} else {
 		r0 = ret.Error(0)
@@ -138,36 +138,36 @@ type AuditLogger_LogWithMetadata_Call struct {
 
 // LogWithMetadata is a helper method to define mock.On call
 //   - ctx context.Context
-//   - meta *domain.AuditMeta
-//   - action enum.ActionName
-//   - actor *domain.AuditUser
-//   - target *domain.AuditUser
+//   - meta *services.AuditMeta
+//   - action domain.ActionName
+//   - actor *services.AuditUser
+//   - target *services.AuditUser
 //   - data map[string]any
 func (_e *AuditLogger_Expecter) LogWithMetadata(ctx interface{}, meta interface{}, action interface{}, actor interface{}, target interface{}, data interface{}) *AuditLogger_LogWithMetadata_Call {
 	return &AuditLogger_LogWithMetadata_Call{Call: _e.mock.On("LogWithMetadata", ctx, meta, action, actor, target, data)}
 }
 
-func (_c *AuditLogger_LogWithMetadata_Call) Run(run func(ctx context.Context, meta *domain.AuditMeta, action enum.ActionName, actor *domain.AuditUser, target *domain.AuditUser, data map[string]any)) *AuditLogger_LogWithMetadata_Call {
+func (_c *AuditLogger_LogWithMetadata_Call) Run(run func(ctx context.Context, meta *services.AuditMeta, action domain.ActionName, actor *services.AuditUser, target *services.AuditUser, data map[string]any)) *AuditLogger_LogWithMetadata_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		var arg0 context.Context
 		if args[0] != nil {
 			arg0 = args[0].(context.Context)
 		}
-		var arg1 *domain.AuditMeta
+		var arg1 *services.AuditMeta
 		if args[1] != nil {
-			arg1 = args[1].(*domain.AuditMeta)
+			arg1 = args[1].(*services.AuditMeta)
 		}
-		var arg2 enum.ActionName
+		var arg2 domain.ActionName
 		if args[2] != nil {
-			arg2 = args[2].(enum.ActionName)
+			arg2 = args[2].(domain.ActionName)
 		}
-		var arg3 *domain.AuditUser
+		var arg3 *services.AuditUser
 		if args[3] != nil {
-			arg3 = args[3].(*domain.AuditUser)
+			arg3 = args[3].(*services.AuditUser)
 		}
-		var arg4 *domain.AuditUser
+		var arg4 *services.AuditUser
 		if args[4] != nil {
-			arg4 = args[4].(*domain.AuditUser)
+			arg4 = args[4].(*services.AuditUser)
 		}
 		var arg5 map[string]any
 		if args[5] != nil {
@@ -190,7 +190,7 @@ func (_c *AuditLogger_LogWithMetadata_Call) Return(err error) *AuditLogger_LogWi
 	return _c
 }
 
-func (_c *AuditLogger_LogWithMetadata_Call) RunAndReturn(run func(ctx context.Context, meta *domain.AuditMeta, action enum.ActionName, actor *domain.AuditUser, target *domain.AuditUser, data map[string]any) error) *AuditLogger_LogWithMetadata_Call {
+func (_c *AuditLogger_LogWithMetadata_Call) RunAndReturn(run func(ctx context.Context, meta *services.AuditMeta, action domain.ActionName, actor *services.AuditUser, target *services.AuditUser, data map[string]any) error) *AuditLogger_LogWithMetadata_Call {
 	_c.Call.Return(run)
 	return _c
 }

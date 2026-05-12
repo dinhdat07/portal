@@ -1,8 +1,7 @@
 package models
 
 import (
-	"portal-system/internal/domain/constants"
-	"portal-system/internal/domain/enum"
+	"portal-system/internal/domain"
 	"time"
 
 	"github.com/google/uuid"
@@ -13,17 +12,17 @@ import (
 type AuditLog struct {
 	ID uuid.UUID `gorm:"type:uuid;primaryKey"`
 
-	Action enum.ActionName `gorm:"type:varchar(50);not null;index"`
+	Action domain.ActionName `gorm:"type:varchar(50);not null;index"`
 
-	ActorUserID   *uuid.UUID          `gorm:"type:uuid;index"`
-	ActorUsername *string             `gorm:"type:varchar(50)"`
-	ActorEmail    *string             `gorm:"type:varchar(255)"`
-	ActorRole     *constants.RoleCode `gorm:"type:varchar(20)"`
+	ActorUserID   *uuid.UUID       `gorm:"type:uuid;index"`
+	ActorUsername *string          `gorm:"type:varchar(50)"`
+	ActorEmail    *string          `gorm:"type:varchar(255)"`
+	ActorRole     *domain.RoleCode `gorm:"type:varchar(20)"`
 
-	TargetUserID   *uuid.UUID          `gorm:"type:uuid;index"`
-	TargetUsername *string             `gorm:"type:varchar(50)"`
-	TargetEmail    *string             `gorm:"type:varchar(255)"`
-	TargetRole     *constants.RoleCode `gorm:"type:varchar(20)"`
+	TargetUserID   *uuid.UUID       `gorm:"type:uuid;index"`
+	TargetUsername *string          `gorm:"type:varchar(50)"`
+	TargetEmail    *string          `gorm:"type:varchar(255)"`
+	TargetRole     *domain.RoleCode `gorm:"type:varchar(20)"`
 
 	Metadata  *datatypes.JSON `gorm:"type:jsonb"`
 	IPAddress *string         `gorm:"type:varchar(45)"`

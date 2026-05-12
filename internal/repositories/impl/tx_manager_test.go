@@ -5,8 +5,7 @@ import (
 	"errors"
 	"testing"
 
-	"portal-system/internal/domain/constants"
-	"portal-system/internal/domain/enum"
+	"portal-system/internal/domain"
 	"portal-system/internal/models"
 
 	"github.com/stretchr/testify/require"
@@ -18,7 +17,7 @@ func TestGormTxManager_WithTx(t *testing.T) {
 		manager := NewGormTxManager(testDB)
 		repo := NewGormUserRepository(testDB)
 		email := "commit@example.com"
-		roleCode := constants.RoleCode("tx_commit_user")
+		roleCode := domain.RoleCode("tx_commit_user")
 
 		err := manager.WithTx(context.Background(), func(ctx context.Context) error {
 			tx, ok := ctx.Value(txKey{}).(*gorm.DB)
@@ -30,7 +29,7 @@ func TestGormTxManager_WithTx(t *testing.T) {
 				FirstName: "Commit",
 				LastName:  "User",
 				RoleID:    role.ID,
-				Status:    enum.StatusActive,
+				Status:    domain.StatusActive,
 			}
 			return repo.Create(ctx, user)
 		})
@@ -50,7 +49,7 @@ func TestGormTxManager_WithTx(t *testing.T) {
 		manager := NewGormTxManager(testDB)
 		repo := NewGormUserRepository(testDB)
 		email := "rollback@example.com"
-		roleCode := constants.RoleCode("tx_rollback_admin")
+		roleCode := domain.RoleCode("tx_rollback_admin")
 
 		err := manager.WithTx(context.Background(), func(ctx context.Context) error {
 			tx, ok := ctx.Value(txKey{}).(*gorm.DB)
@@ -62,7 +61,7 @@ func TestGormTxManager_WithTx(t *testing.T) {
 				FirstName: "Rollback",
 				LastName:  "User",
 				RoleID:    role.ID,
-				Status:    enum.StatusActive,
+				Status:    domain.StatusActive,
 			}
 			require.NoError(t, repo.Create(ctx, user))
 			return errors.New("boom")

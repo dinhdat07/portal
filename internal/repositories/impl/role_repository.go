@@ -3,7 +3,7 @@ package impl
 import (
 	"context"
 	"errors"
-	"portal-system/internal/domain/constants"
+	"portal-system/internal/domain"
 	"portal-system/internal/models"
 	"portal-system/internal/repositories"
 
@@ -23,7 +23,7 @@ func (r *GormRoleRepository) Create(ctx context.Context, role *models.Role) erro
 	return r.getDB(ctx).Create(role).Error
 }
 
-func (r *GormRoleRepository) FindByCode(ctx context.Context, code constants.RoleCode) (*models.Role, error) {
+func (r *GormRoleRepository) FindByCode(ctx context.Context, code domain.RoleCode) (*models.Role, error) {
 	var role models.Role
 
 	err := r.getDB(ctx).

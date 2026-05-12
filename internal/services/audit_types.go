@@ -1,17 +1,33 @@
-package domain
+package services
 
 import (
-	"portal-system/internal/domain/constants"
+	"portal-system/internal/domain"
 	"portal-system/internal/models"
+	"time"
 
 	"github.com/google/uuid"
 )
+
+type AuditLogFilter struct {
+	Action       string
+	ActorUserID  *uuid.UUID
+	TargetUserID *uuid.UUID
+	From         *time.Time
+	To           *time.Time
+	Page         int
+	PageSize     int
+}
+
+type AuditMeta struct {
+	IPAddress string
+	UserAgent string
+}
 
 type AuditUser struct {
 	ID       uuid.UUID
 	Username string
 	Email    string
-	RoleCode constants.RoleCode
+	RoleCode domain.RoleCode
 }
 
 func MapUserToAuditUser(u *models.User) *AuditUser {

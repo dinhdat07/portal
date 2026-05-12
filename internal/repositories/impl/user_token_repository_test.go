@@ -5,7 +5,7 @@ import (
 	"testing"
 	"time"
 
-	"portal-system/internal/domain/enum"
+	"portal-system/internal/domain"
 	"portal-system/internal/models"
 	"portal-system/internal/repositories"
 
@@ -22,7 +22,7 @@ func TestGormUserTokenRepository_Create(t *testing.T) {
 
 	token := &models.UserToken{
 		UserID:    user.ID,
-		TokenType: enum.TokenTypeEmailVerification,
+		TokenType: domain.TokenTypeEmailVerification,
 		TokenHash: "create-test-hash",
 		ExpiresAt: time.Now().Add(time.Hour),
 	}
@@ -37,7 +37,7 @@ func TestGormUserTokenRepository_CreateAndFindValid(t *testing.T) {
 		repo := NewGormUserTokenRepository(testDB)
 		role := activeUserRole(t, tx)
 		user := mustCreateUser(t, tx, role.ID, "john@example.com", "john")
-		token := mustCreateUserToken(t, tx, user.ID, enum.TokenTypeEmailVerification, "token-hash", time.Now().Add(time.Hour))
+		token := mustCreateUserToken(t, tx, user.ID, domain.TokenTypeEmailVerification, "token-hash", time.Now().Add(time.Hour))
 
 		found, err := repo.FindValidToken(ctx, token.TokenHash, token.TokenType)
 		require.NoError(t, err)
@@ -79,7 +79,7 @@ func TestGormUserTokenRepository_CreateAndFindValid(t *testing.T) {
 				repo := NewGormUserTokenRepository(testDB)
 				role := activeUserRole(t, tx)
 				user := mustCreateUser(t, tx, role.ID, "john@example.com", "john")
-				token := mustCreateUserToken(t, tx, user.ID, enum.TokenTypeEmailVerification, "token-hash-"+tc.name, time.Now().Add(time.Hour))
+				token := mustCreateUserToken(t, tx, user.ID, domain.TokenTypeEmailVerification, "token-hash-"+tc.name, time.Now().Add(time.Hour))
 				tc.mutate(t, tx, token)
 
 				found, err := repo.FindValidToken(ctx, token.TokenHash, token.TokenType)
@@ -96,7 +96,7 @@ func TestGormUserTokenRepository_MarkUsedAndRevoke(t *testing.T) {
 		repo := NewGormUserTokenRepository(testDB)
 		role := activeUserRole(t, tx)
 		user := mustCreateUser(t, tx, role.ID, "john@example.com", "john")
-		token := mustCreateUserToken(t, tx, user.ID, enum.TokenTypeEmailVerification, "token-hash", time.Now().Add(time.Hour))
+		token := mustCreateUserToken(t, tx, user.ID, domain.TokenTypeEmailVerification, "token-hash", time.Now().Add(time.Hour))
 
 		require.NoError(t, repo.MarkUsed(ctx, token.ID))
 
@@ -116,7 +116,7 @@ func TestGormUserTokenRepository_MarkUsedAndRevoke(t *testing.T) {
 		repo := NewGormUserTokenRepository(testDB)
 		role := activeUserRole(t, tx)
 		user := mustCreateUser(t, tx, role.ID, "john@example.com", "john")
-		token := mustCreateUserToken(t, tx, user.ID, enum.TokenTypeEmailVerification, "token-hash", time.Now().Add(time.Hour))
+		token := mustCreateUserToken(t, tx, user.ID, domain.TokenTypeEmailVerification, "token-hash", time.Now().Add(time.Hour))
 
 		require.NoError(t, repo.Revoke(ctx, token.ID))
 
@@ -136,10 +136,10 @@ func TestGormUserTokenRepository_MarkUsedAndRevoke(t *testing.T) {
 		repo := NewGormUserTokenRepository(testDB)
 		role := activeUserRole(t, tx)
 		user := mustCreateUser(t, tx, role.ID, "john@example.com", "john")
-		matching := mustCreateUserToken(t, tx, user.ID, enum.TokenTypeEmailVerification, "token-hash", time.Now().Add(time.Hour))
-		otherType := mustCreateUserToken(t, tx, user.ID, enum.TokenTypePasswordReset, "token-hash-2", time.Now().Add(time.Hour))
+		matching := mustCreateUserToken(t, tx, user.ID, domain.TokenTypeEmailVerification, "token-hash", time.Now().Add(time.Hour))
+		otherType := mustCreateUserToken(t, tx, user.ID, domain.TokenTypePasswordReset, "token-hash-2", time.Now().Add(time.Hour))
 
-		require.NoError(t, repo.RevokeByUserAndType(ctx, user.ID, enum.TokenTypeEmailVerification))
+		require.NoError(t, repo.RevokeByUserAndType(ctx, user.ID, domain.TokenTypeEmailVerification))
 
 		var updatedMatch, updatedOther models.UserToken
 		require.NoError(t, tx.WithContext(context.Background()).First(&updatedMatch, "id = ?", matching.ID).Error)

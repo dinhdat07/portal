@@ -5,7 +5,7 @@ import (
 	"errors"
 	"time"
 
-	"portal-system/internal/domain/enum"
+	"portal-system/internal/domain"
 	"portal-system/internal/models"
 	"portal-system/internal/repositories"
 
@@ -25,7 +25,7 @@ func (r *GormUserTokenRepository) Create(ctx context.Context, token *models.User
 	return r.getDB(ctx).Create(token).Error
 }
 
-func (r *GormUserTokenRepository) FindValidToken(ctx context.Context, tokenHash string, tokenType enum.TokenType) (*models.UserToken, error) {
+func (r *GormUserTokenRepository) FindValidToken(ctx context.Context, tokenHash string, tokenType domain.TokenType) (*models.UserToken, error) {
 	var token models.UserToken
 
 	err := r.getDB(ctx).
@@ -86,7 +86,7 @@ func (r *GormUserTokenRepository) Revoke(ctx context.Context, id uuid.UUID) erro
 	return nil
 }
 
-func (r *GormUserTokenRepository) RevokeByUserAndType(ctx context.Context, userID uuid.UUID, tokenType enum.TokenType) error {
+func (r *GormUserTokenRepository) RevokeByUserAndType(ctx context.Context, userID uuid.UUID, tokenType domain.TokenType) error {
 	now := time.Now().UTC()
 
 	return r.getDB(ctx).

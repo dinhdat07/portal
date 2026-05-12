@@ -3,11 +3,11 @@ package mappers
 import (
 	adminv1 "portal-system/gen/go/admin/v1"
 	commonv1 "portal-system/gen/go/common/v1"
-	"portal-system/internal/domain"
 	"portal-system/internal/models"
+	"portal-system/internal/services"
 )
 
-func ListUsersResultToPB(result *domain.ListUsersResult) *adminv1.ListUsersResponse {
+func ListUsersResultToPB(result *services.ListUsersResult) *adminv1.ListUsersResponse {
 	if result == nil {
 		return nil
 	}

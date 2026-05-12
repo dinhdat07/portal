@@ -1,4 +1,4 @@
-package enum
+package domain
 
 type UserStatus string
 

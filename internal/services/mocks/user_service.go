@@ -6,8 +6,8 @@ package mocks
 
 import (
 	"context"
-	"portal-system/internal/domain"
 	"portal-system/internal/models"
+	"portal-system/internal/services"
 
 	"github.com/google/uuid"
 	mock "github.com/stretchr/testify/mock"
@@ -41,7 +41,7 @@ func (_m *UserService) EXPECT() *UserService_Expecter {
 }
 
 // ChangePassword provides a mock function for the type UserService
-func (_mock *UserService) ChangePassword(ctx context.Context, meta *domain.AuditMeta, actor *domain.AuditUser, current string, newPassword string, confirm string) error {
+func (_mock *UserService) ChangePassword(ctx context.Context, meta *services.AuditMeta, actor *services.AuditUser, current string, newPassword string, confirm string) error {
 	ret := _mock.Called(ctx, meta, actor, current, newPassword, confirm)
 
 	if len(ret) == 0 {
@@ -49,7 +49,7 @@ func (_mock *UserService) ChangePassword(ctx context.Context, meta *domain.Audit
 	}
 
 	var r0 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context, *domain.AuditMeta, *domain.AuditUser, string, string, string) error); ok {
+	if returnFunc, ok := ret.Get(0).(func(context.Context, *services.AuditMeta, *services.AuditUser, string, string, string) error); ok {
 		r0 = returnFunc(ctx, meta, actor, current, newPassword, confirm)
 	} else {
 		r0 = ret.Error(0)
@@ -64,8 +64,8 @@ type UserService_ChangePassword_Call struct {
 
 // ChangePassword is a helper method to define mock.On call
 //   - ctx context.Context
-//   - meta *domain.AuditMeta
-//   - actor *domain.AuditUser
+//   - meta *services.AuditMeta
+//   - actor *services.AuditUser
 //   - current string
 //   - newPassword string
 //   - confirm string
@@ -73,19 +73,19 @@ func (_e *UserService_Expecter) ChangePassword(ctx interface{}, meta interface{}
 	return &UserService_ChangePassword_Call{Call: _e.mock.On("ChangePassword", ctx, meta, actor, current, newPassword, confirm)}
 }
 
-func (_c *UserService_ChangePassword_Call) Run(run func(ctx context.Context, meta *domain.AuditMeta, actor *domain.AuditUser, current string, newPassword string, confirm string)) *UserService_ChangePassword_Call {
+func (_c *UserService_ChangePassword_Call) Run(run func(ctx context.Context, meta *services.AuditMeta, actor *services.AuditUser, current string, newPassword string, confirm string)) *UserService_ChangePassword_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		var arg0 context.Context
 		if args[0] != nil {
 			arg0 = args[0].(context.Context)
 		}
-		var arg1 *domain.AuditMeta
+		var arg1 *services.AuditMeta
 		if args[1] != nil {
-			arg1 = args[1].(*domain.AuditMeta)
+			arg1 = args[1].(*services.AuditMeta)
 		}
-		var arg2 *domain.AuditUser
+		var arg2 *services.AuditUser
 		if args[2] != nil {
-			arg2 = args[2].(*domain.AuditUser)
+			arg2 = args[2].(*services.AuditUser)
 		}
 		var arg3 string
 		if args[3] != nil {
@@ -116,13 +116,13 @@ func (_c *UserService_ChangePassword_Call) Return(err error) *UserService_Change
 	return _c
 }
 
-func (_c *UserService_ChangePassword_Call) RunAndReturn(run func(ctx context.Context, meta *domain.AuditMeta, actor *domain.AuditUser, current string, newPassword string, confirm string) error) *UserService_ChangePassword_Call {
+func (_c *UserService_ChangePassword_Call) RunAndReturn(run func(ctx context.Context, meta *services.AuditMeta, actor *services.AuditUser, current string, newPassword string, confirm string) error) *UserService_ChangePassword_Call {
 	_c.Call.Return(run)
 	return _c
 }
 
 // GetProfile provides a mock function for the type UserService
-func (_mock *UserService) GetProfile(ctx context.Context, meta *domain.AuditMeta, actor *domain.AuditUser, id uuid.UUID) (*models.User, error) {
+func (_mock *UserService) GetProfile(ctx context.Context, meta *services.AuditMeta, actor *services.AuditUser, id uuid.UUID) (*models.User, error) {
 	ret := _mock.Called(ctx, meta, actor, id)
 
 	if len(ret) == 0 {
@@ -131,17 +131,17 @@ func (_mock *UserService) GetProfile(ctx context.Context, meta *domain.AuditMeta
 
 	var r0 *models.User
 	var r1 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context, *domain.AuditMeta, *domain.AuditUser, uuid.UUID) (*models.User, error)); ok {
+	if returnFunc, ok := ret.Get(0).(func(context.Context, *services.AuditMeta, *services.AuditUser, uuid.UUID) (*models.User, error)); ok {
 		return returnFunc(ctx, meta, actor, id)
 	}
-	if returnFunc, ok := ret.Get(0).(func(context.Context, *domain.AuditMeta, *domain.AuditUser, uuid.UUID) *models.User); ok {
+	if returnFunc, ok := ret.Get(0).(func(context.Context, *services.AuditMeta, *services.AuditUser, uuid.UUID) *models.User); ok {
 		r0 = returnFunc(ctx, meta, actor, id)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*models.User)
 		}
 	}
-	if returnFunc, ok := ret.Get(1).(func(context.Context, *domain.AuditMeta, *domain.AuditUser, uuid.UUID) error); ok {
+	if returnFunc, ok := ret.Get(1).(func(context.Context, *services.AuditMeta, *services.AuditUser, uuid.UUID) error); ok {
 		r1 = returnFunc(ctx, meta, actor, id)
 	} else {
 		r1 = ret.Error(1)
@@ -156,26 +156,26 @@ type UserService_GetProfile_Call struct {
 
 // GetProfile is a helper method to define mock.On call
 //   - ctx context.Context
-//   - meta *domain.AuditMeta
-//   - actor *domain.AuditUser
+//   - meta *services.AuditMeta
+//   - actor *services.AuditUser
 //   - id uuid.UUID
 func (_e *UserService_Expecter) GetProfile(ctx interface{}, meta interface{}, actor interface{}, id interface{}) *UserService_GetProfile_Call {
 	return &UserService_GetProfile_Call{Call: _e.mock.On("GetProfile", ctx, meta, actor, id)}
 }
 
-func (_c *UserService_GetProfile_Call) Run(run func(ctx context.Context, meta *domain.AuditMeta, actor *domain.AuditUser, id uuid.UUID)) *UserService_GetProfile_Call {
+func (_c *UserService_GetProfile_Call) Run(run func(ctx context.Context, meta *services.AuditMeta, actor *services.AuditUser, id uuid.UUID)) *UserService_GetProfile_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		var arg0 context.Context
 		if args[0] != nil {
 			arg0 = args[0].(context.Context)
 		}
-		var arg1 *domain.AuditMeta
+		var arg1 *services.AuditMeta
 		if args[1] != nil {
-			arg1 = args[1].(*domain.AuditMeta)
+			arg1 = args[1].(*services.AuditMeta)
 		}
-		var arg2 *domain.AuditUser
+		var arg2 *services.AuditUser
 		if args[2] != nil {
-			arg2 = args[2].(*domain.AuditUser)
+			arg2 = args[2].(*services.AuditUser)
 		}
 		var arg3 uuid.UUID
 		if args[3] != nil {
@@ -196,13 +196,13 @@ func (_c *UserService_GetProfile_Call) Return(user *models.User, err error) *Use
 	return _c
 }
 
-func (_c *UserService_GetProfile_Call) RunAndReturn(run func(ctx context.Context, meta *domain.AuditMeta, actor *domain.AuditUser, id uuid.UUID) (*models.User, error)) *UserService_GetProfile_Call {
+func (_c *UserService_GetProfile_Call) RunAndReturn(run func(ctx context.Context, meta *services.AuditMeta, actor *services.AuditUser, id uuid.UUID) (*models.User, error)) *UserService_GetProfile_Call {
 	_c.Call.Return(run)
 	return _c
 }
 
 // UpdateProfile provides a mock function for the type UserService
-func (_mock *UserService) UpdateProfile(ctx context.Context, meta *domain.AuditMeta, actor *domain.AuditUser, id uuid.UUID, input domain.UpdateUserInput) (*models.User, error) {
+func (_mock *UserService) UpdateProfile(ctx context.Context, meta *services.AuditMeta, actor *services.AuditUser, id uuid.UUID, input services.UpdateUserInput) (*models.User, error) {
 	ret := _mock.Called(ctx, meta, actor, id, input)
 
 	if len(ret) == 0 {
@@ -211,17 +211,17 @@ func (_mock *UserService) UpdateProfile(ctx context.Context, meta *domain.AuditM
 
 	var r0 *models.User
 	var r1 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context, *domain.AuditMeta, *domain.AuditUser, uuid.UUID, domain.UpdateUserInput) (*models.User, error)); ok {
+	if returnFunc, ok := ret.Get(0).(func(context.Context, *services.AuditMeta, *services.AuditUser, uuid.UUID, services.UpdateUserInput) (*models.User, error)); ok {
 		return returnFunc(ctx, meta, actor, id, input)
 	}
-	if returnFunc, ok := ret.Get(0).(func(context.Context, *domain.AuditMeta, *domain.AuditUser, uuid.UUID, domain.UpdateUserInput) *models.User); ok {
+	if returnFunc, ok := ret.Get(0).(func(context.Context, *services.AuditMeta, *services.AuditUser, uuid.UUID, services.UpdateUserInput) *models.User); ok {
 		r0 = returnFunc(ctx, meta, actor, id, input)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*models.User)
 		}
 	}
-	if returnFunc, ok := ret.Get(1).(func(context.Context, *domain.AuditMeta, *domain.AuditUser, uuid.UUID, domain.UpdateUserInput) error); ok {
+	if returnFunc, ok := ret.Get(1).(func(context.Context, *services.AuditMeta, *services.AuditUser, uuid.UUID, services.UpdateUserInput) error); ok {
 		r1 = returnFunc(ctx, meta, actor, id, input)
 	} else {
 		r1 = ret.Error(1)
@@ -236,35 +236,35 @@ type UserService_UpdateProfile_Call struct {
 
 // UpdateProfile is a helper method to define mock.On call
 //   - ctx context.Context
-//   - meta *domain.AuditMeta
-//   - actor *domain.AuditUser
+//   - meta *services.AuditMeta
+//   - actor *services.AuditUser
 //   - id uuid.UUID
-//   - input domain.UpdateUserInput
+//   - input services.UpdateUserInput
 func (_e *UserService_Expecter) UpdateProfile(ctx interface{}, meta interface{}, actor interface{}, id interface{}, input interface{}) *UserService_UpdateProfile_Call {
 	return &UserService_UpdateProfile_Call{Call: _e.mock.On("UpdateProfile", ctx, meta, actor, id, input)}
 }
 
-func (_c *UserService_UpdateProfile_Call) Run(run func(ctx context.Context, meta *domain.AuditMeta, actor *domain.AuditUser, id uuid.UUID, input domain.UpdateUserInput)) *UserService_UpdateProfile_Call {
+func (_c *UserService_UpdateProfile_Call) Run(run func(ctx context.Context, meta *services.AuditMeta, actor *services.AuditUser, id uuid.UUID, input services.UpdateUserInput)) *UserService_UpdateProfile_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		var arg0 context.Context
 		if args[0] != nil {
 			arg0 = args[0].(context.Context)
 		}
-		var arg1 *domain.AuditMeta
+		var arg1 *services.AuditMeta
 		if args[1] != nil {
-			arg1 = args[1].(*domain.AuditMeta)
+			arg1 = args[1].(*services.AuditMeta)
 		}
-		var arg2 *domain.AuditUser
+		var arg2 *services.AuditUser
 		if args[2] != nil {
-			arg2 = args[2].(*domain.AuditUser)
+			arg2 = args[2].(*services.AuditUser)
 		}
 		var arg3 uuid.UUID
 		if args[3] != nil {
 			arg3 = args[3].(uuid.UUID)
 		}
-		var arg4 domain.UpdateUserInput
+		var arg4 services.UpdateUserInput
 		if args[4] != nil {
-			arg4 = args[4].(domain.UpdateUserInput)
+			arg4 = args[4].(services.UpdateUserInput)
 		}
 		run(
 			arg0,
@@ -282,7 +282,7 @@ func (_c *UserService_UpdateProfile_Call) Return(user *models.User, err error) *
 	return _c
 }
 
-func (_c *UserService_UpdateProfile_Call) RunAndReturn(run func(ctx context.Context, meta *domain.AuditMeta, actor *domain.AuditUser, id uuid.UUID, input domain.UpdateUserInput) (*models.User, error)) *UserService_UpdateProfile_Call {
+func (_c *UserService_UpdateProfile_Call) RunAndReturn(run func(ctx context.Context, meta *services.AuditMeta, actor *services.AuditUser, id uuid.UUID, input services.UpdateUserInput) (*models.User, error)) *UserService_UpdateProfile_Call {
 	_c.Call.Return(run)
 	return _c
 }

@@ -7,7 +7,7 @@ package mocks
 import (
 	"context"
 	"portal-system/internal/domain"
-	"portal-system/internal/domain/enum"
+	"portal-system/internal/services"
 	"time"
 
 	"github.com/google/uuid"
@@ -42,7 +42,7 @@ func (_m *AuthService) EXPECT() *AuthService_Expecter {
 }
 
 // ForgotPassword provides a mock function for the type AuthService
-func (_mock *AuthService) ForgotPassword(ctx context.Context, meta *domain.AuditMeta, email string) error {
+func (_mock *AuthService) ForgotPassword(ctx context.Context, meta *services.AuditMeta, email string) error {
 	ret := _mock.Called(ctx, meta, email)
 
 	if len(ret) == 0 {
@@ -50,7 +50,7 @@ func (_mock *AuthService) ForgotPassword(ctx context.Context, meta *domain.Audit
 	}
 
 	var r0 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context, *domain.AuditMeta, string) error); ok {
+	if returnFunc, ok := ret.Get(0).(func(context.Context, *services.AuditMeta, string) error); ok {
 		r0 = returnFunc(ctx, meta, email)
 	} else {
 		r0 = ret.Error(0)
@@ -65,21 +65,21 @@ type AuthService_ForgotPassword_Call struct {
 
 // ForgotPassword is a helper method to define mock.On call
 //   - ctx context.Context
-//   - meta *domain.AuditMeta
+//   - meta *services.AuditMeta
 //   - email string
 func (_e *AuthService_Expecter) ForgotPassword(ctx interface{}, meta interface{}, email interface{}) *AuthService_ForgotPassword_Call {
 	return &AuthService_ForgotPassword_Call{Call: _e.mock.On("ForgotPassword", ctx, meta, email)}
 }
 
-func (_c *AuthService_ForgotPassword_Call) Run(run func(ctx context.Context, meta *domain.AuditMeta, email string)) *AuthService_ForgotPassword_Call {
+func (_c *AuthService_ForgotPassword_Call) Run(run func(ctx context.Context, meta *services.AuditMeta, email string)) *AuthService_ForgotPassword_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		var arg0 context.Context
 		if args[0] != nil {
 			arg0 = args[0].(context.Context)
 		}
-		var arg1 *domain.AuditMeta
+		var arg1 *services.AuditMeta
 		if args[1] != nil {
-			arg1 = args[1].(*domain.AuditMeta)
+			arg1 = args[1].(*services.AuditMeta)
 		}
 		var arg2 string
 		if args[2] != nil {
@@ -99,32 +99,32 @@ func (_c *AuthService_ForgotPassword_Call) Return(err error) *AuthService_Forgot
 	return _c
 }
 
-func (_c *AuthService_ForgotPassword_Call) RunAndReturn(run func(ctx context.Context, meta *domain.AuditMeta, email string) error) *AuthService_ForgotPassword_Call {
+func (_c *AuthService_ForgotPassword_Call) RunAndReturn(run func(ctx context.Context, meta *services.AuditMeta, email string) error) *AuthService_ForgotPassword_Call {
 	_c.Call.Return(run)
 	return _c
 }
 
 // LogIn provides a mock function for the type AuthService
-func (_mock *AuthService) LogIn(ctx context.Context, meta *domain.AuditMeta, identifier string, password string) (*domain.LoginResult, error) {
+func (_mock *AuthService) LogIn(ctx context.Context, meta *services.AuditMeta, identifier string, password string) (*services.LoginResult, error) {
 	ret := _mock.Called(ctx, meta, identifier, password)
 
 	if len(ret) == 0 {
 		panic("no return value specified for LogIn")
 	}
 
-	var r0 *domain.LoginResult
+	var r0 *services.LoginResult
 	var r1 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context, *domain.AuditMeta, string, string) (*domain.LoginResult, error)); ok {
+	if returnFunc, ok := ret.Get(0).(func(context.Context, *services.AuditMeta, string, string) (*services.LoginResult, error)); ok {
 		return returnFunc(ctx, meta, identifier, password)
 	}
-	if returnFunc, ok := ret.Get(0).(func(context.Context, *domain.AuditMeta, string, string) *domain.LoginResult); ok {
+	if returnFunc, ok := ret.Get(0).(func(context.Context, *services.AuditMeta, string, string) *services.LoginResult); ok {
 		r0 = returnFunc(ctx, meta, identifier, password)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*domain.LoginResult)
+			r0 = ret.Get(0).(*services.LoginResult)
 		}
 	}
-	if returnFunc, ok := ret.Get(1).(func(context.Context, *domain.AuditMeta, string, string) error); ok {
+	if returnFunc, ok := ret.Get(1).(func(context.Context, *services.AuditMeta, string, string) error); ok {
 		r1 = returnFunc(ctx, meta, identifier, password)
 	} else {
 		r1 = ret.Error(1)
@@ -139,22 +139,22 @@ type AuthService_LogIn_Call struct {
 
 // LogIn is a helper method to define mock.On call
 //   - ctx context.Context
-//   - meta *domain.AuditMeta
+//   - meta *services.AuditMeta
 //   - identifier string
 //   - password string
 func (_e *AuthService_Expecter) LogIn(ctx interface{}, meta interface{}, identifier interface{}, password interface{}) *AuthService_LogIn_Call {
 	return &AuthService_LogIn_Call{Call: _e.mock.On("LogIn", ctx, meta, identifier, password)}
 }
 
-func (_c *AuthService_LogIn_Call) Run(run func(ctx context.Context, meta *domain.AuditMeta, identifier string, password string)) *AuthService_LogIn_Call {
+func (_c *AuthService_LogIn_Call) Run(run func(ctx context.Context, meta *services.AuditMeta, identifier string, password string)) *AuthService_LogIn_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		var arg0 context.Context
 		if args[0] != nil {
 			arg0 = args[0].(context.Context)
 		}
-		var arg1 *domain.AuditMeta
+		var arg1 *services.AuditMeta
 		if args[1] != nil {
-			arg1 = args[1].(*domain.AuditMeta)
+			arg1 = args[1].(*services.AuditMeta)
 		}
 		var arg2 string
 		if args[2] != nil {
@@ -174,18 +174,18 @@ func (_c *AuthService_LogIn_Call) Run(run func(ctx context.Context, meta *domain
 	return _c
 }
 
-func (_c *AuthService_LogIn_Call) Return(loginResult *domain.LoginResult, err error) *AuthService_LogIn_Call {
+func (_c *AuthService_LogIn_Call) Return(loginResult *services.LoginResult, err error) *AuthService_LogIn_Call {
 	_c.Call.Return(loginResult, err)
 	return _c
 }
 
-func (_c *AuthService_LogIn_Call) RunAndReturn(run func(ctx context.Context, meta *domain.AuditMeta, identifier string, password string) (*domain.LoginResult, error)) *AuthService_LogIn_Call {
+func (_c *AuthService_LogIn_Call) RunAndReturn(run func(ctx context.Context, meta *services.AuditMeta, identifier string, password string) (*services.LoginResult, error)) *AuthService_LogIn_Call {
 	_c.Call.Return(run)
 	return _c
 }
 
 // Logout provides a mock function for the type AuthService
-func (_mock *AuthService) Logout(ctx context.Context, meta *domain.AuditMeta, actor *domain.AuditUser, sessionID uuid.UUID) error {
+func (_mock *AuthService) Logout(ctx context.Context, meta *services.AuditMeta, actor *services.AuditUser, sessionID uuid.UUID) error {
 	ret := _mock.Called(ctx, meta, actor, sessionID)
 
 	if len(ret) == 0 {
@@ -193,7 +193,7 @@ func (_mock *AuthService) Logout(ctx context.Context, meta *domain.AuditMeta, ac
 	}
 
 	var r0 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context, *domain.AuditMeta, *domain.AuditUser, uuid.UUID) error); ok {
+	if returnFunc, ok := ret.Get(0).(func(context.Context, *services.AuditMeta, *services.AuditUser, uuid.UUID) error); ok {
 		r0 = returnFunc(ctx, meta, actor, sessionID)
 	} else {
 		r0 = ret.Error(0)
@@ -208,26 +208,26 @@ type AuthService_Logout_Call struct {
 
 // Logout is a helper method to define mock.On call
 //   - ctx context.Context
-//   - meta *domain.AuditMeta
-//   - actor *domain.AuditUser
+//   - meta *services.AuditMeta
+//   - actor *services.AuditUser
 //   - sessionID uuid.UUID
 func (_e *AuthService_Expecter) Logout(ctx interface{}, meta interface{}, actor interface{}, sessionID interface{}) *AuthService_Logout_Call {
 	return &AuthService_Logout_Call{Call: _e.mock.On("Logout", ctx, meta, actor, sessionID)}
 }
 
-func (_c *AuthService_Logout_Call) Run(run func(ctx context.Context, meta *domain.AuditMeta, actor *domain.AuditUser, sessionID uuid.UUID)) *AuthService_Logout_Call {
+func (_c *AuthService_Logout_Call) Run(run func(ctx context.Context, meta *services.AuditMeta, actor *services.AuditUser, sessionID uuid.UUID)) *AuthService_Logout_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		var arg0 context.Context
 		if args[0] != nil {
 			arg0 = args[0].(context.Context)
 		}
-		var arg1 *domain.AuditMeta
+		var arg1 *services.AuditMeta
 		if args[1] != nil {
-			arg1 = args[1].(*domain.AuditMeta)
+			arg1 = args[1].(*services.AuditMeta)
 		}
-		var arg2 *domain.AuditUser
+		var arg2 *services.AuditUser
 		if args[2] != nil {
-			arg2 = args[2].(*domain.AuditUser)
+			arg2 = args[2].(*services.AuditUser)
 		}
 		var arg3 uuid.UUID
 		if args[3] != nil {
@@ -248,13 +248,13 @@ func (_c *AuthService_Logout_Call) Return(err error) *AuthService_Logout_Call {
 	return _c
 }
 
-func (_c *AuthService_Logout_Call) RunAndReturn(run func(ctx context.Context, meta *domain.AuditMeta, actor *domain.AuditUser, sessionID uuid.UUID) error) *AuthService_Logout_Call {
+func (_c *AuthService_Logout_Call) RunAndReturn(run func(ctx context.Context, meta *services.AuditMeta, actor *services.AuditUser, sessionID uuid.UUID) error) *AuthService_Logout_Call {
 	_c.Call.Return(run)
 	return _c
 }
 
 // LogoutAll provides a mock function for the type AuthService
-func (_mock *AuthService) LogoutAll(ctx context.Context, meta *domain.AuditMeta, actor *domain.AuditUser) error {
+func (_mock *AuthService) LogoutAll(ctx context.Context, meta *services.AuditMeta, actor *services.AuditUser) error {
 	ret := _mock.Called(ctx, meta, actor)
 
 	if len(ret) == 0 {
@@ -262,7 +262,7 @@ func (_mock *AuthService) LogoutAll(ctx context.Context, meta *domain.AuditMeta,
 	}
 
 	var r0 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context, *domain.AuditMeta, *domain.AuditUser) error); ok {
+	if returnFunc, ok := ret.Get(0).(func(context.Context, *services.AuditMeta, *services.AuditUser) error); ok {
 		r0 = returnFunc(ctx, meta, actor)
 	} else {
 		r0 = ret.Error(0)
@@ -277,25 +277,25 @@ type AuthService_LogoutAll_Call struct {
 
 // LogoutAll is a helper method to define mock.On call
 //   - ctx context.Context
-//   - meta *domain.AuditMeta
-//   - actor *domain.AuditUser
+//   - meta *services.AuditMeta
+//   - actor *services.AuditUser
 func (_e *AuthService_Expecter) LogoutAll(ctx interface{}, meta interface{}, actor interface{}) *AuthService_LogoutAll_Call {
 	return &AuthService_LogoutAll_Call{Call: _e.mock.On("LogoutAll", ctx, meta, actor)}
 }
 
-func (_c *AuthService_LogoutAll_Call) Run(run func(ctx context.Context, meta *domain.AuditMeta, actor *domain.AuditUser)) *AuthService_LogoutAll_Call {
+func (_c *AuthService_LogoutAll_Call) Run(run func(ctx context.Context, meta *services.AuditMeta, actor *services.AuditUser)) *AuthService_LogoutAll_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		var arg0 context.Context
 		if args[0] != nil {
 			arg0 = args[0].(context.Context)
 		}
-		var arg1 *domain.AuditMeta
+		var arg1 *services.AuditMeta
 		if args[1] != nil {
-			arg1 = args[1].(*domain.AuditMeta)
+			arg1 = args[1].(*services.AuditMeta)
 		}
-		var arg2 *domain.AuditUser
+		var arg2 *services.AuditUser
 		if args[2] != nil {
-			arg2 = args[2].(*domain.AuditUser)
+			arg2 = args[2].(*services.AuditUser)
 		}
 		run(
 			arg0,
@@ -311,32 +311,32 @@ func (_c *AuthService_LogoutAll_Call) Return(err error) *AuthService_LogoutAll_C
 	return _c
 }
 
-func (_c *AuthService_LogoutAll_Call) RunAndReturn(run func(ctx context.Context, meta *domain.AuditMeta, actor *domain.AuditUser) error) *AuthService_LogoutAll_Call {
+func (_c *AuthService_LogoutAll_Call) RunAndReturn(run func(ctx context.Context, meta *services.AuditMeta, actor *services.AuditUser) error) *AuthService_LogoutAll_Call {
 	_c.Call.Return(run)
 	return _c
 }
 
 // Refresh provides a mock function for the type AuthService
-func (_mock *AuthService) Refresh(ctx context.Context, meta *domain.AuditMeta, refreshToken string) (*domain.RefreshResult, error) {
+func (_mock *AuthService) Refresh(ctx context.Context, meta *services.AuditMeta, refreshToken string) (*services.RefreshResult, error) {
 	ret := _mock.Called(ctx, meta, refreshToken)
 
 	if len(ret) == 0 {
 		panic("no return value specified for Refresh")
 	}
 
-	var r0 *domain.RefreshResult
+	var r0 *services.RefreshResult
 	var r1 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context, *domain.AuditMeta, string) (*domain.RefreshResult, error)); ok {
+	if returnFunc, ok := ret.Get(0).(func(context.Context, *services.AuditMeta, string) (*services.RefreshResult, error)); ok {
 		return returnFunc(ctx, meta, refreshToken)
 	}
-	if returnFunc, ok := ret.Get(0).(func(context.Context, *domain.AuditMeta, string) *domain.RefreshResult); ok {
+	if returnFunc, ok := ret.Get(0).(func(context.Context, *services.AuditMeta, string) *services.RefreshResult); ok {
 		r0 = returnFunc(ctx, meta, refreshToken)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*domain.RefreshResult)
+			r0 = ret.Get(0).(*services.RefreshResult)
 		}
 	}
-	if returnFunc, ok := ret.Get(1).(func(context.Context, *domain.AuditMeta, string) error); ok {
+	if returnFunc, ok := ret.Get(1).(func(context.Context, *services.AuditMeta, string) error); ok {
 		r1 = returnFunc(ctx, meta, refreshToken)
 	} else {
 		r1 = ret.Error(1)
@@ -351,21 +351,21 @@ type AuthService_Refresh_Call struct {
 
 // Refresh is a helper method to define mock.On call
 //   - ctx context.Context
-//   - meta *domain.AuditMeta
+//   - meta *services.AuditMeta
 //   - refreshToken string
 func (_e *AuthService_Expecter) Refresh(ctx interface{}, meta interface{}, refreshToken interface{}) *AuthService_Refresh_Call {
 	return &AuthService_Refresh_Call{Call: _e.mock.On("Refresh", ctx, meta, refreshToken)}
 }
 
-func (_c *AuthService_Refresh_Call) Run(run func(ctx context.Context, meta *domain.AuditMeta, refreshToken string)) *AuthService_Refresh_Call {
+func (_c *AuthService_Refresh_Call) Run(run func(ctx context.Context, meta *services.AuditMeta, refreshToken string)) *AuthService_Refresh_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		var arg0 context.Context
 		if args[0] != nil {
 			arg0 = args[0].(context.Context)
 		}
-		var arg1 *domain.AuditMeta
+		var arg1 *services.AuditMeta
 		if args[1] != nil {
-			arg1 = args[1].(*domain.AuditMeta)
+			arg1 = args[1].(*services.AuditMeta)
 		}
 		var arg2 string
 		if args[2] != nil {
@@ -380,18 +380,18 @@ func (_c *AuthService_Refresh_Call) Run(run func(ctx context.Context, meta *doma
 	return _c
 }
 
-func (_c *AuthService_Refresh_Call) Return(refreshResult *domain.RefreshResult, err error) *AuthService_Refresh_Call {
+func (_c *AuthService_Refresh_Call) Return(refreshResult *services.RefreshResult, err error) *AuthService_Refresh_Call {
 	_c.Call.Return(refreshResult, err)
 	return _c
 }
 
-func (_c *AuthService_Refresh_Call) RunAndReturn(run func(ctx context.Context, meta *domain.AuditMeta, refreshToken string) (*domain.RefreshResult, error)) *AuthService_Refresh_Call {
+func (_c *AuthService_Refresh_Call) RunAndReturn(run func(ctx context.Context, meta *services.AuditMeta, refreshToken string) (*services.RefreshResult, error)) *AuthService_Refresh_Call {
 	_c.Call.Return(run)
 	return _c
 }
 
 // Register provides a mock function for the type AuthService
-func (_mock *AuthService) Register(ctx context.Context, meta *domain.AuditMeta, email string, username string, password string, firstName string, lastName string, dob time.Time) error {
+func (_mock *AuthService) Register(ctx context.Context, meta *services.AuditMeta, email string, username string, password string, firstName string, lastName string, dob time.Time) error {
 	ret := _mock.Called(ctx, meta, email, username, password, firstName, lastName, dob)
 
 	if len(ret) == 0 {
@@ -399,7 +399,7 @@ func (_mock *AuthService) Register(ctx context.Context, meta *domain.AuditMeta, 
 	}
 
 	var r0 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context, *domain.AuditMeta, string, string, string, string, string, time.Time) error); ok {
+	if returnFunc, ok := ret.Get(0).(func(context.Context, *services.AuditMeta, string, string, string, string, string, time.Time) error); ok {
 		r0 = returnFunc(ctx, meta, email, username, password, firstName, lastName, dob)
 	} else {
 		r0 = ret.Error(0)
@@ -414,7 +414,7 @@ type AuthService_Register_Call struct {
 
 // Register is a helper method to define mock.On call
 //   - ctx context.Context
-//   - meta *domain.AuditMeta
+//   - meta *services.AuditMeta
 //   - email string
 //   - username string
 //   - password string
@@ -425,15 +425,15 @@ func (_e *AuthService_Expecter) Register(ctx interface{}, meta interface{}, emai
 	return &AuthService_Register_Call{Call: _e.mock.On("Register", ctx, meta, email, username, password, firstName, lastName, dob)}
 }
 
-func (_c *AuthService_Register_Call) Run(run func(ctx context.Context, meta *domain.AuditMeta, email string, username string, password string, firstName string, lastName string, dob time.Time)) *AuthService_Register_Call {
+func (_c *AuthService_Register_Call) Run(run func(ctx context.Context, meta *services.AuditMeta, email string, username string, password string, firstName string, lastName string, dob time.Time)) *AuthService_Register_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		var arg0 context.Context
 		if args[0] != nil {
 			arg0 = args[0].(context.Context)
 		}
-		var arg1 *domain.AuditMeta
+		var arg1 *services.AuditMeta
 		if args[1] != nil {
-			arg1 = args[1].(*domain.AuditMeta)
+			arg1 = args[1].(*services.AuditMeta)
 		}
 		var arg2 string
 		if args[2] != nil {
@@ -478,13 +478,13 @@ func (_c *AuthService_Register_Call) Return(err error) *AuthService_Register_Cal
 	return _c
 }
 
-func (_c *AuthService_Register_Call) RunAndReturn(run func(ctx context.Context, meta *domain.AuditMeta, email string, username string, password string, firstName string, lastName string, dob time.Time) error) *AuthService_Register_Call {
+func (_c *AuthService_Register_Call) RunAndReturn(run func(ctx context.Context, meta *services.AuditMeta, email string, username string, password string, firstName string, lastName string, dob time.Time) error) *AuthService_Register_Call {
 	_c.Call.Return(run)
 	return _c
 }
 
 // ResendVerification provides a mock function for the type AuthService
-func (_mock *AuthService) ResendVerification(ctx context.Context, meta *domain.AuditMeta, email string, tokenType enum.TokenType) error {
+func (_mock *AuthService) ResendVerification(ctx context.Context, meta *services.AuditMeta, email string, tokenType domain.TokenType) error {
 	ret := _mock.Called(ctx, meta, email, tokenType)
 
 	if len(ret) == 0 {
@@ -492,7 +492,7 @@ func (_mock *AuthService) ResendVerification(ctx context.Context, meta *domain.A
 	}
 
 	var r0 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context, *domain.AuditMeta, string, enum.TokenType) error); ok {
+	if returnFunc, ok := ret.Get(0).(func(context.Context, *services.AuditMeta, string, domain.TokenType) error); ok {
 		r0 = returnFunc(ctx, meta, email, tokenType)
 	} else {
 		r0 = ret.Error(0)
@@ -507,30 +507,30 @@ type AuthService_ResendVerification_Call struct {
 
 // ResendVerification is a helper method to define mock.On call
 //   - ctx context.Context
-//   - meta *domain.AuditMeta
+//   - meta *services.AuditMeta
 //   - email string
-//   - tokenType enum.TokenType
+//   - tokenType domain.TokenType
 func (_e *AuthService_Expecter) ResendVerification(ctx interface{}, meta interface{}, email interface{}, tokenType interface{}) *AuthService_ResendVerification_Call {
 	return &AuthService_ResendVerification_Call{Call: _e.mock.On("ResendVerification", ctx, meta, email, tokenType)}
 }
 
-func (_c *AuthService_ResendVerification_Call) Run(run func(ctx context.Context, meta *domain.AuditMeta, email string, tokenType enum.TokenType)) *AuthService_ResendVerification_Call {
+func (_c *AuthService_ResendVerification_Call) Run(run func(ctx context.Context, meta *services.AuditMeta, email string, tokenType domain.TokenType)) *AuthService_ResendVerification_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		var arg0 context.Context
 		if args[0] != nil {
 			arg0 = args[0].(context.Context)
 		}
-		var arg1 *domain.AuditMeta
+		var arg1 *services.AuditMeta
 		if args[1] != nil {
-			arg1 = args[1].(*domain.AuditMeta)
+			arg1 = args[1].(*services.AuditMeta)
 		}
 		var arg2 string
 		if args[2] != nil {
 			arg2 = args[2].(string)
 		}
-		var arg3 enum.TokenType
+		var arg3 domain.TokenType
 		if args[3] != nil {
-			arg3 = args[3].(enum.TokenType)
+			arg3 = args[3].(domain.TokenType)
 		}
 		run(
 			arg0,
@@ -547,13 +547,13 @@ func (_c *AuthService_ResendVerification_Call) Return(err error) *AuthService_Re
 	return _c
 }
 
-func (_c *AuthService_ResendVerification_Call) RunAndReturn(run func(ctx context.Context, meta *domain.AuditMeta, email string, tokenType enum.TokenType) error) *AuthService_ResendVerification_Call {
+func (_c *AuthService_ResendVerification_Call) RunAndReturn(run func(ctx context.Context, meta *services.AuditMeta, email string, tokenType domain.TokenType) error) *AuthService_ResendVerification_Call {
 	_c.Call.Return(run)
 	return _c
 }
 
 // ResetPassword provides a mock function for the type AuthService
-func (_mock *AuthService) ResetPassword(ctx context.Context, meta *domain.AuditMeta, in *domain.SetPasswordInput, tokenType enum.TokenType) error {
+func (_mock *AuthService) ResetPassword(ctx context.Context, meta *services.AuditMeta, in *services.SetPasswordInput, tokenType domain.TokenType) error {
 	ret := _mock.Called(ctx, meta, in, tokenType)
 
 	if len(ret) == 0 {
@@ -561,7 +561,7 @@ func (_mock *AuthService) ResetPassword(ctx context.Context, meta *domain.AuditM
 	}
 
 	var r0 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context, *domain.AuditMeta, *domain.SetPasswordInput, enum.TokenType) error); ok {
+	if returnFunc, ok := ret.Get(0).(func(context.Context, *services.AuditMeta, *services.SetPasswordInput, domain.TokenType) error); ok {
 		r0 = returnFunc(ctx, meta, in, tokenType)
 	} else {
 		r0 = ret.Error(0)
@@ -576,30 +576,30 @@ type AuthService_ResetPassword_Call struct {
 
 // ResetPassword is a helper method to define mock.On call
 //   - ctx context.Context
-//   - meta *domain.AuditMeta
-//   - in *domain.SetPasswordInput
-//   - tokenType enum.TokenType
+//   - meta *services.AuditMeta
+//   - in *services.SetPasswordInput
+//   - tokenType domain.TokenType
 func (_e *AuthService_Expecter) ResetPassword(ctx interface{}, meta interface{}, in interface{}, tokenType interface{}) *AuthService_ResetPassword_Call {
 	return &AuthService_ResetPassword_Call{Call: _e.mock.On("ResetPassword", ctx, meta, in, tokenType)}
 }
 
-func (_c *AuthService_ResetPassword_Call) Run(run func(ctx context.Context, meta *domain.AuditMeta, in *domain.SetPasswordInput, tokenType enum.TokenType)) *AuthService_ResetPassword_Call {
+func (_c *AuthService_ResetPassword_Call) Run(run func(ctx context.Context, meta *services.AuditMeta, in *services.SetPasswordInput, tokenType domain.TokenType)) *AuthService_ResetPassword_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		var arg0 context.Context
 		if args[0] != nil {
 			arg0 = args[0].(context.Context)
 		}
-		var arg1 *domain.AuditMeta
+		var arg1 *services.AuditMeta
 		if args[1] != nil {
-			arg1 = args[1].(*domain.AuditMeta)
+			arg1 = args[1].(*services.AuditMeta)
 		}
-		var arg2 *domain.SetPasswordInput
+		var arg2 *services.SetPasswordInput
 		if args[2] != nil {
-			arg2 = args[2].(*domain.SetPasswordInput)
+			arg2 = args[2].(*services.SetPasswordInput)
 		}
-		var arg3 enum.TokenType
+		var arg3 domain.TokenType
 		if args[3] != nil {
-			arg3 = args[3].(enum.TokenType)
+			arg3 = args[3].(domain.TokenType)
 		}
 		run(
 			arg0,
@@ -616,13 +616,13 @@ func (_c *AuthService_ResetPassword_Call) Return(err error) *AuthService_ResetPa
 	return _c
 }
 
-func (_c *AuthService_ResetPassword_Call) RunAndReturn(run func(ctx context.Context, meta *domain.AuditMeta, in *domain.SetPasswordInput, tokenType enum.TokenType) error) *AuthService_ResetPassword_Call {
+func (_c *AuthService_ResetPassword_Call) RunAndReturn(run func(ctx context.Context, meta *services.AuditMeta, in *services.SetPasswordInput, tokenType domain.TokenType) error) *AuthService_ResetPassword_Call {
 	_c.Call.Return(run)
 	return _c
 }
 
 // SetPassword provides a mock function for the type AuthService
-func (_mock *AuthService) SetPassword(ctx context.Context, meta *domain.AuditMeta, in *domain.SetPasswordInput, tokenType enum.TokenType) error {
+func (_mock *AuthService) SetPassword(ctx context.Context, meta *services.AuditMeta, in *services.SetPasswordInput, tokenType domain.TokenType) error {
 	ret := _mock.Called(ctx, meta, in, tokenType)
 
 	if len(ret) == 0 {
@@ -630,7 +630,7 @@ func (_mock *AuthService) SetPassword(ctx context.Context, meta *domain.AuditMet
 	}
 
 	var r0 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context, *domain.AuditMeta, *domain.SetPasswordInput, enum.TokenType) error); ok {
+	if returnFunc, ok := ret.Get(0).(func(context.Context, *services.AuditMeta, *services.SetPasswordInput, domain.TokenType) error); ok {
 		r0 = returnFunc(ctx, meta, in, tokenType)
 	} else {
 		r0 = ret.Error(0)
@@ -645,30 +645,30 @@ type AuthService_SetPassword_Call struct {
 
 // SetPassword is a helper method to define mock.On call
 //   - ctx context.Context
-//   - meta *domain.AuditMeta
-//   - in *domain.SetPasswordInput
-//   - tokenType enum.TokenType
+//   - meta *services.AuditMeta
+//   - in *services.SetPasswordInput
+//   - tokenType domain.TokenType
 func (_e *AuthService_Expecter) SetPassword(ctx interface{}, meta interface{}, in interface{}, tokenType interface{}) *AuthService_SetPassword_Call {
 	return &AuthService_SetPassword_Call{Call: _e.mock.On("SetPassword", ctx, meta, in, tokenType)}
 }
 
-func (_c *AuthService_SetPassword_Call) Run(run func(ctx context.Context, meta *domain.AuditMeta, in *domain.SetPasswordInput, tokenType enum.TokenType)) *AuthService_SetPassword_Call {
+func (_c *AuthService_SetPassword_Call) Run(run func(ctx context.Context, meta *services.AuditMeta, in *services.SetPasswordInput, tokenType domain.TokenType)) *AuthService_SetPassword_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		var arg0 context.Context
 		if args[0] != nil {
 			arg0 = args[0].(context.Context)
 		}
-		var arg1 *domain.AuditMeta
+		var arg1 *services.AuditMeta
 		if args[1] != nil {
-			arg1 = args[1].(*domain.AuditMeta)
+			arg1 = args[1].(*services.AuditMeta)
 		}
-		var arg2 *domain.SetPasswordInput
+		var arg2 *services.SetPasswordInput
 		if args[2] != nil {
-			arg2 = args[2].(*domain.SetPasswordInput)
+			arg2 = args[2].(*services.SetPasswordInput)
 		}
-		var arg3 enum.TokenType
+		var arg3 domain.TokenType
 		if args[3] != nil {
-			arg3 = args[3].(enum.TokenType)
+			arg3 = args[3].(domain.TokenType)
 		}
 		run(
 			arg0,
@@ -685,13 +685,13 @@ func (_c *AuthService_SetPassword_Call) Return(err error) *AuthService_SetPasswo
 	return _c
 }
 
-func (_c *AuthService_SetPassword_Call) RunAndReturn(run func(ctx context.Context, meta *domain.AuditMeta, in *domain.SetPasswordInput, tokenType enum.TokenType) error) *AuthService_SetPassword_Call {
+func (_c *AuthService_SetPassword_Call) RunAndReturn(run func(ctx context.Context, meta *services.AuditMeta, in *services.SetPasswordInput, tokenType domain.TokenType) error) *AuthService_SetPassword_Call {
 	_c.Call.Return(run)
 	return _c
 }
 
 // VerifyEmail provides a mock function for the type AuthService
-func (_mock *AuthService) VerifyEmail(ctx context.Context, meta *domain.AuditMeta, rawToken string, tokenType enum.TokenType) error {
+func (_mock *AuthService) VerifyEmail(ctx context.Context, meta *services.AuditMeta, rawToken string, tokenType domain.TokenType) error {
 	ret := _mock.Called(ctx, meta, rawToken, tokenType)
 
 	if len(ret) == 0 {
@@ -699,7 +699,7 @@ func (_mock *AuthService) VerifyEmail(ctx context.Context, meta *domain.AuditMet
 	}
 
 	var r0 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context, *domain.AuditMeta, string, enum.TokenType) error); ok {
+	if returnFunc, ok := ret.Get(0).(func(context.Context, *services.AuditMeta, string, domain.TokenType) error); ok {
 		r0 = returnFunc(ctx, meta, rawToken, tokenType)
 	} else {
 		r0 = ret.Error(0)
@@ -714,30 +714,30 @@ type AuthService_VerifyEmail_Call struct {
 
 // VerifyEmail is a helper method to define mock.On call
 //   - ctx context.Context
-//   - meta *domain.AuditMeta
+//   - meta *services.AuditMeta
 //   - rawToken string
-//   - tokenType enum.TokenType
+//   - tokenType domain.TokenType
 func (_e *AuthService_Expecter) VerifyEmail(ctx interface{}, meta interface{}, rawToken interface{}, tokenType interface{}) *AuthService_VerifyEmail_Call {
 	return &AuthService_VerifyEmail_Call{Call: _e.mock.On("VerifyEmail", ctx, meta, rawToken, tokenType)}
 }
 
-func (_c *AuthService_VerifyEmail_Call) Run(run func(ctx context.Context, meta *domain.AuditMeta, rawToken string, tokenType enum.TokenType)) *AuthService_VerifyEmail_Call {
+func (_c *AuthService_VerifyEmail_Call) Run(run func(ctx context.Context, meta *services.AuditMeta, rawToken string, tokenType domain.TokenType)) *AuthService_VerifyEmail_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		var arg0 context.Context
 		if args[0] != nil {
 			arg0 = args[0].(context.Context)
 		}
-		var arg1 *domain.AuditMeta
+		var arg1 *services.AuditMeta
 		if args[1] != nil {
-			arg1 = args[1].(*domain.AuditMeta)
+			arg1 = args[1].(*services.AuditMeta)
 		}
 		var arg2 string
 		if args[2] != nil {
 			arg2 = args[2].(string)
 		}
-		var arg3 enum.TokenType
+		var arg3 domain.TokenType
 		if args[3] != nil {
-			arg3 = args[3].(enum.TokenType)
+			arg3 = args[3].(domain.TokenType)
 		}
 		run(
 			arg0,
@@ -754,7 +754,7 @@ func (_c *AuthService_VerifyEmail_Call) Return(err error) *AuthService_VerifyEma
 	return _c
 }
 
-func (_c *AuthService_VerifyEmail_Call) RunAndReturn(run func(ctx context.Context, meta *domain.AuditMeta, rawToken string, tokenType enum.TokenType) error) *AuthService_VerifyEmail_Call {
+func (_c *AuthService_VerifyEmail_Call) RunAndReturn(run func(ctx context.Context, meta *services.AuditMeta, rawToken string, tokenType domain.TokenType) error) *AuthService_VerifyEmail_Call {
 	_c.Call.Return(run)
 	return _c
 }

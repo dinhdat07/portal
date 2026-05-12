@@ -6,8 +6,8 @@ package mocks
 
 import (
 	"context"
-	"portal-system/internal/domain"
 	"portal-system/internal/models"
+	"portal-system/internal/services"
 
 	"github.com/google/uuid"
 	mock "github.com/stretchr/testify/mock"
@@ -41,7 +41,7 @@ func (_m *RoleService) EXPECT() *RoleService_Expecter {
 }
 
 // AssignPermission provides a mock function for the type RoleService
-func (_mock *RoleService) AssignPermission(ctx context.Context, meta *domain.AuditMeta, actor *domain.AuditUser, roleID uuid.UUID, permID uuid.UUID) error {
+func (_mock *RoleService) AssignPermission(ctx context.Context, meta *services.AuditMeta, actor *services.AuditUser, roleID uuid.UUID, permID uuid.UUID) error {
 	ret := _mock.Called(ctx, meta, actor, roleID, permID)
 
 	if len(ret) == 0 {
@@ -49,7 +49,7 @@ func (_mock *RoleService) AssignPermission(ctx context.Context, meta *domain.Aud
 	}
 
 	var r0 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context, *domain.AuditMeta, *domain.AuditUser, uuid.UUID, uuid.UUID) error); ok {
+	if returnFunc, ok := ret.Get(0).(func(context.Context, *services.AuditMeta, *services.AuditUser, uuid.UUID, uuid.UUID) error); ok {
 		r0 = returnFunc(ctx, meta, actor, roleID, permID)
 	} else {
 		r0 = ret.Error(0)
@@ -64,27 +64,27 @@ type RoleService_AssignPermission_Call struct {
 
 // AssignPermission is a helper method to define mock.On call
 //   - ctx context.Context
-//   - meta *domain.AuditMeta
-//   - actor *domain.AuditUser
+//   - meta *services.AuditMeta
+//   - actor *services.AuditUser
 //   - roleID uuid.UUID
 //   - permID uuid.UUID
 func (_e *RoleService_Expecter) AssignPermission(ctx interface{}, meta interface{}, actor interface{}, roleID interface{}, permID interface{}) *RoleService_AssignPermission_Call {
 	return &RoleService_AssignPermission_Call{Call: _e.mock.On("AssignPermission", ctx, meta, actor, roleID, permID)}
 }
 
-func (_c *RoleService_AssignPermission_Call) Run(run func(ctx context.Context, meta *domain.AuditMeta, actor *domain.AuditUser, roleID uuid.UUID, permID uuid.UUID)) *RoleService_AssignPermission_Call {
+func (_c *RoleService_AssignPermission_Call) Run(run func(ctx context.Context, meta *services.AuditMeta, actor *services.AuditUser, roleID uuid.UUID, permID uuid.UUID)) *RoleService_AssignPermission_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		var arg0 context.Context
 		if args[0] != nil {
 			arg0 = args[0].(context.Context)
 		}
-		var arg1 *domain.AuditMeta
+		var arg1 *services.AuditMeta
 		if args[1] != nil {
-			arg1 = args[1].(*domain.AuditMeta)
+			arg1 = args[1].(*services.AuditMeta)
 		}
-		var arg2 *domain.AuditUser
+		var arg2 *services.AuditUser
 		if args[2] != nil {
-			arg2 = args[2].(*domain.AuditUser)
+			arg2 = args[2].(*services.AuditUser)
 		}
 		var arg3 uuid.UUID
 		if args[3] != nil {
@@ -110,13 +110,13 @@ func (_c *RoleService_AssignPermission_Call) Return(err error) *RoleService_Assi
 	return _c
 }
 
-func (_c *RoleService_AssignPermission_Call) RunAndReturn(run func(ctx context.Context, meta *domain.AuditMeta, actor *domain.AuditUser, roleID uuid.UUID, permID uuid.UUID) error) *RoleService_AssignPermission_Call {
+func (_c *RoleService_AssignPermission_Call) RunAndReturn(run func(ctx context.Context, meta *services.AuditMeta, actor *services.AuditUser, roleID uuid.UUID, permID uuid.UUID) error) *RoleService_AssignPermission_Call {
 	_c.Call.Return(run)
 	return _c
 }
 
 // CreateRole provides a mock function for the type RoleService
-func (_mock *RoleService) CreateRole(ctx context.Context, meta *domain.AuditMeta, actor *domain.AuditUser, in domain.CreateRoleInput) (*models.Role, error) {
+func (_mock *RoleService) CreateRole(ctx context.Context, meta *services.AuditMeta, actor *services.AuditUser, in services.CreateRoleInput) (*models.Role, error) {
 	ret := _mock.Called(ctx, meta, actor, in)
 
 	if len(ret) == 0 {
@@ -125,17 +125,17 @@ func (_mock *RoleService) CreateRole(ctx context.Context, meta *domain.AuditMeta
 
 	var r0 *models.Role
 	var r1 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context, *domain.AuditMeta, *domain.AuditUser, domain.CreateRoleInput) (*models.Role, error)); ok {
+	if returnFunc, ok := ret.Get(0).(func(context.Context, *services.AuditMeta, *services.AuditUser, services.CreateRoleInput) (*models.Role, error)); ok {
 		return returnFunc(ctx, meta, actor, in)
 	}
-	if returnFunc, ok := ret.Get(0).(func(context.Context, *domain.AuditMeta, *domain.AuditUser, domain.CreateRoleInput) *models.Role); ok {
+	if returnFunc, ok := ret.Get(0).(func(context.Context, *services.AuditMeta, *services.AuditUser, services.CreateRoleInput) *models.Role); ok {
 		r0 = returnFunc(ctx, meta, actor, in)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*models.Role)
 		}
 	}
-	if returnFunc, ok := ret.Get(1).(func(context.Context, *domain.AuditMeta, *domain.AuditUser, domain.CreateRoleInput) error); ok {
+	if returnFunc, ok := ret.Get(1).(func(context.Context, *services.AuditMeta, *services.AuditUser, services.CreateRoleInput) error); ok {
 		r1 = returnFunc(ctx, meta, actor, in)
 	} else {
 		r1 = ret.Error(1)
@@ -150,30 +150,30 @@ type RoleService_CreateRole_Call struct {
 
 // CreateRole is a helper method to define mock.On call
 //   - ctx context.Context
-//   - meta *domain.AuditMeta
-//   - actor *domain.AuditUser
-//   - in domain.CreateRoleInput
+//   - meta *services.AuditMeta
+//   - actor *services.AuditUser
+//   - in services.CreateRoleInput
 func (_e *RoleService_Expecter) CreateRole(ctx interface{}, meta interface{}, actor interface{}, in interface{}) *RoleService_CreateRole_Call {
 	return &RoleService_CreateRole_Call{Call: _e.mock.On("CreateRole", ctx, meta, actor, in)}
 }
 
-func (_c *RoleService_CreateRole_Call) Run(run func(ctx context.Context, meta *domain.AuditMeta, actor *domain.AuditUser, in domain.CreateRoleInput)) *RoleService_CreateRole_Call {
+func (_c *RoleService_CreateRole_Call) Run(run func(ctx context.Context, meta *services.AuditMeta, actor *services.AuditUser, in services.CreateRoleInput)) *RoleService_CreateRole_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		var arg0 context.Context
 		if args[0] != nil {
 			arg0 = args[0].(context.Context)
 		}
-		var arg1 *domain.AuditMeta
+		var arg1 *services.AuditMeta
 		if args[1] != nil {
-			arg1 = args[1].(*domain.AuditMeta)
+			arg1 = args[1].(*services.AuditMeta)
 		}
-		var arg2 *domain.AuditUser
+		var arg2 *services.AuditUser
 		if args[2] != nil {
-			arg2 = args[2].(*domain.AuditUser)
+			arg2 = args[2].(*services.AuditUser)
 		}
-		var arg3 domain.CreateRoleInput
+		var arg3 services.CreateRoleInput
 		if args[3] != nil {
-			arg3 = args[3].(domain.CreateRoleInput)
+			arg3 = args[3].(services.CreateRoleInput)
 		}
 		run(
 			arg0,
@@ -190,13 +190,13 @@ func (_c *RoleService_CreateRole_Call) Return(role *models.Role, err error) *Rol
 	return _c
 }
 
-func (_c *RoleService_CreateRole_Call) RunAndReturn(run func(ctx context.Context, meta *domain.AuditMeta, actor *domain.AuditUser, in domain.CreateRoleInput) (*models.Role, error)) *RoleService_CreateRole_Call {
+func (_c *RoleService_CreateRole_Call) RunAndReturn(run func(ctx context.Context, meta *services.AuditMeta, actor *services.AuditUser, in services.CreateRoleInput) (*models.Role, error)) *RoleService_CreateRole_Call {
 	_c.Call.Return(run)
 	return _c
 }
 
 // DeleteRole provides a mock function for the type RoleService
-func (_mock *RoleService) DeleteRole(ctx context.Context, meta *domain.AuditMeta, actor *domain.AuditUser, roleID uuid.UUID, replaceRoleID *uuid.UUID) error {
+func (_mock *RoleService) DeleteRole(ctx context.Context, meta *services.AuditMeta, actor *services.AuditUser, roleID uuid.UUID, replaceRoleID *uuid.UUID) error {
 	ret := _mock.Called(ctx, meta, actor, roleID, replaceRoleID)
 
 	if len(ret) == 0 {
@@ -204,7 +204,7 @@ func (_mock *RoleService) DeleteRole(ctx context.Context, meta *domain.AuditMeta
 	}
 
 	var r0 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context, *domain.AuditMeta, *domain.AuditUser, uuid.UUID, *uuid.UUID) error); ok {
+	if returnFunc, ok := ret.Get(0).(func(context.Context, *services.AuditMeta, *services.AuditUser, uuid.UUID, *uuid.UUID) error); ok {
 		r0 = returnFunc(ctx, meta, actor, roleID, replaceRoleID)
 	} else {
 		r0 = ret.Error(0)
@@ -219,27 +219,27 @@ type RoleService_DeleteRole_Call struct {
 
 // DeleteRole is a helper method to define mock.On call
 //   - ctx context.Context
-//   - meta *domain.AuditMeta
-//   - actor *domain.AuditUser
+//   - meta *services.AuditMeta
+//   - actor *services.AuditUser
 //   - roleID uuid.UUID
 //   - replaceRoleID *uuid.UUID
 func (_e *RoleService_Expecter) DeleteRole(ctx interface{}, meta interface{}, actor interface{}, roleID interface{}, replaceRoleID interface{}) *RoleService_DeleteRole_Call {
 	return &RoleService_DeleteRole_Call{Call: _e.mock.On("DeleteRole", ctx, meta, actor, roleID, replaceRoleID)}
 }
 
-func (_c *RoleService_DeleteRole_Call) Run(run func(ctx context.Context, meta *domain.AuditMeta, actor *domain.AuditUser, roleID uuid.UUID, replaceRoleID *uuid.UUID)) *RoleService_DeleteRole_Call {
+func (_c *RoleService_DeleteRole_Call) Run(run func(ctx context.Context, meta *services.AuditMeta, actor *services.AuditUser, roleID uuid.UUID, replaceRoleID *uuid.UUID)) *RoleService_DeleteRole_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		var arg0 context.Context
 		if args[0] != nil {
 			arg0 = args[0].(context.Context)
 		}
-		var arg1 *domain.AuditMeta
+		var arg1 *services.AuditMeta
 		if args[1] != nil {
-			arg1 = args[1].(*domain.AuditMeta)
+			arg1 = args[1].(*services.AuditMeta)
 		}
-		var arg2 *domain.AuditUser
+		var arg2 *services.AuditUser
 		if args[2] != nil {
-			arg2 = args[2].(*domain.AuditUser)
+			arg2 = args[2].(*services.AuditUser)
 		}
 		var arg3 uuid.UUID
 		if args[3] != nil {
@@ -265,7 +265,7 @@ func (_c *RoleService_DeleteRole_Call) Return(err error) *RoleService_DeleteRole
 	return _c
 }
 
-func (_c *RoleService_DeleteRole_Call) RunAndReturn(run func(ctx context.Context, meta *domain.AuditMeta, actor *domain.AuditUser, roleID uuid.UUID, replaceRoleID *uuid.UUID) error) *RoleService_DeleteRole_Call {
+func (_c *RoleService_DeleteRole_Call) RunAndReturn(run func(ctx context.Context, meta *services.AuditMeta, actor *services.AuditUser, roleID uuid.UUID, replaceRoleID *uuid.UUID) error) *RoleService_DeleteRole_Call {
 	_c.Call.Return(run)
 	return _c
 }
@@ -333,7 +333,7 @@ func (_c *RoleService_ListRoles_Call) RunAndReturn(run func(ctx context.Context)
 }
 
 // RemovePermission provides a mock function for the type RoleService
-func (_mock *RoleService) RemovePermission(ctx context.Context, meta *domain.AuditMeta, actor *domain.AuditUser, roleID uuid.UUID, permID uuid.UUID) error {
+func (_mock *RoleService) RemovePermission(ctx context.Context, meta *services.AuditMeta, actor *services.AuditUser, roleID uuid.UUID, permID uuid.UUID) error {
 	ret := _mock.Called(ctx, meta, actor, roleID, permID)
 
 	if len(ret) == 0 {
@@ -341,7 +341,7 @@ func (_mock *RoleService) RemovePermission(ctx context.Context, meta *domain.Aud
 	}
 
 	var r0 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context, *domain.AuditMeta, *domain.AuditUser, uuid.UUID, uuid.UUID) error); ok {
+	if returnFunc, ok := ret.Get(0).(func(context.Context, *services.AuditMeta, *services.AuditUser, uuid.UUID, uuid.UUID) error); ok {
 		r0 = returnFunc(ctx, meta, actor, roleID, permID)
 	} else {
 		r0 = ret.Error(0)
@@ -356,27 +356,27 @@ type RoleService_RemovePermission_Call struct {
 
 // RemovePermission is a helper method to define mock.On call
 //   - ctx context.Context
-//   - meta *domain.AuditMeta
-//   - actor *domain.AuditUser
+//   - meta *services.AuditMeta
+//   - actor *services.AuditUser
 //   - roleID uuid.UUID
 //   - permID uuid.UUID
 func (_e *RoleService_Expecter) RemovePermission(ctx interface{}, meta interface{}, actor interface{}, roleID interface{}, permID interface{}) *RoleService_RemovePermission_Call {
 	return &RoleService_RemovePermission_Call{Call: _e.mock.On("RemovePermission", ctx, meta, actor, roleID, permID)}
 }
 
-func (_c *RoleService_RemovePermission_Call) Run(run func(ctx context.Context, meta *domain.AuditMeta, actor *domain.AuditUser, roleID uuid.UUID, permID uuid.UUID)) *RoleService_RemovePermission_Call {
+func (_c *RoleService_RemovePermission_Call) Run(run func(ctx context.Context, meta *services.AuditMeta, actor *services.AuditUser, roleID uuid.UUID, permID uuid.UUID)) *RoleService_RemovePermission_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		var arg0 context.Context
 		if args[0] != nil {
 			arg0 = args[0].(context.Context)
 		}
-		var arg1 *domain.AuditMeta
+		var arg1 *services.AuditMeta
 		if args[1] != nil {
-			arg1 = args[1].(*domain.AuditMeta)
+			arg1 = args[1].(*services.AuditMeta)
 		}
-		var arg2 *domain.AuditUser
+		var arg2 *services.AuditUser
 		if args[2] != nil {
-			arg2 = args[2].(*domain.AuditUser)
+			arg2 = args[2].(*services.AuditUser)
 		}
 		var arg3 uuid.UUID
 		if args[3] != nil {
@@ -402,7 +402,7 @@ func (_c *RoleService_RemovePermission_Call) Return(err error) *RoleService_Remo
 	return _c
 }
 
-func (_c *RoleService_RemovePermission_Call) RunAndReturn(run func(ctx context.Context, meta *domain.AuditMeta, actor *domain.AuditUser, roleID uuid.UUID, permID uuid.UUID) error) *RoleService_RemovePermission_Call {
+func (_c *RoleService_RemovePermission_Call) RunAndReturn(run func(ctx context.Context, meta *services.AuditMeta, actor *services.AuditUser, roleID uuid.UUID, permID uuid.UUID) error) *RoleService_RemovePermission_Call {
 	_c.Call.Return(run)
 	return _c
 }

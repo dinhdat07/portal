@@ -5,7 +5,6 @@ import (
 	adminv1 "portal-system/gen/go/admin/v1"
 	commonv1 "portal-system/gen/go/common/v1"
 	"portal-system/internal/domain"
-	"portal-system/internal/domain/constants"
 	mappers "portal-system/internal/grpc/mapper"
 	"portal-system/internal/services"
 	"time"
@@ -69,7 +68,7 @@ func (s *AdminServer) ListUsers(ctx context.Context, req *adminv1.ListUsersReque
 		return nil, gstatus.Error(codes.InvalidArgument, "invalid pagination")
 	}
 
-	filter := domain.UsersFilter{
+	filter := services.UsersFilter{
 		Page:           page,
 		PageSize:       pageSize,
 		IncludeDeleted: req.GetIncludeDeleted(),
@@ -92,7 +91,7 @@ func (s *AdminServer) ListUsers(ctx context.Context, req *adminv1.ListUsersReque
 		filter.Dob = &dob
 	}
 	if req.RoleCode != nil {
-		roleCode := constants.RoleCode(req.GetRoleCode())
+		roleCode := domain.RoleCode(req.GetRoleCode())
 		filter.RoleCode = &roleCode
 	}
 	if req.Status != nil {
@@ -129,12 +128,12 @@ func (s *AdminServer) CreateUser(ctx context.Context, req *adminv1.CreateUserReq
 		return nil, gstatus.Error(codes.InvalidArgument, "invalid dob format, expected YYYY-MM-DD")
 	}
 
-	input := domain.CreateUserInput{
+	input := services.CreateUserInput{
 		Email:     req.GetEmail(),
 		Username:  req.GetUsername(),
 		FirstName: req.GetFirstName(),
 		LastName:  req.GetLastName(),
-		RoleCode:  constants.RoleCode(req.GetRoleCode()),
+		RoleCode:  domain.RoleCode(req.GetRoleCode()),
 		DOB:       &dob,
 	}
 
@@ -185,7 +184,7 @@ func (s *AdminServer) UpdateUser(ctx context.Context, req *adminv1.UpdateUserReq
 		return nil, err
 	}
 
-	input := domain.UpdateUserInput{}
+	input := services.UpdateUserInput{}
 
 	if req.FirstName != nil {
 		v := req.GetFirstName()
@@ -280,7 +279,7 @@ func (s *AdminServer) UpdateUserRole(ctx context.Context, req *adminv1.UpdateUse
 	}
 
 	meta := getAuditFromCtx(ctx)
-	user, err := s.adminService.UpdateRole(ctx, meta, actor, userID, constants.RoleCode(req.GetRoleCode()))
+	user, err := s.adminService.UpdateRole(ctx, meta, actor, userID, domain.RoleCode(req.GetRoleCode()))
 	if err != nil {
 		return nil, mappers.MapError(err)
 	}
@@ -313,8 +312,8 @@ func (s *AdminServer) CreateRole(ctx context.Context, req *adminv1.CreateRoleReq
 	}
 
 	meta := getAuditFromCtx(ctx)
-	role, err := s.roleService.CreateRole(ctx, meta, actor, domain.CreateRoleInput{
-		Code: constants.RoleCode(req.GetCode()),
+	role, err := s.roleService.CreateRole(ctx, meta, actor, services.CreateRoleInput{
+		Code: domain.RoleCode(req.GetCode()),
 		Name: req.GetName(),
 	})
 	if err != nil {

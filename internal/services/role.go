@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"portal-system/internal/domain"
-	"portal-system/internal/domain/enum"
 	"portal-system/internal/models"
 	"portal-system/internal/repositories"
 
@@ -12,11 +11,11 @@ import (
 )
 
 type RoleService interface {
-	CreateRole(ctx context.Context, meta *domain.AuditMeta, actor *domain.AuditUser, in domain.CreateRoleInput) (*models.Role, error)
+	CreateRole(ctx context.Context, meta *AuditMeta, actor *AuditUser, in CreateRoleInput) (*models.Role, error)
 	ListRoles(ctx context.Context) ([]models.Role, error)
-	AssignPermission(ctx context.Context, meta *domain.AuditMeta, actor *domain.AuditUser, roleID uuid.UUID, permID uuid.UUID) error
-	RemovePermission(ctx context.Context, meta *domain.AuditMeta, actor *domain.AuditUser, roleID uuid.UUID, permID uuid.UUID) error
-	DeleteRole(ctx context.Context, meta *domain.AuditMeta, actor *domain.AuditUser, roleID uuid.UUID, replaceRoleID *uuid.UUID) error
+	AssignPermission(ctx context.Context, meta *AuditMeta, actor *AuditUser, roleID uuid.UUID, permID uuid.UUID) error
+	RemovePermission(ctx context.Context, meta *AuditMeta, actor *AuditUser, roleID uuid.UUID, permID uuid.UUID) error
+	DeleteRole(ctx context.Context, meta *AuditMeta, actor *AuditUser, roleID uuid.UUID, replaceRoleID *uuid.UUID) error
 }
 
 type RoleServiceDeps struct {
@@ -45,7 +44,7 @@ func NewRoleService(deps RoleServiceDeps) *roleService {
 	}
 }
 
-func (s *roleService) CreateRole(ctx context.Context, meta *domain.AuditMeta, actor *domain.AuditUser, in domain.CreateRoleInput) (*models.Role, error) {
+func (s *roleService) CreateRole(ctx context.Context, meta *AuditMeta, actor *AuditUser, in CreateRoleInput) (*models.Role, error) {
 	if in.Code == "" || in.Name == "" {
 		return nil, ErrInvalidInput
 	}
@@ -73,7 +72,7 @@ func (s *roleService) CreateRole(ctx context.Context, meta *domain.AuditMeta, ac
 		return s.auditLogger.LogWithMetadata(
 			ctx,
 			meta,
-			enum.ActionCreateRole,
+			domain.ActionCreateRole,
 			actor,
 			nil,
 			map[string]any{
@@ -98,7 +97,7 @@ func (s *roleService) ListRoles(ctx context.Context) ([]models.Role, error) {
 	return roles, nil
 }
 
-func (s *roleService) AssignPermission(ctx context.Context, meta *domain.AuditMeta, actor *domain.AuditUser, roleID uuid.UUID, permID uuid.UUID) error {
+func (s *roleService) AssignPermission(ctx context.Context, meta *AuditMeta, actor *AuditUser, roleID uuid.UUID, permID uuid.UUID) error {
 	return s.txManager.WithTx(ctx, func(ctx context.Context) error {
 		role, err := s.roleRepo.FindByID(ctx, roleID)
 		if err != nil {
@@ -127,7 +126,7 @@ func (s *roleService) AssignPermission(ctx context.Context, meta *domain.AuditMe
 		return s.auditLogger.LogWithMetadata(
 			ctx,
 			meta,
-			enum.ActionAssignPermission,
+			domain.ActionAssignPermission,
 			actor,
 			nil,
 			map[string]any{
@@ -141,7 +140,7 @@ func (s *roleService) AssignPermission(ctx context.Context, meta *domain.AuditMe
 	})
 }
 
-func (s *roleService) RemovePermission(ctx context.Context, meta *domain.AuditMeta, actor *domain.AuditUser, roleID uuid.UUID, permID uuid.UUID) error {
+func (s *roleService) RemovePermission(ctx context.Context, meta *AuditMeta, actor *AuditUser, roleID uuid.UUID, permID uuid.UUID) error {
 	return s.txManager.WithTx(ctx, func(ctx context.Context) error {
 		role, err := s.roleRepo.FindByID(ctx, roleID)
 		if err != nil {
@@ -170,7 +169,7 @@ func (s *roleService) RemovePermission(ctx context.Context, meta *domain.AuditMe
 		return s.auditLogger.LogWithMetadata(
 			ctx,
 			meta,
-			enum.ActionRemovePermission,
+			domain.ActionRemovePermission,
 			actor,
 			nil,
 			map[string]any{
@@ -184,7 +183,7 @@ func (s *roleService) RemovePermission(ctx context.Context, meta *domain.AuditMe
 	})
 }
 
-func (s *roleService) DeleteRole(ctx context.Context, meta *domain.AuditMeta, actor *domain.AuditUser, roleID uuid.UUID, replaceRoleID *uuid.UUID) error {
+func (s *roleService) DeleteRole(ctx context.Context, meta *AuditMeta, actor *AuditUser, roleID uuid.UUID, replaceRoleID *uuid.UUID) error {
 	role, err := s.roleRepo.FindByID(ctx, roleID)
 	if err != nil {
 		if errors.Is(err, repositories.ErrNotFound) {
@@ -242,7 +241,7 @@ func (s *roleService) DeleteRole(ctx context.Context, meta *domain.AuditMeta, ac
 		return s.auditLogger.LogWithMetadata(
 			ctx,
 			meta,
-			enum.ActionDeleteRole,
+			domain.ActionDeleteRole,
 			actor,
 			nil,
 			data,

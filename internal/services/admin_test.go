@@ -4,8 +4,6 @@ import (
 	"context"
 	"errors"
 	"portal-system/internal/domain"
-	"portal-system/internal/domain/constants"
-	"portal-system/internal/domain/enum"
 	"portal-system/internal/models"
 	"portal-system/internal/repositories"
 	repositoriesmocks "portal-system/internal/repositories/mocks"
@@ -20,13 +18,13 @@ import (
 )
 
 func TestAdminService_ListUsers_Table(t *testing.T) {
-	actor := &domain.AuditUser{ID: uuid.New(), RoleCode: constants.RoleCodeAdmin}
-	meta := &domain.AuditMeta{IPAddress: "127.0.0.1", UserAgent: "unit-test"}
+	actor := &AuditUser{ID: uuid.New(), RoleCode: domain.RoleCodeAdmin}
+	meta := &AuditMeta{IPAddress: "127.0.0.1", UserAgent: "unit-test"}
 	roleID := uuid.New()
-	roleCode := constants.RoleCodeUser
+	roleCode := domain.RoleCodeUser
 	tests := []struct {
 		name         string
-		filter       domain.UsersFilter
+		filter       UsersFilter
 		roleErr      error
 		listErr      error
 		listUsers    []models.User
@@ -37,24 +35,24 @@ func TestAdminService_ListUsers_Table(t *testing.T) {
 	}{
 		{
 			name:     "invalid role code",
-			filter:   domain.UsersFilter{RoleCode: &roleCode},
+			filter:   UsersFilter{RoleCode: &roleCode},
 			roleErr:  errors.New("role not found"),
 			expected: ErrInvalidInput,
 		},
 		{
 			name:     "invalid status",
-			filter:   domain.UsersFilter{Status: enum.UserStatus("bad")},
+			filter:   UsersFilter{Status: domain.UserStatus("bad")},
 			expected: ErrInvalidInput,
 		},
 		{
 			name:     "repo error",
-			filter:   domain.UsersFilter{Status: enum.StatusActive},
+			filter:   UsersFilter{Status: domain.StatusActive},
 			listErr:  errors.New("list failed"),
 			expected: ErrInternalServer,
 		},
 		{
 			name:         "success",
-			filter:       domain.UsersFilter{RoleCode: &roleCode, Status: enum.StatusActive, Page: 1, PageSize: 20},
+			filter:       UsersFilter{RoleCode: &roleCode, Status: domain.StatusActive, Page: 1, PageSize: 20},
 			listUsers:    []models.User{{ID: uuid.New()}},
 			total:        1,
 			expectAudit:  true,
@@ -65,18 +63,18 @@ func TestAdminService_ListUsers_Table(t *testing.T) {
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
 			auditLogger := servicesmocks.NewAuditLogger(t)
-			auditLogger.EXPECT().LogWithMetadata(mock.Anything, meta, enum.ActionAdminSearchUser, actor, (*domain.AuditUser)(nil), mock.Anything).Return(nil).Maybe()
+			auditLogger.EXPECT().LogWithMetadata(mock.Anything, meta, domain.ActionAdminSearchUser, actor, (*AuditUser)(nil), mock.Anything).Return(nil).Maybe()
 			roleRepo := repositoriesmocks.NewRoleRepository(t)
-			roleRepo.EXPECT().FindByCode(mock.Anything, roleCode).RunAndReturn(func(ctx context.Context, code constants.RoleCode) (*models.Role, error) {
+			roleRepo.EXPECT().FindByCode(mock.Anything, roleCode).RunAndReturn(func(ctx context.Context, code domain.RoleCode) (*models.Role, error) {
 				if tc.roleErr != nil {
 					return nil, tc.roleErr
 				}
 				return &models.Role{ID: roleID, Code: code}, nil
 			}).Maybe()
 
-			var capturedFilter domain.UsersFilter
+			var capturedFilter repositories.UserListFilter
 			userRepo := repositoriesmocks.NewUserRepository(t)
-			userRepo.EXPECT().ListUsers(mock.Anything, mock.Anything).RunAndReturn(func(ctx context.Context, filter domain.UsersFilter) ([]models.User, int64, error) {
+			userRepo.EXPECT().ListUsers(mock.Anything, mock.Anything).RunAndReturn(func(ctx context.Context, filter repositories.UserListFilter) ([]models.User, int64, error) {
 				capturedFilter = filter
 				return tc.listUsers, tc.total, tc.listErr
 			}).Maybe()
@@ -109,20 +107,20 @@ func TestAdminService_ListUsers_Table(t *testing.T) {
 }
 
 func TestAdminService_CreateUser_Table(t *testing.T) {
-	actor := &domain.AuditUser{ID: uuid.New(), RoleCode: constants.RoleCodeAdmin}
-	meta := &domain.AuditMeta{IPAddress: "127.0.0.1", UserAgent: "unit-test"}
-	role := &models.Role{ID: uuid.New(), Code: constants.RoleCodeUser}
-	input := domain.CreateUserInput{
+	actor := &AuditUser{ID: uuid.New(), RoleCode: domain.RoleCodeAdmin}
+	meta := &AuditMeta{IPAddress: "127.0.0.1", UserAgent: "unit-test"}
+	role := &models.Role{ID: uuid.New(), Code: domain.RoleCodeUser}
+	input := CreateUserInput{
 		Email:     "john@example.com",
 		Username:  "john",
 		FirstName: "John",
 		LastName:  "Doe",
-		RoleCode:  constants.RoleCodeUser,
+		RoleCode:  domain.RoleCodeUser,
 	}
 
 	tests := []struct {
 		name            string
-		in              domain.CreateUserInput
+		in              CreateUserInput
 		findEmail       *models.User
 		findEmailErr    error
 		findUsername    *models.User
@@ -140,7 +138,7 @@ func TestAdminService_CreateUser_Table(t *testing.T) {
 	}{
 		{
 			name:     "missing role code",
-			in:       domain.CreateUserInput{Email: input.Email},
+			in:       CreateUserInput{Email: input.Email},
 			expected: ErrInvalidInput,
 		},
 		{
@@ -231,7 +229,7 @@ func TestAdminService_CreateUser_Table(t *testing.T) {
 				return fn(ctx)
 			}).Maybe()
 			auditLogger := servicesmocks.NewAuditLogger(t)
-			auditLogger.EXPECT().Log(mock.Anything, meta, enum.ActionAdminCreateUser, actor, mock.Anything).Return(tc.auditErr).Maybe()
+			auditLogger.EXPECT().Log(mock.Anything, meta, domain.ActionAdminCreateUser, actor, mock.Anything).Return(tc.auditErr).Maybe()
 			userRepo := repositoriesmocks.NewUserRepository(t)
 			userRepo.EXPECT().FindByEmail(mock.Anything, input.Email).RunAndReturn(func(ctx context.Context, email string) (*models.User, error) {
 				return tc.findEmail, tc.findEmailErr
@@ -246,14 +244,14 @@ func TestAdminService_CreateUser_Table(t *testing.T) {
 				return tc.createErr
 			}).Maybe()
 			tokenRepo := repositoriesmocks.NewUserTokenRepository(t)
-			tokenRepo.EXPECT().RevokeByUserAndType(mock.Anything, mock.Anything, enum.TokenTypePasswordSet).RunAndReturn(func(ctx context.Context, userID uuid.UUID, tokenType enum.TokenType) error {
+			tokenRepo.EXPECT().RevokeByUserAndType(mock.Anything, mock.Anything, domain.TokenTypePasswordSet).RunAndReturn(func(ctx context.Context, userID uuid.UUID, tokenType domain.TokenType) error {
 				return tc.revokeErr
 			}).Maybe()
 			tokenRepo.EXPECT().Create(mock.Anything, mock.Anything).RunAndReturn(func(ctx context.Context, token *models.UserToken) error {
 				return tc.tokenCreateErr
 			}).Maybe()
 			roleRepo := repositoriesmocks.NewRoleRepository(t)
-			roleRepo.EXPECT().FindByCode(mock.Anything, input.RoleCode).RunAndReturn(func(ctx context.Context, code constants.RoleCode) (*models.Role, error) {
+			roleRepo.EXPECT().FindByCode(mock.Anything, input.RoleCode).RunAndReturn(func(ctx context.Context, code domain.RoleCode) (*models.Role, error) {
 				if tc.roleErr != nil {
 					return nil, tc.roleErr
 				}
@@ -291,9 +289,9 @@ func TestAdminService_CreateUser_Table(t *testing.T) {
 }
 
 func TestAdminService_CreateUser_NormalizesIdentity(t *testing.T) {
-	actor := &domain.AuditUser{ID: uuid.New(), RoleCode: constants.RoleCodeAdmin}
-	meta := &domain.AuditMeta{IPAddress: "127.0.0.1", UserAgent: "unit-test"}
-	role := &models.Role{ID: uuid.New(), Code: constants.RoleCodeUser}
+	actor := &AuditUser{ID: uuid.New(), RoleCode: domain.RoleCodeAdmin}
+	meta := &AuditMeta{IPAddress: "127.0.0.1", UserAgent: "unit-test"}
+	role := &models.Role{ID: uuid.New(), Code: domain.RoleCodeUser}
 
 	tx := repositoriesmocks.NewTxManager(t)
 	tx.EXPECT().WithTx(mock.Anything, mock.Anything).RunAndReturn(func(ctx context.Context, fn func(context.Context) error) error {
@@ -312,11 +310,11 @@ func TestAdminService_CreateUser_NormalizesIdentity(t *testing.T) {
 	})
 
 	tokenRepo := repositoriesmocks.NewUserTokenRepository(t)
-	tokenRepo.EXPECT().RevokeByUserAndType(mock.Anything, mock.Anything, enum.TokenTypePasswordSet).Return(nil)
+	tokenRepo.EXPECT().RevokeByUserAndType(mock.Anything, mock.Anything, domain.TokenTypePasswordSet).Return(nil)
 	tokenRepo.EXPECT().Create(mock.Anything, mock.Anything).Return(nil)
 
 	roleRepo := repositoriesmocks.NewRoleRepository(t)
-	roleRepo.EXPECT().FindByCode(mock.Anything, constants.RoleCodeUser).Return(role, nil)
+	roleRepo.EXPECT().FindByCode(mock.Anything, domain.RoleCodeUser).Return(role, nil)
 
 	tokenMgr := servicesmocks.NewTokenIssuer(t)
 	tokenMgr.EXPECT().GenerateHashToken().Return("token-hash", "raw-token", nil)
@@ -325,12 +323,12 @@ func TestAdminService_CreateUser_NormalizesIdentity(t *testing.T) {
 	email.EXPECT().SendSetPasswordEmail(mock.Anything, "jane@example.com", "Jane", mock.Anything).Return(nil)
 
 	svc := newAdminServiceForTest(tx, newAuditLoggerMock(), userRepo, tokenRepo, roleRepo, tokenMgr, email)
-	user, err := svc.CreateUser(context.Background(), meta, actor, domain.CreateUserInput{
+	user, err := svc.CreateUser(context.Background(), meta, actor, CreateUserInput{
 		Email:     " Jane@Example.COM ",
 		Username:  " Jane ",
 		FirstName: "Jane",
 		LastName:  "Doe",
-		RoleCode:  constants.RoleCodeUser,
+		RoleCode:  domain.RoleCodeUser,
 	})
 	if err != nil {
 		t.Fatalf("expected nil error, got %v", err)
@@ -341,17 +339,17 @@ func TestAdminService_CreateUser_NormalizesIdentity(t *testing.T) {
 }
 
 func TestAdminService_DeleteUser_Table(t *testing.T) {
-	meta := &domain.AuditMeta{IPAddress: "127.0.0.1", UserAgent: "unit-test"}
+	meta := &AuditMeta{IPAddress: "127.0.0.1", UserAgent: "unit-test"}
 	adminID := uuid.New()
-	actor := &domain.AuditUser{ID: adminID, RoleCode: constants.RoleCodeAdmin}
-	adminRole := &models.Role{ID: uuid.New(), Code: constants.RoleCodeAdmin}
+	actor := &AuditUser{ID: adminID, RoleCode: domain.RoleCodeAdmin}
+	adminRole := &models.Role{ID: uuid.New(), Code: domain.RoleCodeAdmin}
 	baseUser := &models.User{
 		ID:       uuid.New(),
 		RoleID:   uuid.New(),
-		Role:     models.Role{Code: constants.RoleCodeUser},
+		Role:     models.Role{Code: domain.RoleCodeUser},
 		Email:    "u@example.com",
 		Username: "u1",
-		Status:   enum.StatusActive,
+		Status:   domain.StatusActive,
 	}
 
 	tests := []struct {
@@ -398,7 +396,7 @@ func TestAdminService_DeleteUser_Table(t *testing.T) {
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
 			auditLogger := servicesmocks.NewAuditLogger(t)
-			auditLogger.EXPECT().Log(mock.Anything, meta, enum.ActionAdminDeleteUser, actor, mock.Anything).Return(tc.auditErr).Maybe()
+			auditLogger.EXPECT().Log(mock.Anything, meta, domain.ActionAdminDeleteUser, actor, mock.Anything).Return(tc.auditErr).Maybe()
 			userRepo := repositoriesmocks.NewUserRepository(t)
 			userRepo.EXPECT().FindByID(mock.Anything, baseUser.ID).RunAndReturn(func(ctx context.Context, id uuid.UUID) (*models.User, error) {
 				if tc.findErr != nil {
@@ -410,7 +408,7 @@ func TestAdminService_DeleteUser_Table(t *testing.T) {
 				return tc.deleteErr
 			}).Maybe()
 			roleRepo := repositoriesmocks.NewRoleRepository(t)
-			roleRepo.EXPECT().FindByCode(mock.Anything, constants.RoleCodeAdmin).RunAndReturn(func(ctx context.Context, code constants.RoleCode) (*models.Role, error) {
+			roleRepo.EXPECT().FindByCode(mock.Anything, domain.RoleCodeAdmin).RunAndReturn(func(ctx context.Context, code domain.RoleCode) (*models.Role, error) {
 				if tc.roleErr != nil {
 					return nil, tc.roleErr
 				}
@@ -427,7 +425,7 @@ func TestAdminService_DeleteUser_Table(t *testing.T) {
 				if err != nil {
 					t.Fatalf("expected nil error, got %v", err)
 				}
-				if got == nil || !got.DeletedAt.Valid || got.Status != enum.StatusDeleted || got.DeletedBy == nil || *got.DeletedBy != actor.ID {
+				if got == nil || !got.DeletedAt.Valid || got.Status != domain.StatusDeleted || got.DeletedBy == nil || *got.DeletedBy != actor.ID {
 					t.Fatalf("unexpected deleted user result: %#v", got)
 				}
 			} else if !errors.Is(err, tc.expected) {
@@ -445,8 +443,8 @@ func TestAdminService_DeleteUser_Table(t *testing.T) {
 }
 
 func TestAdminService_RestoreUser_Table(t *testing.T) {
-	meta := &domain.AuditMeta{IPAddress: "127.0.0.1", UserAgent: "unit-test"}
-	actor := &domain.AuditUser{ID: uuid.New(), RoleCode: constants.RoleCodeAdmin}
+	meta := &AuditMeta{IPAddress: "127.0.0.1", UserAgent: "unit-test"}
+	actor := &AuditUser{ID: uuid.New(), RoleCode: domain.RoleCodeAdmin}
 	userID := uuid.New()
 	deletedAt := gorm.DeletedAt{Time: time.Now().Add(-time.Hour), Valid: true}
 
@@ -479,7 +477,7 @@ func TestAdminService_RestoreUser_Table(t *testing.T) {
 		},
 		{
 			name:        "success",
-			user:        &models.User{ID: userID, DeletedAt: deletedAt, Status: enum.StatusDeleted},
+			user:        &models.User{ID: userID, DeletedAt: deletedAt, Status: domain.StatusDeleted},
 			expectTx:    true,
 			expectAudit: true,
 		},
@@ -488,7 +486,7 @@ func TestAdminService_RestoreUser_Table(t *testing.T) {
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
 			auditLogger := servicesmocks.NewAuditLogger(t)
-			auditLogger.EXPECT().Log(mock.Anything, meta, enum.ActionAdminRestoreUser, actor, mock.Anything).Return(tc.auditErr).Maybe()
+			auditLogger.EXPECT().Log(mock.Anything, meta, domain.ActionAdminRestoreUser, actor, mock.Anything).Return(tc.auditErr).Maybe()
 			userRepo := repositoriesmocks.NewUserRepository(t)
 			userRepo.EXPECT().FindByIDUnscoped(mock.Anything, userID).RunAndReturn(func(ctx context.Context, id uuid.UUID) (*models.User, error) {
 				if tc.findErr != nil {
@@ -510,7 +508,7 @@ func TestAdminService_RestoreUser_Table(t *testing.T) {
 				if err != nil {
 					t.Fatalf("expected nil error, got %v", err)
 				}
-				if got == nil || got.DeletedAt.Valid || got.DeletedBy != nil || got.Status != enum.StatusActive {
+				if got == nil || got.DeletedAt.Valid || got.DeletedBy != nil || got.Status != domain.StatusActive {
 					t.Fatalf("unexpected restored user result: %#v", got)
 				}
 			} else if !errors.Is(err, tc.expected) {
@@ -528,16 +526,16 @@ func TestAdminService_RestoreUser_Table(t *testing.T) {
 }
 
 func TestAdminService_UpdateRole_Table(t *testing.T) {
-	meta := &domain.AuditMeta{IPAddress: "127.0.0.1", UserAgent: "unit-test"}
+	meta := &AuditMeta{IPAddress: "127.0.0.1", UserAgent: "unit-test"}
 	actorID := uuid.New()
-	actor := &domain.AuditUser{ID: actorID, RoleCode: constants.RoleCodeAdmin}
+	actor := &AuditUser{ID: actorID, RoleCode: domain.RoleCodeAdmin}
 	userID := uuid.New()
-	adminRole := &models.Role{ID: uuid.New(), Code: constants.RoleCodeAdmin}
-	userRole := &models.Role{ID: uuid.New(), Code: constants.RoleCodeUser}
+	adminRole := &models.Role{ID: uuid.New(), Code: domain.RoleCodeAdmin}
+	userRole := &models.Role{ID: uuid.New(), Code: domain.RoleCodeUser}
 
 	tests := []struct {
 		name          string
-		roleCode      constants.RoleCode
+		roleCode      domain.RoleCode
 		findErr       error
 		user          *models.User
 		roleErr       error
@@ -550,36 +548,36 @@ func TestAdminService_UpdateRole_Table(t *testing.T) {
 		sameRole      bool
 	}{
 		{name: "empty role code", roleCode: "", expected: ErrInvalidInput},
-		{name: "user not found", roleCode: constants.RoleCodeUser, findErr: repositories.ErrNotFound, expected: ErrUserNotFound},
+		{name: "user not found", roleCode: domain.RoleCodeUser, findErr: repositories.ErrNotFound, expected: ErrUserNotFound},
 		{
 			name:     "target role lookup error",
-			roleCode: constants.RoleCodeUser,
+			roleCode: domain.RoleCodeUser,
 			user:     &models.User{ID: userID, RoleID: userRole.ID, Role: *userRole},
 			roleErr:  errors.New("role lookup failed"),
 			expected: ErrInternalServer,
 		},
 		{
 			name:         "admin role lookup error",
-			roleCode:     constants.RoleCodeUser,
+			roleCode:     domain.RoleCodeUser,
 			user:         &models.User{ID: userID, RoleID: userRole.ID, Role: *userRole},
 			adminRoleErr: errors.New("admin role failed"),
 			expected:     ErrInternalServer,
 		},
 		{
 			name:     "forbidden for other admin",
-			roleCode: constants.RoleCodeUser,
+			roleCode: domain.RoleCodeUser,
 			user:     &models.User{ID: uuid.New(), RoleID: adminRole.ID, Role: *adminRole},
 			expected: ErrForbidden,
 		},
 		{
 			name:     "same role no-op",
-			roleCode: constants.RoleCodeUser,
+			roleCode: domain.RoleCodeUser,
 			user:     &models.User{ID: userID, RoleID: userRole.ID, Role: *userRole},
 			sameRole: true,
 		},
 		{
 			name:          "update role repository error",
-			roleCode:      constants.RoleCodeUser,
+			roleCode:      domain.RoleCodeUser,
 			user:          &models.User{ID: actorID, RoleID: adminRole.ID, Role: *adminRole},
 			updateRoleErr: errors.New("update failed"),
 			expected:      ErrInternalServer,
@@ -587,7 +585,7 @@ func TestAdminService_UpdateRole_Table(t *testing.T) {
 		},
 		{
 			name:        "audit error",
-			roleCode:    constants.RoleCodeUser,
+			roleCode:    domain.RoleCodeUser,
 			user:        &models.User{ID: actorID, RoleID: adminRole.ID, Role: *adminRole, Email: "a@b.com", Username: "u"},
 			auditErr:    errors.New("audit failed"),
 			expected:    ErrAuditLogger,
@@ -596,7 +594,7 @@ func TestAdminService_UpdateRole_Table(t *testing.T) {
 		},
 		{
 			name:        "success",
-			roleCode:    constants.RoleCodeUser,
+			roleCode:    domain.RoleCodeUser,
 			user:        &models.User{ID: actorID, RoleID: adminRole.ID, Role: *adminRole, Email: "a@b.com", Username: "u"},
 			expectTx:    true,
 			expectAudit: true,
@@ -610,7 +608,7 @@ func TestAdminService_UpdateRole_Table(t *testing.T) {
 				targetRole = &models.Role{ID: tc.user.RoleID, Code: tc.user.Role.Code}
 			}
 			auditLogger := servicesmocks.NewAuditLogger(t)
-			auditLogger.EXPECT().LogWithMetadata(mock.Anything, meta, enum.ActionAdminAssignRole, actor, mock.Anything, mock.Anything).Return(tc.auditErr).Maybe()
+			auditLogger.EXPECT().LogWithMetadata(mock.Anything, meta, domain.ActionAdminAssignRole, actor, mock.Anything, mock.Anything).Return(tc.auditErr).Maybe()
 			userRepo := repositoriesmocks.NewUserRepository(t)
 			userRepo.EXPECT().FindByID(mock.Anything, userID).RunAndReturn(func(ctx context.Context, id uuid.UUID) (*models.User, error) {
 				if tc.findErr != nil {
@@ -622,9 +620,9 @@ func TestAdminService_UpdateRole_Table(t *testing.T) {
 				return tc.updateRoleErr
 			}).Maybe()
 			roleRepo := repositoriesmocks.NewRoleRepository(t)
-			roleRepo.EXPECT().FindByCode(mock.Anything, mock.Anything).RunAndReturn(func(ctx context.Context, code constants.RoleCode) (*models.Role, error) {
+			roleRepo.EXPECT().FindByCode(mock.Anything, mock.Anything).RunAndReturn(func(ctx context.Context, code domain.RoleCode) (*models.Role, error) {
 				switch code {
-				case constants.RoleCodeAdmin:
+				case domain.RoleCodeAdmin:
 					if tc.adminRoleErr != nil {
 						return nil, tc.adminRoleErr
 					}

@@ -6,8 +6,8 @@ import (
 	"time"
 
 	"portal-system/internal/domain"
-	"portal-system/internal/domain/enum"
 	"portal-system/internal/models"
+	"portal-system/internal/repositories"
 
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/require"
@@ -20,7 +20,7 @@ func TestGormAuditLogRepository_Create(t *testing.T) {
 	user := mustCreateUser(t, tx, role.ID, "audit-create@example.com", "auditcreate")
 
 	log := &models.AuditLog{
-		Action:      enum.ActionLogin,
+		Action:      domain.ActionLogin,
 		ActorUserID: &user.ID,
 	}
 	err := repo.Create(ctx, log)
@@ -31,7 +31,7 @@ func TestGormAuditLogRepository_Create(t *testing.T) {
 func TestGormAuditLogRepository_Create_NoTx(t *testing.T) {
 	repo := NewGormAuditLogRepository(testDB)
 	log := &models.AuditLog{
-		Action: enum.ActionLogin,
+		Action: domain.ActionLogin,
 	}
 	err := repo.Create(context.Background(), log)
 	require.NoError(t, err)
@@ -47,11 +47,11 @@ func TestGormAuditLogRepository_CreateAndList(t *testing.T) {
 	actorID := uuid.New()
 	now := time.Now().UTC()
 
-	first := mustCreateAuditLog(t, tx, enum.ActionLogin, &actorID, now.Add(-time.Minute))
+	first := mustCreateAuditLog(t, tx, domain.ActionLogin, &actorID, now.Add(-time.Minute))
 	_ = first
-	second := mustCreateAuditLog(t, tx, enum.ActionLogout, &actorID, now)
+	second := mustCreateAuditLog(t, tx, domain.ActionLogout, &actorID, now)
 
-	logs, total, err := repo.List(ctx, domain.AuditLogFilter{
+	logs, total, err := repo.List(ctx, repositories.AuditLogListFilter{
 		ActorUserID: &actorID,
 		Page:        1,
 		PageSize:    10,
@@ -67,11 +67,11 @@ func TestGormAuditLogRepository_ListByAction(t *testing.T) {
 	repo := NewGormAuditLogRepository(testDB)
 	actorID := uuid.New()
 
-	mustCreateAuditLog(t, tx, enum.ActionLogin, &actorID, time.Now().Add(-time.Minute))
-	match := mustCreateAuditLog(t, tx, enum.ActionLogout, &actorID, time.Now())
+	mustCreateAuditLog(t, tx, domain.ActionLogin, &actorID, time.Now().Add(-time.Minute))
+	match := mustCreateAuditLog(t, tx, domain.ActionLogout, &actorID, time.Now())
 
-	logs, total, err := repo.List(ctx, domain.AuditLogFilter{
-		Action:   string(enum.ActionLogout),
+	logs, total, err := repo.List(ctx, repositories.AuditLogListFilter{
+		Action:   string(domain.ActionLogout),
 		Page:     1,
 		PageSize: 10,
 	})
@@ -90,7 +90,7 @@ func TestGormAuditLogRepository_ListByTargetUserID(t *testing.T) {
 
 	// create log with target
 	logWithTarget := &models.AuditLog{
-		Action:       enum.ActionAdminViewUser,
+		Action:       domain.ActionAdminViewUser,
 		ActorUserID:  &actorID,
 		TargetUserID: &targetID,
 	}
@@ -98,13 +98,13 @@ func TestGormAuditLogRepository_ListByTargetUserID(t *testing.T) {
 
 	// create log with other target
 	logOtherTarget := &models.AuditLog{
-		Action:       enum.ActionAdminViewUser,
+		Action:       domain.ActionAdminViewUser,
 		ActorUserID:  &actorID,
 		TargetUserID: &otherTargetID,
 	}
 	require.NoError(t, tx.Create(logOtherTarget).Error)
 
-	logs, total, err := repo.List(ctx, domain.AuditLogFilter{
+	logs, total, err := repo.List(ctx, repositories.AuditLogListFilter{
 		TargetUserID: &targetID,
 		Page:         1,
 		PageSize:     10,
@@ -121,13 +121,13 @@ func TestGormAuditLogRepository_ListByDateRange(t *testing.T) {
 	actorID := uuid.New()
 	now := time.Now().UTC()
 
-	old := mustCreateAuditLog(t, tx, enum.ActionLogin, &actorID, now.Add(-48*time.Hour))
-	recent := mustCreateAuditLog(t, tx, enum.ActionLogin, &actorID, now.Add(-1*time.Hour))
+	old := mustCreateAuditLog(t, tx, domain.ActionLogin, &actorID, now.Add(-48*time.Hour))
+	recent := mustCreateAuditLog(t, tx, domain.ActionLogin, &actorID, now.Add(-1*time.Hour))
 
 	from := now.Add(-24 * time.Hour)
 	to := now
 
-	logs, total, err := repo.List(ctx, domain.AuditLogFilter{
+	logs, total, err := repo.List(ctx, repositories.AuditLogListFilter{
 		ActorUserID: &actorID,
 		From:        &from,
 		To:          &to,
@@ -146,10 +146,10 @@ func TestGormAuditLogRepository_ListDefaultPagination(t *testing.T) {
 	repo := NewGormAuditLogRepository(testDB)
 	actorID := uuid.New()
 
-	mustCreateAuditLog(t, tx, enum.ActionLogin, &actorID, time.Now())
+	mustCreateAuditLog(t, tx, domain.ActionLogin, &actorID, time.Now())
 
 	// Page <= 0 and PageSize <= 0 should default to 1 and 20
-	logs, total, err := repo.List(ctx, domain.AuditLogFilter{
+	logs, total, err := repo.List(ctx, repositories.AuditLogListFilter{
 		ActorUserID: &actorID,
 		Page:        0,
 		PageSize:    0,
@@ -164,10 +164,10 @@ func TestGormAuditLogRepository_ListMaxPageSize(t *testing.T) {
 	repo := NewGormAuditLogRepository(testDB)
 	actorID := uuid.New()
 
-	mustCreateAuditLog(t, tx, enum.ActionLogin, &actorID, time.Now())
+	mustCreateAuditLog(t, tx, domain.ActionLogin, &actorID, time.Now())
 
 	// PageSize > 100 should be capped at 100
-	logs, total, err := repo.List(ctx, domain.AuditLogFilter{
+	logs, total, err := repo.List(ctx, repositories.AuditLogListFilter{
 		ActorUserID: &actorID,
 		Page:        1,
 		PageSize:    200,

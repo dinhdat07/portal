@@ -6,8 +6,8 @@ package mocks
 
 import (
 	"context"
-	"portal-system/internal/domain"
 	"portal-system/internal/models"
+	"portal-system/internal/repositories"
 
 	"github.com/google/uuid"
 	mock "github.com/stretchr/testify/mock"
@@ -499,7 +499,7 @@ func (_c *UserRepository_FindByUsername_Call) RunAndReturn(run func(ctx context.
 }
 
 // ListUsers provides a mock function for the type UserRepository
-func (_mock *UserRepository) ListUsers(ctx context.Context, filter domain.UsersFilter) ([]models.User, int64, error) {
+func (_mock *UserRepository) ListUsers(ctx context.Context, filter repositories.UserListFilter) ([]models.User, int64, error) {
 	ret := _mock.Called(ctx, filter)
 
 	if len(ret) == 0 {
@@ -509,22 +509,22 @@ func (_mock *UserRepository) ListUsers(ctx context.Context, filter domain.UsersF
 	var r0 []models.User
 	var r1 int64
 	var r2 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context, domain.UsersFilter) ([]models.User, int64, error)); ok {
+	if returnFunc, ok := ret.Get(0).(func(context.Context, repositories.UserListFilter) ([]models.User, int64, error)); ok {
 		return returnFunc(ctx, filter)
 	}
-	if returnFunc, ok := ret.Get(0).(func(context.Context, domain.UsersFilter) []models.User); ok {
+	if returnFunc, ok := ret.Get(0).(func(context.Context, repositories.UserListFilter) []models.User); ok {
 		r0 = returnFunc(ctx, filter)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]models.User)
 		}
 	}
-	if returnFunc, ok := ret.Get(1).(func(context.Context, domain.UsersFilter) int64); ok {
+	if returnFunc, ok := ret.Get(1).(func(context.Context, repositories.UserListFilter) int64); ok {
 		r1 = returnFunc(ctx, filter)
 	} else {
 		r1 = ret.Get(1).(int64)
 	}
-	if returnFunc, ok := ret.Get(2).(func(context.Context, domain.UsersFilter) error); ok {
+	if returnFunc, ok := ret.Get(2).(func(context.Context, repositories.UserListFilter) error); ok {
 		r2 = returnFunc(ctx, filter)
 	} else {
 		r2 = ret.Error(2)
@@ -539,20 +539,20 @@ type UserRepository_ListUsers_Call struct {
 
 // ListUsers is a helper method to define mock.On call
 //   - ctx context.Context
-//   - filter domain.UsersFilter
+//   - filter repositories.UserListFilter
 func (_e *UserRepository_Expecter) ListUsers(ctx interface{}, filter interface{}) *UserRepository_ListUsers_Call {
 	return &UserRepository_ListUsers_Call{Call: _e.mock.On("ListUsers", ctx, filter)}
 }
 
-func (_c *UserRepository_ListUsers_Call) Run(run func(ctx context.Context, filter domain.UsersFilter)) *UserRepository_ListUsers_Call {
+func (_c *UserRepository_ListUsers_Call) Run(run func(ctx context.Context, filter repositories.UserListFilter)) *UserRepository_ListUsers_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		var arg0 context.Context
 		if args[0] != nil {
 			arg0 = args[0].(context.Context)
 		}
-		var arg1 domain.UsersFilter
+		var arg1 repositories.UserListFilter
 		if args[1] != nil {
-			arg1 = args[1].(domain.UsersFilter)
+			arg1 = args[1].(repositories.UserListFilter)
 		}
 		run(
 			arg0,
@@ -567,7 +567,7 @@ func (_c *UserRepository_ListUsers_Call) Return(users []models.User, n int64, er
 	return _c
 }
 
-func (_c *UserRepository_ListUsers_Call) RunAndReturn(run func(ctx context.Context, filter domain.UsersFilter) ([]models.User, int64, error)) *UserRepository_ListUsers_Call {
+func (_c *UserRepository_ListUsers_Call) RunAndReturn(run func(ctx context.Context, filter repositories.UserListFilter) ([]models.User, int64, error)) *UserRepository_ListUsers_Call {
 	_c.Call.Return(run)
 	return _c
 }

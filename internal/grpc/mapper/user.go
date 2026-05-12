@@ -2,7 +2,7 @@ package mappers
 
 import (
 	commonv1 "portal-system/gen/go/common/v1"
-	"portal-system/internal/domain/enum"
+	"portal-system/internal/domain"
 	"portal-system/internal/models"
 
 	"google.golang.org/protobuf/types/known/timestamppb"
@@ -59,27 +59,27 @@ func RoleSummaryModelToPB(role *models.Role) *commonv1.RoleSummary {
 	}
 }
 
-func UserStatusToPB(status enum.UserStatus) commonv1.UserStatus {
+func UserStatusToPB(status domain.UserStatus) commonv1.UserStatus {
 	switch status {
-	case enum.StatusPending:
+	case domain.StatusPending:
 		return commonv1.UserStatus_USER_STATUS_PENDING_VERIFICATION
-	case enum.StatusActive:
+	case domain.StatusActive:
 		return commonv1.UserStatus_USER_STATUS_ACTIVE
-	case enum.StatusDeleted:
+	case domain.StatusDeleted:
 		return commonv1.UserStatus_USER_STATUS_DELETED
 	default:
 		return commonv1.UserStatus_USER_STATUS_UNSPECIFIED
 	}
 }
 
-func UserStatusFromPB(status commonv1.UserStatus) (enum.UserStatus, bool) {
+func UserStatusFromPB(status commonv1.UserStatus) (domain.UserStatus, bool) {
 	switch status {
 	case commonv1.UserStatus_USER_STATUS_PENDING_VERIFICATION:
-		return enum.StatusPending, true
+		return domain.StatusPending, true
 	case commonv1.UserStatus_USER_STATUS_ACTIVE:
-		return enum.StatusActive, true
+		return domain.StatusActive, true
 	case commonv1.UserStatus_USER_STATUS_DELETED:
-		return enum.StatusDeleted, true
+		return domain.StatusDeleted, true
 	default:
 		return "", false
 	}

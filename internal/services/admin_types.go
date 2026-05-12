@@ -1,12 +1,9 @@
-package domain
+package services
 
 import (
-	"portal-system/internal/domain/constants"
-	"portal-system/internal/domain/enum"
+	"portal-system/internal/domain"
 	"portal-system/internal/models"
 	"time"
-
-	"github.com/google/uuid"
 )
 
 type UsersFilter struct {
@@ -18,12 +15,9 @@ type UsersFilter struct {
 	Dob      *time.Time
 
 	// input API
-	RoleCode *constants.RoleCode
+	RoleCode *domain.RoleCode
 
-	// internal (service fill)
-	RoleID *uuid.UUID
-
-	Status         enum.UserStatus
+	Status         domain.UserStatus
 	IncludeDeleted bool
 }
 
@@ -40,7 +34,7 @@ type CreateUserInput struct {
 	FirstName string
 	LastName  string
 	DOB       *time.Time
-	RoleCode  constants.RoleCode
+	RoleCode  domain.RoleCode
 }
 
 type UpdateUserInput struct {
@@ -51,6 +45,6 @@ type UpdateUserInput struct {
 }
 
 type CreateRoleInput struct {
-	Code constants.RoleCode
+	Code domain.RoleCode
 	Name string
 }

@@ -4,7 +4,6 @@ import (
 	"context"
 	commonv1 "portal-system/gen/go/common/v1"
 	userv1 "portal-system/gen/go/user/v1"
-	"portal-system/internal/domain"
 	mappers "portal-system/internal/grpc/mapper"
 	"portal-system/internal/services"
 	"time"
@@ -50,7 +49,7 @@ func (s *UserServer) UpdateMyProfile(ctx context.Context, req *userv1.UpdateMyPr
 
 	meta := getAuditFromCtx(ctx)
 
-	input := domain.UpdateUserInput{}
+	input := services.UpdateUserInput{}
 
 	if req.FirstName != nil {
 		v := req.GetFirstName()

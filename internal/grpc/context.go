@@ -4,8 +4,8 @@ import (
 	"context"
 	"errors"
 	"net"
-	"portal-system/internal/domain"
 	auth "portal-system/internal/platform/security"
+	"portal-system/internal/services"
 
 	"github.com/google/uuid"
 	"google.golang.org/grpc/codes"
@@ -20,8 +20,8 @@ const AuditUserContextKey contextKey = "audit_user"
 const SessionIDContextKey contextKey = "session_id"
 const principalContextKey contextKey = "principal"
 
-func getAuditFromCtx(ctx context.Context) *domain.AuditMeta {
-	meta := &domain.AuditMeta{}
+func getAuditFromCtx(ctx context.Context) *services.AuditMeta {
+	meta := &services.AuditMeta{}
 
 	if p, ok := peer.FromContext(ctx); ok && p.Addr != nil {
 		host, _, err := net.SplitHostPort(p.Addr.String())
@@ -42,13 +42,13 @@ func getAuditFromCtx(ctx context.Context) *domain.AuditMeta {
 	return meta
 }
 
-func getActorFromCtx(ctx context.Context) (*domain.AuditUser, error) {
+func getActorFromCtx(ctx context.Context) (*services.AuditUser, error) {
 	principal, exists := GetPrincipal(ctx)
 	if principal == nil || !exists {
 		return nil, errors.New("missing principal in context")
 	}
 
-	return &domain.AuditUser{
+	return &services.AuditUser{
 		ID:       principal.UserID,
 		Username: principal.Username,
 		Email:    principal.Email,
