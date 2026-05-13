@@ -4,7 +4,7 @@ import (
 	"context"
 	"net"
 	"portal-system/config"
-	portalhandler "portal-system/internal/handler"
+	"portal-system/internal/handler/grpcserver/grpcctx"
 	"portal-system/internal/infrastructure/ratelimit"
 	"strconv"
 	"strings"
@@ -199,7 +199,7 @@ func emailFromRequest(req any) string {
 }
 
 func userIDFromContext(ctx context.Context) string {
-	principal, ok := portalhandler.GetPrincipal(ctx)
+	principal, ok := grpcctx.GetPrincipal(ctx)
 	if !ok || principal == nil {
 		return ""
 	}

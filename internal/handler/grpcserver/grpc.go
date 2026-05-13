@@ -1,33 +1,51 @@
-package app
+package grpcserver
 
 import (
+	"portal-system/config"
 	adminv1 "portal-system/gen/go/admin/v1"
 	authv1 "portal-system/gen/go/auth/v1"
 	userv1 "portal-system/gen/go/user/v1"
 	"portal-system/internal/domain"
-	"portal-system/internal/handler/interceptor"
+	"portal-system/internal/handler/grpcserver/interceptor"
+	"portal-system/internal/infrastructure/ratelimit"
+	"portal-system/internal/infrastructure/security"
 
+	"buf.build/go/protovalidate"
 	"google.golang.org/grpc"
 )
 
-func NewGRPCServer() *grpc.Server {
+type GRPCServerDeps struct {
+	Validator     protovalidate.Validator
+	Authenticator *security.Authenticator
+	Authorizer    *security.Authorizer
+
+	Auth  *AuthServer
+	User  *UserServer
+	Admin *AdminServer
+
+	RateLimiter         ratelimit.Limiter
+	RateLimitKeyBuilder ratelimit.KeyBuilder
+	RateLimitConfig     *config.RateLimitConfig
+}
+
+func NewGRPCServer(deps GRPCServerDeps) *grpc.Server {
 	publicMethods := buildGRPCPublicMethods()
 	methodPermissions := buildGRPCMethodPermissions()
 
 	s := grpc.NewServer(
 		grpc.ChainUnaryInterceptor(
 			interceptor.RecoveryInterceptor(),
-			interceptor.PreAuthRateLimitInterceptor(a.RateLimiter, a.RateLimitKeyBuilder, a.RateLimitConfig),
-			interceptor.ValidationInterceptor(a.Validator),
-			interceptor.AuthenticationInterceptor(a.Authenticator, publicMethods),
-			interceptor.PostAuthRateLimitInterceptor(a.RateLimiter, a.RateLimitKeyBuilder, a.RateLimitConfig),
-			interceptor.PermissionInterceptor(a.Authorizer, methodPermissions),
+			interceptor.PreAuthRateLimitInterceptor(deps.RateLimiter, deps.RateLimitKeyBuilder, deps.RateLimitConfig),
+			interceptor.ValidationInterceptor(deps.Validator),
+			interceptor.AuthenticationInterceptor(deps.Authenticator, publicMethods),
+			interceptor.PostAuthRateLimitInterceptor(deps.RateLimiter, deps.RateLimitKeyBuilder, deps.RateLimitConfig),
+			interceptor.PermissionInterceptor(deps.Authorizer, methodPermissions),
 		),
 	)
 
-	authv1.RegisterAuthServiceServer(s, a.AuthGRPC)
-	adminv1.RegisterAdminServiceServer(s, a.AdminGRPC)
-	userv1.RegisterUserServiceServer(s, a.UserGRPC)
+	authv1.RegisterAuthServiceServer(s, deps.Auth)
+	adminv1.RegisterAdminServiceServer(s, deps.Admin)
+	userv1.RegisterUserServiceServer(s, deps.User)
 
 	return s
 }
@@ -45,9 +63,6 @@ func buildGRPCPublicMethods() map[string]bool {
 		authv1.AuthService_RefreshToken_FullMethodName:       true,
 	}
 }
-
-// auth-only:
-//   logout, logout-all
 
 func buildGRPCMethodPermissions() map[string]domain.PermissionCode {
 	return map[string]domain.PermissionCode{

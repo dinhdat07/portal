@@ -8,6 +8,8 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"portal-system/internal/handler/gateway"
+	"portal-system/internal/handler/grpcserver"
 	"syscall"
 	"time"
 )
@@ -23,7 +25,17 @@ func (a *App) Run() error {
 	grpcAddr := ":" + a.Config.GRPCPort
 	httpAddr := ":" + a.Config.HTTPPort
 
-	a.GRPCServer = grpcserver.NewGRPCServer()
+	a.GRPCServer = grpcserver.NewGRPCServer(grpcserver.GRPCServerDeps{
+		Validator:           a.Validator,
+		Authenticator:       a.Authenticator,
+		Authorizer:          a.Authorizer,
+		Auth:                a.AuthGRPC,
+		User:                a.UserGRPC,
+		Admin:               a.AdminGRPC,
+		RateLimiter:         a.RateLimiter,
+		RateLimitKeyBuilder: a.RateLimitKeyBuilder,
+		RateLimitConfig:     a.RateLimitConfig,
+	})
 
 	gatewayHandler, err := gateway.NewGatewayMux(ctx, grpcAddr)
 	if err != nil {

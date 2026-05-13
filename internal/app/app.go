@@ -3,7 +3,7 @@ package app
 import (
 	"net/http"
 	"portal-system/config"
-	"portal-system/internal/handler"
+	"portal-system/internal/handler/grpcserver"
 	"portal-system/internal/infrastructure/ratelimit"
 	"portal-system/internal/infrastructure/security"
 
@@ -23,9 +23,9 @@ type App struct {
 	Authenticator *security.Authenticator
 	Authorizer    *security.Authorizer
 
-	AuthGRPC  *handler.AuthServer
-	UserGRPC  *handler.UserServer
-	AdminGRPC *handler.AdminServer
+	AuthGRPC  *grpcserver.AuthServer
+	UserGRPC  *grpcserver.UserServer
+	AdminGRPC *grpcserver.AdminServer
 
 	RateLimiter         ratelimit.Limiter
 	RateLimitKeyBuilder ratelimit.KeyBuilder

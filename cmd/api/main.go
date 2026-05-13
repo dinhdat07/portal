@@ -3,12 +3,12 @@ package main
 import (
 	"log"
 
-	"portal-system/internal/composer"
+	"portal-system/internal/app"
 )
 
 // Run with: go run github.com/air-verse/air@latest
 func main() {
-	application, err := composer.Composer()
+	application, err := app.New()
 	if err != nil {
 		log.Fatal(err)
 	}

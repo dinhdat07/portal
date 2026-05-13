@@ -94,8 +94,6 @@ func New() (*App, error) {
 
 	return &App{
 		Config:              cfg,
-		GRPCServer:          GRPCServer,
-		HTTPServer:          HTTPServer,
 		DB:                  db,
 		Validator:           validator,
 		Authenticator:       svcs.Authenticator,

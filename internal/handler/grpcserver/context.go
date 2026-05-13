@@ -1,10 +1,10 @@
-package handler
+package grpcserver
 
 import (
 	"context"
 	"errors"
 	"net"
-	"portal-system/internal/infrastructure/security"
+	"portal-system/internal/handler/grpcserver/grpcctx"
 	"portal-system/internal/service"
 
 	"github.com/google/uuid"
@@ -18,7 +18,6 @@ type contextKey string
 
 const AuditUserContextKey contextKey = "audit_user"
 const SessionIDContextKey contextKey = "session_id"
-const principalContextKey contextKey = "principal"
 
 func getAuditFromCtx(ctx context.Context) *service.AuditMeta {
 	meta := &service.AuditMeta{}
@@ -43,7 +42,7 @@ func getAuditFromCtx(ctx context.Context) *service.AuditMeta {
 }
 
 func getActorFromCtx(ctx context.Context) (*service.AuditUser, error) {
-	principal, exists := GetPrincipal(ctx)
+	principal, exists := grpcctx.GetPrincipal(ctx)
 	if principal == nil || !exists {
 		return nil, errors.New("missing principal in context")
 	}
@@ -57,7 +56,7 @@ func getActorFromCtx(ctx context.Context) (*service.AuditUser, error) {
 }
 
 func getSessionIDFromCtx(ctx context.Context) (uuid.UUID, error) {
-	principal, exists := GetPrincipal(ctx)
+	principal, exists := grpcctx.GetPrincipal(ctx)
 	if principal == nil || !exists {
 		return uuid.Nil, errors.New("missing principal in context")
 	}
@@ -67,18 +66,4 @@ func getSessionIDFromCtx(ctx context.Context) (uuid.UUID, error) {
 	}
 
 	return principal.SessionID, nil
-}
-
-func SetPrincipal(ctx context.Context, principal *security.Principal) context.Context {
-	return context.WithValue(ctx, principalContextKey, principal)
-}
-
-func GetPrincipal(ctx context.Context) (*security.Principal, bool) {
-	v := ctx.Value(principalContextKey)
-	if v == nil {
-		return nil, false
-	}
-
-	principal, ok := v.(*security.Principal)
-	return principal, ok
 }

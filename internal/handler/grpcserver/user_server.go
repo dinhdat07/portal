@@ -1,10 +1,10 @@
-package handler
+package grpcserver
 
 import (
 	"context"
 	commonv1 "portal-system/gen/go/common/v1"
 	userv1 "portal-system/gen/go/user/v1"
-	mapper "portal-system/internal/handler/mapper"
+	mapper "portal-system/internal/handler/grpcserver/mapper"
 	"portal-system/internal/service"
 	"time"
 

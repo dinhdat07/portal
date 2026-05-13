@@ -3,7 +3,7 @@ package interceptor
 import (
 	"context"
 	"errors"
-	portalhandler "portal-system/internal/handler"
+	"portal-system/internal/handler/grpcserver/grpcctx"
 	"portal-system/internal/infrastructure/security"
 	"strings"
 
@@ -33,7 +33,7 @@ func AuthenticationInterceptor(authenticator *security.Authenticator, publicMeth
 			return nil, status.Error(codes.Unauthenticated, "invalid authorize format")
 		}
 
-		ctx = portalhandler.SetPrincipal(ctx, principal)
+		ctx = grpcctx.SetPrincipal(ctx, principal)
 		return handler(ctx, req)
 
 	}

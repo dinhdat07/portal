@@ -1,0 +1,25 @@
+package grpcctx
+
+import (
+	"context"
+
+	"portal-system/internal/infrastructure/security"
+)
+
+type contextKey string
+
+const principalContextKey contextKey = "principal"
+
+func SetPrincipal(ctx context.Context, principal *security.Principal) context.Context {
+	return context.WithValue(ctx, principalContextKey, principal)
+}
+
+func GetPrincipal(ctx context.Context) (*security.Principal, bool) {
+	v := ctx.Value(principalContextKey)
+	if v == nil {
+		return nil, false
+	}
+
+	principal, ok := v.(*security.Principal)
+	return principal, ok
+}
