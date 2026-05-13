@@ -10,7 +10,7 @@ import (
 	"google.golang.org/grpc"
 )
 
-func (a *App) NewGRPCServer() *grpc.Server {
+func NewGRPCServer() *grpc.Server {
 	publicMethods := buildGRPCPublicMethods()
 	methodPermissions := buildGRPCMethodPermissions()
 

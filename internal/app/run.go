@@ -23,9 +23,9 @@ func (a *App) Run() error {
 	grpcAddr := ":" + a.Config.GRPCPort
 	httpAddr := ":" + a.Config.HTTPPort
 
-	a.GRPCServer = a.NewGRPCServer()
+	a.GRPCServer = grpcserver.NewGRPCServer()
 
-	gatewayHandler, err := a.NewGatewayMux(ctx, grpcAddr)
+	gatewayHandler, err := gateway.NewGatewayMux(ctx, grpcAddr)
 	if err != nil {
 		return err
 	}

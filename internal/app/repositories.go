@@ -1,4 +1,4 @@
-package composer
+package app
 
 import (
 	repository "portal-system/internal/repository/impl"

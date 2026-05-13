@@ -1,10 +1,9 @@
-package composer
+package app
 
 import (
 	"context"
 	"fmt"
 	"portal-system/config"
-	"portal-system/internal/app"
 	"portal-system/internal/infrastructure/logger"
 	"portal-system/internal/infrastructure/ratelimit"
 	redisx "portal-system/internal/infrastructure/redis"
@@ -16,7 +15,7 @@ import (
 	"gorm.io/gorm"
 )
 
-func Composer() (*app.App, error) {
+func New() (*App, error) {
 	logger.InitLogger()
 
 	cfg, err := config.Load()
@@ -93,8 +92,10 @@ func Composer() (*app.App, error) {
 	svcs := newServices(cfg, infra, repos)
 	grpcServers := newGRPCServers(svcs)
 
-	return app.New(app.Deps{
+	return &App{
 		Config:              cfg,
+		GRPCServer:          GRPCServer,
+		HTTPServer:          HTTPServer,
 		DB:                  db,
 		Validator:           validator,
 		Authenticator:       svcs.Authenticator,
@@ -105,5 +106,5 @@ func Composer() (*app.App, error) {
 		RateLimiter:         rateLimiter,
 		RateLimitKeyBuilder: rateLimitKeyBuilder,
 		RateLimitConfig:     rateLimitCfg,
-	}), nil
+	}, nil
 }

@@ -1,4 +1,4 @@
-package app
+package handler
 
 import (
 	"context"
@@ -15,7 +15,7 @@ import (
 	"google.golang.org/protobuf/encoding/protojson"
 )
 
-func (a *App) NewGatewayMux(ctx context.Context, grpcAddr string) (http.Handler, error) {
+func NewGatewayMux(ctx context.Context, grpcAddr string) (http.Handler, error) {
 	mux := runtime.NewServeMux(
 		runtime.WithMarshalerOption(runtime.MIMEWildcard, &runtime.JSONPb{
 			MarshalOptions: protojson.MarshalOptions{

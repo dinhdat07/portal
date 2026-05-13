@@ -1,4 +1,4 @@
-package composer
+package app
 
 import "portal-system/internal/handler"
 
