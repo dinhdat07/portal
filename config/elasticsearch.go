@@ -3,8 +3,9 @@ package config
 import "os"
 
 type ElasticsearchConfig struct {
-	URL       string
-	UserIndex string
+	URL        string
+	UserIndex  string
+	AuditIndex string
 }
 
 func LoadElasticsearchConfig() ElasticsearchConfig {
@@ -16,6 +17,11 @@ func LoadElasticsearchConfig() ElasticsearchConfig {
 	userIndex := os.Getenv("ELASTICSEARCH_USER_INDEX")
 	if userIndex == "" {
 		userIndex = "portal_users"
+	}
+
+	auditIndex := os.Getenv("ELASTICSEARCH_AUDIT_LOG_INDEX")
+	if auditIndex == "" {
+		auditIndex = "portal_users"
 	}
 
 	return ElasticsearchConfig{

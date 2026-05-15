@@ -6,11 +6,11 @@ import (
 	"github.com/segmentio/kafka-go"
 )
 
-func NewReader(brokers []string, topic string, groupID string) *kafka.Reader {
+func NewReader(brokers []string, topic []string, groupID string) *kafka.Reader {
 	return kafka.NewReader(kafka.ReaderConfig{
-		Brokers: brokers,
-		Topic:   topic,
-		GroupID: groupID,
+		Brokers:     brokers,
+		GroupTopics: topic,
+		GroupID:     groupID,
 
 		MinBytes: 1,
 		MaxBytes: 10e6,

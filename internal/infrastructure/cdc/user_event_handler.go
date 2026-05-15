@@ -9,12 +9,12 @@ import (
 )
 
 type UserEventHandler struct {
-	userIndexer *esinfra.UserIndexer
+	indexer Indexer[esinfra.UserDocument]
 }
 
-func NewUserEventHandler(userIndexer *esinfra.UserIndexer) *UserEventHandler {
+func NewUserEventHandler(indexer *esinfra.UserIndexer) *UserEventHandler {
 	return &UserEventHandler{
-		userIndexer: userIndexer,
+		indexer: indexer,
 	}
 }
 
@@ -50,7 +50,7 @@ func (h *UserEventHandler) handleUpsert(ctx context.Context, event DebeziumEvent
 		return nil
 	}
 
-	if err := h.userIndexer.Index(ctx, doc); err != nil {
+	if err := h.indexer.Index(ctx, doc); err != nil {
 		return fmt.Errorf("index user document: %w", err)
 	}
 
@@ -67,7 +67,7 @@ func (h *UserEventHandler) handleDelete(ctx context.Context, event DebeziumEvent
 		return nil
 	}
 
-	if err := h.userIndexer.Delete(ctx, id); err != nil {
+	if err := h.indexer.Delete(ctx, id); err != nil {
 		return fmt.Errorf("delete user document: %w", err)
 	}
 

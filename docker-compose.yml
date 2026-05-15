@@ -126,9 +126,11 @@ services:
     environment:
       KAFKA_BROKERS: kafka:9092
       KAFKA_USER_TOPIC: portal.public.users
-      KAFKA_CONSUMER_GROUP: portal-user-search-indexer
+      KAFKA_AUDIT_LOG_TOPIC: portal.public.action_logs
+      KAFKA_CONSUMER_GROUP: portal-search-indexer
       ELASTICSEARCH_URL: http://elasticsearch:9200
       ELASTICSEARCH_USER_INDEX: portal_users
+      ELASTICSEARCH_AUDIT_LOG_INDEX: portal_action_logs
 
 volumes:
   postgres_portal_data:

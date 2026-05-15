@@ -10,19 +10,19 @@ import (
 	"github.com/segmentio/kafka-go"
 )
 
-type MessageHandler interface {
-	Handle(ctx context.Context, value []byte) error
+type MessageRouter interface {
+	Handle(ctx context.Context, topic string, value []byte) error
 }
 
 type Consumer struct {
-	reader  *kafka.Reader
-	handler MessageHandler
+	reader *kafka.Reader
+	router MessageRouter
 }
 
-func NewConsumer(reader *kafka.Reader, handler MessageHandler) *Consumer {
+func NewConsumer(reader *kafka.Reader, router MessageRouter) *Consumer {
 	return &Consumer{
-		reader:  reader,
-		handler: handler,
+		reader: reader,
+		router: router,
 	}
 }
 
@@ -44,7 +44,7 @@ func (c *Consumer) Run() error {
 			continue
 		}
 
-		if err := c.handler.Handle(ctx, msg.Value); err != nil {
+		if err := c.router.Handle(ctx, msg.Topic, msg.Value); err != nil {
 			log.Printf(
 				"[CDC Consumer] Handle message failed: topic=%s partition=%d offset=%d err=%v",
 				msg.Topic,

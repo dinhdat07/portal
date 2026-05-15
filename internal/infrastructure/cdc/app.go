@@ -21,18 +21,30 @@ func New() (*Consumer, error) {
 	}
 
 	userIndexer := esinfra.NewUserIndexer(esClient, esCfg.UserIndex)
-
 	if err := userIndexer.EnsureIndex(ctx); err != nil {
 		return nil, fmt.Errorf("ensure user index: %w", err)
 	}
 
+	auditLogIndexer := esinfra.NewAuditLogIndexer(esClient, esCfg.AuditIndex)
+	if err := auditLogIndexer.EnsureIndex(ctx); err != nil {
+		return nil, fmt.Errorf("ensure audit log index: %w", err)
+	}
+
+	topics := []string{
+		kafkaCfg.AuditTopic,
+		kafkaCfg.UserTopic,
+	}
+
 	reader := kafkainfra.NewReader(
 		kafkaCfg.Brokers,
-		kafkaCfg.UserTopic,
+		topics,
 		kafkaCfg.ConsumerGroup,
 	)
 
-	handler := NewUserEventHandler(userIndexer)
+	router := NewRouterHandler(map[string]TopicHandler{
+		kafkaCfg.UserTopic:  NewUserEventHandler(userIndexer),
+		kafkaCfg.AuditTopic: NewAuditLogEventHandler(auditLogIndexer),
+	})
 
 	log.Printf(
 		"[CDC Consumer] Configured: brokers=%v topic=%s group=%s elasticsearch=%s index=%s",
@@ -43,5 +55,5 @@ func New() (*Consumer, error) {
 		esCfg.UserIndex,
 	)
 
-	return NewConsumer(reader, handler), nil
+	return NewConsumer(reader, router), nil
 }

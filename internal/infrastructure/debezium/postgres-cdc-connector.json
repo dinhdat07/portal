@@ -1,5 +1,5 @@
 {
-    "name": "portal-postgres-users-connector",
+    "name": "portal-postgres-cdc-connector",
     "config": {
         "connector.class": "io.debezium.connector.postgresql.PostgresConnector",
 
@@ -11,10 +11,10 @@
         
         "topic.prefix": "portal",
         "plugin.name": "pgoutput",
-        "slot.name": "portal_users_slot",
-        "publication.name": "portal_users_publication",
+        "slot.name": "portal_cdc_slot",
+        "publication.name": "portal_cdc_publication",
 
-        "table.include.list": "public.users",
+        "table.include.list": "public.users, public.action_logs",
         "snapshot.mode": "initial",
 
         "key.converter": "org.apache.kafka.connect.json.JsonConverter",
@@ -23,3 +23,4 @@
         "value.converter.schemas.enable": "false"       
     }
 }
+   

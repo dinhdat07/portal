@@ -8,6 +8,7 @@ import (
 type KafkaConfig struct {
 	Brokers       []string
 	UserTopic     string
+	AuditTopic    string
 	ConsumerGroup string
 }
 
@@ -22,6 +23,11 @@ func LoadKafkaConfig() KafkaConfig {
 		userTopic = "portal.public.users"
 	}
 
+	auditTopic := os.Getenv("KAFKA_AUDIT_LOG_TOPIC")
+	if userTopic == "" {
+		userTopic = "portal.public.action_logs"
+	}
+
 	consumerGroup := os.Getenv("KAFKA_CONSUMER_GROUP")
 	if consumerGroup == "" {
 		consumerGroup = "portal-user-search-indexer"
@@ -30,6 +36,7 @@ func LoadKafkaConfig() KafkaConfig {
 	return KafkaConfig{
 		Brokers:       strings.Split(brokers, ","),
 		UserTopic:     userTopic,
+		AuditTopic:    auditTopic,
 		ConsumerGroup: consumerGroup,
 	}
 }
