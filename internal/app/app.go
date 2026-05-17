@@ -1,139 +1,71 @@
 package app
 
 import (
-	"fmt"
-	"portal-system/internal/auth"
-	"portal-system/internal/config"
-	"portal-system/internal/http/handlers"
-	"portal-system/internal/models"
-	"portal-system/internal/platform/email"
-	"portal-system/internal/platform/storage"
-	"portal-system/internal/platform/token"
-	"portal-system/internal/services"
-	"time"
+	"net/http"
+	"portal-system/config"
+	"portal-system/internal/handler"
+	"portal-system/internal/infrastructure/ratelimit"
+	"portal-system/internal/infrastructure/security"
 
-	"github.com/gin-gonic/gin"
-	"gorm.io/driver/postgres"
+	"buf.build/go/protovalidate"
+	"google.golang.org/grpc"
 	"gorm.io/gorm"
 )
 
 type App struct {
 	Config *config.Config
 	DB     *gorm.DB
-	Router *gin.Engine
+
+	GRPCServer *grpc.Server
+	HTTPServer *http.Server
+
+	Validator     protovalidate.Validator
+	Authenticator *security.Authenticator
+	Authorizer    *security.Authorizer
+
+	AuthGRPC  *handler.AuthServer
+	UserGRPC  *handler.UserServer
+	AdminGRPC *handler.AdminServer
+
+	RateLimiter         ratelimit.Limiter
+	RateLimitKeyBuilder ratelimit.KeyBuilder
+	RateLimitConfig     *config.RateLimitConfig
 }
 
-func New() (*App, error) {
-	cfg, err := config.Load()
-	if err != nil {
-		return nil, err
-	}
+type Deps struct {
+	Config *config.Config
+	DB     *gorm.DB
 
-	db, err := gorm.Open(postgres.Open(cfg.DBUrl), &gorm.Config{})
-	if err != nil {
-		return nil, err
-	}
+	GRPCServer *grpc.Server
+	HTTPServer *http.Server
 
-	// migrate
-	if err := AutoMigrate(db); err != nil {
-		return nil, err
-	}
+	Validator     protovalidate.Validator
+	Authenticator *security.Authenticator
+	Authorizer    *security.Authorizer
 
-	// email service
-	smtpCfg, err := config.LoadSMTPConfig()
-	if err != nil {
-		return nil, err
-	}
-	emailService := email.NewSMTPEmailService(*smtpCfg)
+	AuthGRPC  *handler.AuthServer
+	UserGRPC  *handler.UserServer
+	AdminGRPC *handler.AdminServer
 
-	// init repo
-	userRepo := storage.NewGormUserRepository(db)
-	auditLogRepo := storage.NewGormAuditLogRepository(db)
-	tokenRepo := storage.NewGormUserTokenRepository(db)
-	roleRepo := storage.NewGormRoleRepository(db)
-	sessionRepo := storage.NewGormAuthSessionRepository(db)
-	txManager := storage.NewGormTxManager(db)
+	RateLimiter         ratelimit.Limiter
+	RateLimitKeyBuilder ratelimit.KeyBuilder
+	RateLimitConfig     *config.RateLimitConfig
+}
 
-	// auth
-	tokenManager := token.New(cfg.JWTSecret, cfg.JWTAccessTTL)
-	authenticator := auth.NewAuthenticator(tokenManager, roleRepo)
-	authorizer := auth.NewAuthorizer()
-
-	// service
-	auditLogService := services.NewAuditLogService(auditLogRepo)
-
-	authService := services.NewAuthService(services.AuthServiceDeps{
-		TxManager:       txManager,
-		AuditLogger:     auditLogService,
-		UserRepo:        userRepo,
-		TokenRepo:       tokenRepo,
-		RoleRepo:        roleRepo,
-		SessionRepo:     sessionRepo,
-		TokenManager:    tokenManager,
-		EmailService:    emailService,
-		FrontendBaseURL: cfg.FrontEndUrl,
-		RefreshTTL:      time.Duration(cfg.RefreshTTL) * time.Second,
-	})
-
-	userService := services.NewUserService(services.UserServiceDeps{
-		TxManager:   txManager,
-		AuditLogger: auditLogService,
-		UserRepo:    userRepo,
-		RoleRepo:    roleRepo,
-	})
-
-	adminService := services.NewAdminService(services.AdminServiceDeps{
-		TxManager:   txManager,
-		AuditLogger: auditLogService,
-		UserRepo:    userRepo,
-		TokenRepo:   tokenRepo,
-		RoleRepo:    roleRepo,
-		EmailSvc:    emailService,
-		FrontendURL: cfg.FrontEndUrl,
-	})
-
-	// handler
-	authHandler := handlers.NewAuthHandler(authService)
-	userHandler := handlers.NewUserHandler(userService)
-	adminHandler := handlers.NewAdminHandler(adminService, userService)
-
-	router := setupRouter(
-		authHandler,
-		userHandler,
-		adminHandler,
-		authenticator,
-		authorizer,
-	)
-
-	if cfg.Env == "development" {
-		if err := seedPermissions(db); err != nil {
-			return nil, err
-		}
-		if err := seedRoles(db); err != nil {
-			return nil, err
-		}
-		if err := seedRolePermissions(db); err != nil {
-			return nil, err
-		}
-		if err := seedAdmin(db, cfg); err != nil {
-			return nil, err
-		}
-	}
-
+func New(deps Deps) *App {
 	return &App{
-		Config: cfg,
-		DB:     db,
-		Router: router,
-	}, nil
-
-}
-
-func (a *App) Run() error {
-	return a.Router.Run(fmt.Sprintf(":%s", a.Config.Port))
-}
-
-func AutoMigrate(db *gorm.DB) error {
-	return db.AutoMigrate(
-		&models.User{}, &models.AuditLog{}, &models.UserToken{}, &models.Role{}, &models.Permission{}, &models.AuthSession{},
-	)
+		Config:              deps.Config,
+		GRPCServer:          deps.GRPCServer,
+		HTTPServer:          deps.HTTPServer,
+		DB:                  deps.DB,
+		Validator:           deps.Validator,
+		Authenticator:       deps.Authenticator,
+		Authorizer:          deps.Authorizer,
+		AuthGRPC:            deps.AuthGRPC,
+		UserGRPC:            deps.UserGRPC,
+		AdminGRPC:           deps.AdminGRPC,
+		RateLimiter:         deps.RateLimiter,
+		RateLimitKeyBuilder: deps.RateLimitKeyBuilder,
+		RateLimitConfig:     deps.RateLimitConfig,
+	}
 }

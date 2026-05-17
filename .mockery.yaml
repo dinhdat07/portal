@@ -1,0 +1,18 @@
+template: testify
+
+packages:
+  portal-system/internal/repository:
+    config:
+      dir: internal/repository/mock
+      pkgname: mock
+      filename: "{{.InterfaceName | snakecase}}.go"
+      structname: "{{.InterfaceName}}"
+      all: true
+
+  portal-system/internal/service:
+    config:
+      dir: internal/service/mock
+      pkgname: mock
+      filename: "{{.InterfaceName | snakecase}}.go"
+      structname: "{{.InterfaceName}}"
+      all: true

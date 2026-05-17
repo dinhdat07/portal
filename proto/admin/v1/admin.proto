@@ -1,0 +1,313 @@
+syntax = "proto3";
+
+package portal.admin.v1;
+
+option go_package = "portal-system/gen/go/admin/v1;adminv1";
+
+import "google/api/annotations.proto";
+import "google/protobuf/empty.proto";
+import "common/v1/common.proto";
+import "buf/validate/validate.proto";
+
+service AdminService {
+  rpc ListUsers(ListUsersRequest) returns (ListUsersResponse) {
+    option (google.api.http) = {
+      get: "/api/v1/admin/users"
+    };
+  }
+
+  rpc CreateUser(CreateUserRequest) returns (portal.common.v1.User) {
+    option (google.api.http) = {
+      post: "/api/v1/admin/users"
+      body: "*"
+    };
+  }
+
+  rpc GetUserDetail(GetUserDetailRequest) returns (portal.common.v1.User) {
+    option (google.api.http) = {
+      get: "/api/v1/admin/users/{user_id}"
+    };
+  }
+
+  rpc UpdateUser(UpdateUserRequest) returns (portal.common.v1.User) {
+    option (google.api.http) = {
+      put: "/api/v1/admin/users/{user_id}"
+      body: "*"
+    };
+  }
+
+  rpc DeleteUser(DeleteUserRequest) returns (portal.common.v1.User) {
+    option (google.api.http) = {
+      delete: "/api/v1/admin/users/{user_id}/delete"
+    };
+  }
+
+  rpc RestoreUser(RestoreUserRequest) returns (portal.common.v1.User) {
+    option (google.api.http) = {
+      put: "/api/v1/admin/users/{user_id}/restore"
+      body: "*"
+    };
+  }
+
+  rpc UpdateUserRole(UpdateUserRoleRequest) returns (portal.common.v1.User) {
+    option (google.api.http) = {
+      put: "/api/v1/admin/users/{user_id}/role"
+      body: "*"
+    };
+  }
+
+  rpc ListRoles(google.protobuf.Empty) returns (ListRolesResponse) {
+    option (google.api.http) = {
+      get: "/api/v1/admin/roles"
+    };
+  }
+
+  rpc CreateRole(CreateRoleRequest) returns (portal.common.v1.Role) {
+    option (google.api.http) = {
+      post: "/api/v1/admin/roles"
+      body: "*"
+    };
+  }
+
+  rpc DeleteRole(DeleteRoleRequest) returns (portal.common.v1.MessageResponse) {
+    option (google.api.http) = {
+      delete: "/api/v1/admin/roles/{role_id}"
+    };
+  }
+
+  rpc AssignPermissionToRole(AssignPermissionToRoleRequest) returns (portal.common.v1.MessageResponse) {
+    option (google.api.http) = {
+      put: "/api/v1/admin/roles/{role_id}/permissions/{permission_id}"
+    };
+  }
+
+  rpc RemovePermissionFromRole(RemovePermissionFromRoleRequest) returns (portal.common.v1.MessageResponse) {
+    option (google.api.http) = {
+      delete: "/api/v1/admin/roles/{role_id}/permissions/{permission_id}"
+    };
+  }
+
+  rpc ListPermissions(google.protobuf.Empty) returns (ListPermissionsResponse) {
+    option (google.api.http) = {
+      get: "/api/v1/admin/permissions"
+    };
+  }
+}
+
+message ListUsersRequest {
+  int32 page = 1 [
+    (buf.validate.field).int32 = {
+      gte: 1
+    }
+  ];
+
+  int32 page_size = 2 [
+    (buf.validate.field).int32 = {
+      gte: 1,
+      lte: 100
+    }
+  ];
+
+  optional string username = 3 [
+    (buf.validate.field).string = {
+      min_len: 3,
+      max_len: 50
+    }
+  ];
+
+  optional string email = 4 [
+    (buf.validate.field).string.email = true
+  ];
+
+  optional string full_name = 5 [
+    (buf.validate.field).string = {
+      min_len: 1,
+      max_len: 200
+    }
+  ];
+
+  optional string dob = 6 [
+    (buf.validate.field).string = {
+      pattern: "^\\d{4}-\\d{2}-\\d{2}$"
+    }
+  ];
+
+  optional string role_code = 7 [
+    (buf.validate.field).string = {
+      min_len: 1,
+      max_len: 50
+    }
+  ];
+
+  optional portal.common.v1.UserStatus status = 8 [
+    (buf.validate.field).enum = {
+      defined_only: true,
+      not_in: [0]
+    }
+  ];
+
+  bool include_deleted = 9;
+}
+
+message ListUsersResponse {
+  repeated portal.common.v1.User data = 1;
+  portal.common.v1.PaginationMeta meta = 2;
+}
+
+message CreateUserRequest {
+  string email = 1 [
+    (buf.validate.field).string.email = true
+  ];
+
+  string username = 2 [
+    (buf.validate.field).string = {
+      min_len: 3,
+      max_len: 50
+    }
+  ];
+
+  string first_name = 3 [
+    (buf.validate.field).string = {
+      min_len: 1,
+      max_len: 100
+    }
+  ];
+
+  string last_name = 4 [
+    (buf.validate.field).string = {
+      min_len: 1,
+      max_len: 100
+    }
+  ];
+
+  string dob = 5 [
+    (buf.validate.field).string = {
+      pattern: "^\\d{4}-\\d{2}-\\d{2}$"
+    }
+  ];
+
+  string role_code = 6 [
+    (buf.validate.field).string = {
+      min_len: 1,
+      max_len: 50
+    }
+  ];
+}
+
+message GetUserDetailRequest {
+  string user_id = 1 [
+    (buf.validate.field).string.uuid = true
+  ];
+}
+
+message UpdateUserRequest {
+  string user_id = 1 [
+    (buf.validate.field).string.uuid = true
+  ];
+
+  optional string first_name = 2 [
+    (buf.validate.field).string = {
+      min_len: 1,
+      max_len: 100
+    }
+  ];
+
+  optional string last_name = 3 [
+    (buf.validate.field).string = {
+      min_len: 1,
+      max_len: 100
+    }
+  ];
+
+  optional string username = 4 [
+    (buf.validate.field).string = {
+      min_len: 3,
+      max_len: 50
+    }
+  ];
+
+  optional string dob = 5 [
+    (buf.validate.field).string = {
+      pattern: "^\\d{4}-\\d{2}-\\d{2}$"
+    }
+  ];
+}
+
+message DeleteUserRequest {
+  string user_id = 1 [
+    (buf.validate.field).string.uuid = true
+  ];
+}
+
+message RestoreUserRequest {
+  string user_id = 1 [
+    (buf.validate.field).string.uuid = true
+  ];
+}
+
+message UpdateUserRoleRequest {
+  string user_id = 1 [
+    (buf.validate.field).string.uuid = true
+  ];
+
+  string role_code = 2 [
+    (buf.validate.field).string = {
+      min_len: 1,
+      max_len: 50
+    }
+  ];
+}
+
+message ListRolesResponse {
+  repeated portal.common.v1.Role data = 1;
+}
+
+message CreateRoleRequest {
+  string code = 1 [
+    (buf.validate.field).string = {
+      min_len: 1,
+      max_len: 50
+    }
+  ];
+
+  string name = 2 [
+    (buf.validate.field).string = {
+      min_len: 1,
+      max_len: 100
+    }
+  ];
+}
+
+message DeleteRoleRequest {
+  string role_id = 1 [
+    (buf.validate.field).string.uuid = true
+  ];
+
+  optional string replacement_role_id = 2 [
+    (buf.validate.field).string.uuid = true
+  ];
+}
+
+message AssignPermissionToRoleRequest {
+  string role_id = 1 [
+    (buf.validate.field).string.uuid = true
+  ];
+
+  string permission_id = 2 [
+    (buf.validate.field).string.uuid = true
+  ];
+}
+
+message RemovePermissionFromRoleRequest {
+  string role_id = 1 [
+    (buf.validate.field).string.uuid = true
+  ];
+
+  string permission_id = 2 [
+    (buf.validate.field).string.uuid = true
+  ];
+}
+
+message ListPermissionsResponse {
+  repeated portal.common.v1.Permission data = 1;
+}
