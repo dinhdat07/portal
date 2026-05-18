@@ -10,6 +10,8 @@ import (
 	"portal-system/internal/infrastructure/storage"
 	"portal-system/internal/infrastructure/validator"
 
+	kafkainfra "portal-system/internal/infrastructure/kafka"
+
 	"github.com/redis/go-redis/v9"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
@@ -23,12 +25,12 @@ func New() (*App, error) {
 		return nil, err
 	}
 
-	smtpCfg, err := config.LoadSMTPConfig()
+	redisCfg, err := config.LoadRedisConfig()
 	if err != nil {
 		return nil, err
 	}
 
-	redisCfg, err := config.LoadRedisConfig()
+	kafkaCfg := config.LoadKafkaConfig()
 	if err != nil {
 		return nil, err
 	}
@@ -46,6 +48,8 @@ func New() (*App, error) {
 	if err != nil {
 		return nil, err
 	}
+
+	writer := kafkainfra.NewWriter(kafkaCfg.Brokers)
 
 	var rdb redis.UniversalClient
 	if redisCfg.Enabled {
@@ -87,7 +91,7 @@ func New() (*App, error) {
 	}
 
 	validator := validator.NewValidator()
-	infra := newInfra(cfg, smtpCfg, rdb)
+	infra := newInfra(cfg, writer, kafkaCfg, rdb)
 	repos := newRepositories(db)
 	svcs := newServices(cfg, infra, repos)
 	grpcServers := newGRPCServers(svcs)

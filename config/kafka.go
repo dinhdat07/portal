@@ -6,37 +6,50 @@ import (
 )
 
 type KafkaConfig struct {
-	Brokers       []string
-	UserTopic     string
-	AuditTopic    string
+	Brokers []string
+
+	// Producer topics
+	UserTopic                  string
+	AuditTopic                 string
+	NotificationRequestedTopic string
+
+	// Consumer group, chỉ dùng nếu service này có consumer
 	ConsumerGroup string
 }
 
 func LoadKafkaConfig() KafkaConfig {
-	brokers := os.Getenv("KAFKA_BROKERS")
-	if brokers == "" {
-		brokers = "kafka:9092"
-	}
-
-	userTopic := os.Getenv("KAFKA_USER_TOPIC")
-	if userTopic == "" {
-		userTopic = "portal.public.users"
-	}
-
-	auditTopic := os.Getenv("KAFKA_AUDIT_LOG_TOPIC")
-	if userTopic == "" {
-		userTopic = "portal.public.action_logs"
-	}
-
-	consumerGroup := os.Getenv("KAFKA_CONSUMER_GROUP")
-	if consumerGroup == "" {
-		consumerGroup = "portal-user-search-indexer"
-	}
+	brokers := getEnv("KAFKA_BROKERS", "kafka:9092")
 
 	return KafkaConfig{
-		Brokers:       strings.Split(brokers, ","),
-		UserTopic:     userTopic,
-		AuditTopic:    auditTopic,
-		ConsumerGroup: consumerGroup,
+		Brokers: splitAndTrim(brokers),
+
+		UserTopic:                  getEnv("KAFKA_USER_TOPIC", "portal.public.users"),
+		AuditTopic:                 getEnv("KAFKA_AUDIT_LOG_TOPIC", "portal.public.action_logs"),
+		NotificationRequestedTopic: getEnv("KAFKA_NOTIFICATION_REQUESTED_TOPIC", "notification.requested"),
+
+		ConsumerGroup: getEnv("KAFKA_CONSUMER_GROUP", "portal-user-search-indexer"),
 	}
+}
+
+func getEnv(key string, fallback string) string {
+	value := strings.TrimSpace(os.Getenv(key))
+	if value == "" {
+		return fallback
+	}
+
+	return value
+}
+
+func splitAndTrim(value string) []string {
+	parts := strings.Split(value, ",")
+	result := make([]string, 0, len(parts))
+
+	for _, part := range parts {
+		part = strings.TrimSpace(part)
+		if part != "" {
+			result = append(result, part)
+		}
+	}
+
+	return result
 }
