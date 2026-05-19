@@ -9,6 +9,7 @@ import (
 	repositorymock "portal-system/internal/repository/mock"
 	. "portal-system/internal/service"
 	servicemock "portal-system/internal/service/mock"
+	notificationv1 "portal-system/shared/events/notification/v1"
 	"testing"
 	"time"
 
@@ -34,9 +35,10 @@ func TestAuthService_Register_Table(t *testing.T) {
 		createErr       error
 		revokeErr       error
 		tokenCreateErr  error
-		emailErr        error
+		publishErr      error
 		auditErr        error
 		expectedErr     error
+		expectPublish   bool
 	}{
 		{name: "find email error", findEmailErr: errors.New("db down"), expectedErr: errors.New("db down")},
 		{name: "email already exists", findEmail: &model.User{ID: uuid.New()}, expectedErr: ErrEmailExists},
@@ -47,9 +49,9 @@ func TestAuthService_Register_Table(t *testing.T) {
 		{name: "create user fails", createErr: errors.New("insert failed"), expectedErr: ErrInternalServer},
 		{name: "revoke token fails", revokeErr: errors.New("revoke failed"), expectedErr: ErrInternalServer},
 		{name: "token create fails", tokenCreateErr: errors.New("token create failed"), expectedErr: ErrInternalServer},
-		{name: "email fails", emailErr: errors.New("smtp failed"), expectedErr: ErrInternalServer},
-		{name: "audit fails", auditErr: errors.New("audit failed"), expectedErr: ErrInternalServer},
-		{name: "success"},
+		{name: "publish notification fails", publishErr: errors.New("publish failed"), expectedErr: ErrInternalServer, expectPublish: true},
+		{name: "audit fails", auditErr: errors.New("audit failed"), expectedErr: ErrInternalServer, expectPublish: true},
+		{name: "success", expectPublish: true},
 	}
 
 	for _, tc := range tests {
@@ -86,19 +88,25 @@ func TestAuthService_Register_Table(t *testing.T) {
 			}).Maybe()
 			auditLogger := servicemock.NewAuditLogger(t)
 			auditLogger.EXPECT().Log(mock.Anything, mock.Anything, domain.ActionRegister, mock.Anything, mock.Anything).Return(tc.auditErr).Maybe()
-			email := servicemock.NewEmailSender(t)
-			email.EXPECT().SendVerificationEmail(mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(tc.emailErr).Maybe()
+			notiPublisher := servicemock.NewNotificationPublisher(t)
+			notiPublisher.EXPECT().PublishNotificationRequested(mock.Anything, mock.MatchedBy(func(event notificationv1.NotificationRequestedEvent) bool {
+				return event.NotificationType == notificationv1.NotificationTypeVerifyEmail &&
+					event.Template == notificationv1.TemplateVerifyEmail &&
+					event.Recipient.Email == "john@example.com" &&
+					event.Data["username"] == "john" &&
+					event.Data["url"] == "http://frontend.local/verify-email?token=raw-token"
+			})).Return(tc.publishErr).Maybe()
 			tx := repositorymock.NewTxManager(t)
 			tx.EXPECT().WithTx(mock.Anything, mock.Anything).RunAndReturn(func(ctx context.Context, fn func(context.Context) error) error {
 				return fn(ctx)
 			}).Maybe()
 			svc := newAuthServiceForTest(authServiceTestDeps{
-				auditLogger: auditLogger,
-				userRepo:    userRepo,
-				tokenRepo:   tokenRepo,
-				roleRepo:    roleRepo,
-				email:       email,
-				tx:          tx,
+				auditLogger:   auditLogger,
+				userRepo:      userRepo,
+				tokenRepo:     tokenRepo,
+				roleRepo:      roleRepo,
+				notiPublisher: notiPublisher,
+				tx:            tx,
 			})
 
 			err := svc.Register(context.Background(), meta, "john@example.com", "john", "Passw0rd!", "John", "Doe", dob)
@@ -113,6 +121,9 @@ func TestAuthService_Register_Table(t *testing.T) {
 				}
 			case err == nil || err.Error() != tc.expectedErr.Error():
 				t.Fatalf("expected error %v, got %v", tc.expectedErr, err)
+			}
+			if tc.expectPublish {
+				notiPublisher.AssertNumberOfCalls(t, "PublishNotificationRequested", 1)
 			}
 		})
 	}
@@ -141,15 +152,22 @@ func TestAuthService_Register_NormalizesIdentity(t *testing.T) {
 	roleRepo := repositorymock.NewRoleRepository(t)
 	roleRepo.EXPECT().FindByCode(mock.Anything, domain.RoleCodeUser).Return(role, nil)
 
-	email := servicemock.NewEmailSender(t)
-	email.EXPECT().SendVerificationEmail(mock.Anything, "john@example.com", "John", mock.Anything).Return(nil)
+	notiPublisher := servicemock.NewNotificationPublisher(t)
+	notiPublisher.EXPECT().PublishNotificationRequested(mock.Anything, mock.MatchedBy(func(event notificationv1.NotificationRequestedEvent) bool {
+		return event.NotificationType == notificationv1.NotificationTypeVerifyEmail &&
+			event.Template == notificationv1.TemplateVerifyEmail &&
+			event.Recipient.Email == "john@example.com" &&
+			event.Recipient.Name == "John Doe" &&
+			event.Data["username"] == "john" &&
+			event.Data["url"] == "http://frontend.local/verify-email?token=raw-token"
+	})).Return(nil)
 
 	svc := newAuthServiceForTest(authServiceTestDeps{
-		auditLogger: newAuditLoggerMock(),
-		userRepo:    userRepo,
-		tokenRepo:   tokenRepo,
-		roleRepo:    roleRepo,
-		email:       email,
+		auditLogger:   newAuditLoggerMock(),
+		userRepo:      userRepo,
+		tokenRepo:     tokenRepo,
+		roleRepo:      roleRepo,
+		notiPublisher: notiPublisher,
 	})
 
 	err := svc.Register(context.Background(), meta, " John@Example.COM ", " John ", "Passw0rd!", "John", "Doe", dob)
@@ -348,16 +366,17 @@ func TestAuthService_ResendVerification_Table(t *testing.T) {
 		findErr        error
 		revokeErr      error
 		tokenCreateErr error
-		emailErr       error
+		publishErr     error
 		auditErr       error
 		expectedErr    error
+		expectPublish  bool
 	}{
 		{name: "find user error", findErr: errors.New("not found"), expectedErr: ErrUserNotFound},
 		{name: "revoke error", revokeErr: errors.New("revoke failed"), expectedErr: ErrInternalServer},
 		{name: "token create error", tokenCreateErr: errors.New("token create failed"), expectedErr: ErrInternalServer},
-		{name: "email send error", emailErr: errors.New("smtp failed"), expectedErr: ErrInternalServer},
-		{name: "audit error", auditErr: errors.New("audit failed"), expectedErr: ErrInternalServer},
-		{name: "success"},
+		{name: "publish notification error", publishErr: errors.New("publish failed"), expectedErr: ErrInternalServer, expectPublish: true},
+		{name: "audit error", auditErr: errors.New("audit failed"), expectedErr: ErrInternalServer, expectPublish: true},
+		{name: "success", expectPublish: true},
 	}
 
 	for _, tc := range tests {
@@ -376,15 +395,22 @@ func TestAuthService_ResendVerification_Table(t *testing.T) {
 			tokenRepo.EXPECT().Create(mock.Anything, mock.Anything).RunAndReturn(func(ctx context.Context, token *model.UserToken) error {
 				return tc.tokenCreateErr
 			}).Maybe()
-			email := servicemock.NewEmailSender(t)
-			email.EXPECT().SendVerificationEmail(mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(tc.emailErr).Maybe()
+			notiPublisher := servicemock.NewNotificationPublisher(t)
+			notiPublisher.EXPECT().PublishNotificationRequested(mock.Anything, mock.MatchedBy(func(event notificationv1.NotificationRequestedEvent) bool {
+				return event.NotificationType == notificationv1.NotificationTypeVerifyEmail &&
+					event.Template == notificationv1.TemplateVerifyEmail &&
+					event.Recipient.Email == user.Email &&
+					event.Recipient.Name == "John" &&
+					event.Data["username"] == user.Username &&
+					event.Data["url"] == "http://frontend.local/verify-email?token=raw-token"
+			})).Return(tc.publishErr).Maybe()
 			auditLogger := servicemock.NewAuditLogger(t)
 			auditLogger.EXPECT().Log(mock.Anything, meta, domain.ActionResendVerification, mock.Anything, mock.Anything).Return(tc.auditErr).Maybe()
 			svc := newAuthServiceForTest(authServiceTestDeps{
-				auditLogger: auditLogger,
-				userRepo:    userRepo,
-				tokenRepo:   tokenRepo,
-				email:       email,
+				auditLogger:   auditLogger,
+				userRepo:      userRepo,
+				tokenRepo:     tokenRepo,
+				notiPublisher: notiPublisher,
 			})
 
 			err := svc.ResendVerification(context.Background(), meta, user.Email, domain.TokenTypeEmailVerification)
@@ -394,6 +420,9 @@ func TestAuthService_ResendVerification_Table(t *testing.T) {
 				}
 			} else if !errors.Is(err, tc.expectedErr) {
 				t.Fatalf("expected error %v, got %v", tc.expectedErr, err)
+			}
+			if tc.expectPublish {
+				notiPublisher.AssertNumberOfCalls(t, "PublishNotificationRequested", 1)
 			}
 		})
 	}
@@ -410,8 +439,9 @@ func TestAuthService_ForgotPassword_Table(t *testing.T) {
 		revokeErr      error
 		tokenCreateErr error
 		auditErr       error
-		emailErr       error
+		publishErr     error
 		expectedErr    error
+		expectPublish  bool
 	}{
 		{name: "find user error", findErr: errors.New("db failed"), expectedErr: ErrInternalServer},
 		{name: "user nil", user: nil},
@@ -419,8 +449,8 @@ func TestAuthService_ForgotPassword_Table(t *testing.T) {
 		{name: "revoke error", user: cloneUser(user), revokeErr: errors.New("revoke failed"), expectedErr: ErrInternalServer},
 		{name: "token create error", user: cloneUser(user), tokenCreateErr: errors.New("create failed"), expectedErr: ErrInternalServer},
 		{name: "audit error", user: cloneUser(user), auditErr: errors.New("audit failed"), expectedErr: ErrInternalServer},
-		{name: "email error", user: cloneUser(user), emailErr: errors.New("smtp failed"), expectedErr: ErrSendResetPasswordEmail},
-		{name: "success", user: cloneUser(user)},
+		{name: "publish notification error", user: cloneUser(user), publishErr: errors.New("publish failed"), expectedErr: ErrSendResetPasswordEmail, expectPublish: true},
+		{name: "success", user: cloneUser(user), expectPublish: true},
 	}
 
 	for _, tc := range tests {
@@ -441,13 +471,20 @@ func TestAuthService_ForgotPassword_Table(t *testing.T) {
 			}).Maybe()
 			auditLogger := servicemock.NewAuditLogger(t)
 			auditLogger.EXPECT().Log(mock.Anything, meta, domain.ActionForgotPassword, mock.Anything, mock.Anything).Return(tc.auditErr).Maybe()
-			email := servicemock.NewEmailSender(t)
-			email.EXPECT().SendResetPasswordEmail(mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(tc.emailErr).Maybe()
+			notiPublisher := servicemock.NewNotificationPublisher(t)
+			notiPublisher.EXPECT().PublishNotificationRequested(mock.Anything, mock.MatchedBy(func(event notificationv1.NotificationRequestedEvent) bool {
+				return event.NotificationType == notificationv1.NotificationTypeResetPassword &&
+					event.Template == notificationv1.TemplateResetPassword &&
+					event.Recipient.Email == user.Email &&
+					event.Recipient.Name == "John" &&
+					event.Data["username"] == user.Username &&
+					event.Data["url"] == "http://frontend.local/auth/reset-password?token=raw-token"
+			})).Return(tc.publishErr).Maybe()
 			svc := newAuthServiceForTest(authServiceTestDeps{
-				auditLogger: auditLogger,
-				userRepo:    userRepo,
-				tokenRepo:   tokenRepo,
-				email:       email,
+				auditLogger:   auditLogger,
+				userRepo:      userRepo,
+				tokenRepo:     tokenRepo,
+				notiPublisher: notiPublisher,
 			})
 
 			err := svc.ForgotPassword(context.Background(), meta, "john@example.com")
@@ -457,6 +494,9 @@ func TestAuthService_ForgotPassword_Table(t *testing.T) {
 				}
 			} else if !errors.Is(err, tc.expectedErr) {
 				t.Fatalf("expected error %v, got %v", tc.expectedErr, err)
+			}
+			if tc.expectPublish {
+				notiPublisher.AssertNumberOfCalls(t, "PublishNotificationRequested", 1)
 			}
 		})
 	}

@@ -12,16 +12,16 @@ import (
 )
 
 type authServiceTestDeps struct {
-	tx          *repositorymock.TxManager
-	auditLogger *servicemock.AuditLogger
-	userRepo    *repositorymock.UserRepository
-	tokenRepo   *repositorymock.UserTokenRepository
-	roleRepo    *repositorymock.RoleRepository
-	refreshRepo *repositorymock.RefreshTokenRepository
-	sessionRepo *repositorymock.AuthSessionRepository
-	revoStore   *servicemock.SessionRevocationStore
-	tokenMgr    *servicemock.TokenIssuer
-	email       *servicemock.EmailSender
+	tx            *repositorymock.TxManager
+	auditLogger   *servicemock.AuditLogger
+	userRepo      *repositorymock.UserRepository
+	tokenRepo     *repositorymock.UserTokenRepository
+	roleRepo      *repositorymock.RoleRepository
+	refreshRepo   *repositorymock.RefreshTokenRepository
+	sessionRepo   *repositorymock.AuthSessionRepository
+	revoStore     *servicemock.SessionRevocationStore
+	tokenMgr      *servicemock.TokenIssuer
+	notiPublisher *servicemock.NotificationPublisher
 }
 
 func newAdminServiceForTest(
@@ -31,7 +31,7 @@ func newAdminServiceForTest(
 	tokenRepo *repositorymock.UserTokenRepository,
 	roleRepo *repositorymock.RoleRepository,
 	tokenMgr *servicemock.TokenIssuer,
-	email *servicemock.EmailSender,
+	notiPublisher *servicemock.NotificationPublisher,
 ) AdminService {
 	if tx == nil {
 		tx = newPassthroughTxManager()
@@ -48,18 +48,18 @@ func newAdminServiceForTest(
 	if tokenMgr == nil {
 		tokenMgr = newTokenIssuerMock()
 	}
-	if email == nil {
-		email = newEmailSenderMock()
+	if notiPublisher == nil {
+		notiPublisher = newNotificationPublisherMock()
 	}
 	return NewAdminService(AdminServiceDeps{
-		TxManager:    tx,
-		AuditLogger:  auditLogger,
-		UserRepo:     userRepo,
-		TokenManager: tokenMgr,
-		TokenRepo:    tokenRepo,
-		RoleRepo:     roleRepo,
-		EmailSvc:     email,
-		FrontendURL:  "http://frontend.local",
+		TxManager:             tx,
+		AuditLogger:           auditLogger,
+		UserRepo:              userRepo,
+		TokenManager:          tokenMgr,
+		TokenRepo:             tokenRepo,
+		RoleRepo:              roleRepo,
+		NotificationPublisher: notiPublisher,
+		FrontendURL:           "http://frontend.local",
 	})
 }
 
@@ -76,22 +76,22 @@ func newAuthServiceForTest(deps authServiceTestDeps) AuthService {
 	if deps.tokenMgr == nil {
 		deps.tokenMgr = newTokenIssuerMock()
 	}
-	if deps.email == nil {
-		deps.email = newEmailSenderMock()
+	if deps.notiPublisher == nil {
+		deps.notiPublisher = newNotificationPublisherMock()
 	}
 	return NewAuthService(AuthServiceDeps{
-		TxManager:        deps.tx,
-		AuditLogger:      deps.auditLogger,
-		UserRepo:         deps.userRepo,
-		RefreshTokenRepo: deps.refreshRepo,
-		TokenRepo:        deps.tokenRepo,
-		RoleRepo:         deps.roleRepo,
-		SessionRepo:      deps.sessionRepo,
-		RevoStore:        deps.revoStore,
-		TokenManager:     deps.tokenMgr,
-		EmailService:     deps.email,
-		FrontendBaseURL:  "http://frontend.local",
-		RefreshTTL:       24 * time.Hour,
+		TxManager:             deps.tx,
+		AuditLogger:           deps.auditLogger,
+		UserRepo:              deps.userRepo,
+		RefreshTokenRepo:      deps.refreshRepo,
+		TokenRepo:             deps.tokenRepo,
+		RoleRepo:              deps.roleRepo,
+		SessionRepo:           deps.sessionRepo,
+		RevoStore:             deps.revoStore,
+		TokenManager:          deps.tokenMgr,
+		NotificationPublisher: deps.notiPublisher,
+		FrontendBaseURL:       "http://frontend.local",
+		RefreshTTL:            24 * time.Hour,
 	})
 }
 
@@ -167,10 +167,8 @@ func newTokenIssuerMock() *servicemock.TokenIssuer {
 	return tokenMgr
 }
 
-func newEmailSenderMock() *servicemock.EmailSender {
-	email := &servicemock.EmailSender{}
-	email.EXPECT().SendVerificationEmail(mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(nil).Maybe()
-	email.EXPECT().SendResetPasswordEmail(mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(nil).Maybe()
-	email.EXPECT().SendSetPasswordEmail(mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(nil).Maybe()
-	return email
+func newNotificationPublisherMock() *servicemock.NotificationPublisher {
+	notiPublisher := &servicemock.NotificationPublisher{}
+	notiPublisher.EXPECT().PublishNotificationRequested(mock.Anything, mock.Anything).Return(nil).Maybe()
+	return notiPublisher
 }

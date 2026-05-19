@@ -9,6 +9,7 @@ import (
 	repositorymock "portal-system/internal/repository/mock"
 	. "portal-system/internal/service"
 	servicemock "portal-system/internal/service/mock"
+	notificationv1 "portal-system/shared/events/notification/v1"
 	"testing"
 	"time"
 
@@ -81,9 +82,9 @@ func TestAdminService_ListUsers_Table(t *testing.T) {
 
 			tx := repositorymock.NewTxManager(t)
 			tokenRepo := repositorymock.NewUserTokenRepository(t)
-			email := servicemock.NewEmailSender(t)
+			notiPublisher := servicemock.NewNotificationPublisher(t)
 			tokenMgr := servicemock.NewTokenIssuer(t)
-			svc := newAdminServiceForTest(tx, auditLogger, userRepo, tokenRepo, roleRepo, tokenMgr, email)
+			svc := newAdminServiceForTest(tx, auditLogger, userRepo, tokenRepo, roleRepo, tokenMgr, notiPublisher)
 			out, err := svc.ListUsers(context.Background(), meta, actor, tc.filter)
 			if tc.expected == nil {
 				if err != nil {
@@ -130,11 +131,11 @@ func TestAdminService_CreateUser_Table(t *testing.T) {
 		createErr       error
 		revokeErr       error
 		tokenCreateErr  error
-		emailErr        error
+		publishErr      error
 		auditErr        error
 		expected        error
 		expectCreate    bool
-		expectEmailSend bool
+		expectPublish   bool
 	}{
 		{
 			name:     "missing role code",
@@ -199,26 +200,26 @@ func TestAdminService_CreateUser_Table(t *testing.T) {
 			expectCreate:   true,
 		},
 		{
-			name:            "email send error",
-			in:              input,
-			emailErr:        errors.New("smtp failed"),
-			expected:        ErrSendSetPasswordEmail,
-			expectCreate:    true,
-			expectEmailSend: true,
+			name:          "publish notification error",
+			in:            input,
+			publishErr:    errors.New("publish failed"),
+			expected:      ErrSendSetPasswordEmail,
+			expectCreate:  true,
+			expectPublish: true,
 		},
 		{
-			name:            "audit error",
-			in:              input,
-			auditErr:        errors.New("audit failed"),
-			expected:        ErrAuditLogger,
-			expectCreate:    true,
-			expectEmailSend: true,
+			name:          "audit error",
+			in:            input,
+			auditErr:      errors.New("audit failed"),
+			expected:      ErrAuditLogger,
+			expectCreate:  true,
+			expectPublish: true,
 		},
 		{
-			name:            "success",
-			in:              input,
-			expectCreate:    true,
-			expectEmailSend: true,
+			name:          "success",
+			in:            input,
+			expectCreate:  true,
+			expectPublish: true,
 		},
 	}
 
@@ -260,11 +261,18 @@ func TestAdminService_CreateUser_Table(t *testing.T) {
 				}
 				return role, nil
 			}).Maybe()
-			email := servicemock.NewEmailSender(t)
-			email.EXPECT().SendSetPasswordEmail(mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(tc.emailErr).Maybe()
+			notiPublisher := servicemock.NewNotificationPublisher(t)
+			notiPublisher.EXPECT().PublishNotificationRequested(mock.Anything, mock.MatchedBy(func(event notificationv1.NotificationRequestedEvent) bool {
+				return event.NotificationType == notificationv1.NotificationTypeSetPassword &&
+					event.Template == notificationv1.TemplateSetPassword &&
+					event.Recipient.Email == input.Email &&
+					event.Recipient.Name == "John Doe" &&
+					event.Data["username"] == input.Username &&
+					event.Data["url"] == "http://frontend.local/set-password?token=raw-token"
+			})).Return(tc.publishErr).Maybe()
 			tokenMgr := servicemock.NewTokenIssuer(t)
 			tokenMgr.EXPECT().GenerateHashToken().Return("token-hash", "raw-token", nil).Maybe()
-			svc := newAdminServiceForTest(tx, auditLogger, userRepo, tokenRepo, roleRepo, tokenMgr, email)
+			svc := newAdminServiceForTest(tx, auditLogger, userRepo, tokenRepo, roleRepo, tokenMgr, notiPublisher)
 
 			user, err := svc.CreateUser(context.Background(), meta, actor, tc.in)
 			if tc.expected == nil {
@@ -281,8 +289,8 @@ func TestAdminService_CreateUser_Table(t *testing.T) {
 			if tc.expectCreate {
 				tx.AssertNumberOfCalls(t, "WithTx", 1)
 			}
-			if tc.expectEmailSend {
-				email.AssertNumberOfCalls(t, "SendSetPasswordEmail", 1)
+			if tc.expectPublish {
+				notiPublisher.AssertNumberOfCalls(t, "PublishNotificationRequested", 1)
 			}
 		})
 	}
@@ -319,10 +327,17 @@ func TestAdminService_CreateUser_NormalizesIdentity(t *testing.T) {
 	tokenMgr := servicemock.NewTokenIssuer(t)
 	tokenMgr.EXPECT().GenerateHashToken().Return("token-hash", "raw-token", nil)
 
-	email := servicemock.NewEmailSender(t)
-	email.EXPECT().SendSetPasswordEmail(mock.Anything, "jane@example.com", "Jane", mock.Anything).Return(nil)
+	notiPublisher := servicemock.NewNotificationPublisher(t)
+	notiPublisher.EXPECT().PublishNotificationRequested(mock.Anything, mock.MatchedBy(func(event notificationv1.NotificationRequestedEvent) bool {
+		return event.NotificationType == notificationv1.NotificationTypeSetPassword &&
+			event.Template == notificationv1.TemplateSetPassword &&
+			event.Recipient.Email == "jane@example.com" &&
+			event.Recipient.Name == "Jane Doe" &&
+			event.Data["username"] == "jane" &&
+			event.Data["url"] == "http://frontend.local/set-password?token=raw-token"
+	})).Return(nil)
 
-	svc := newAdminServiceForTest(tx, newAuditLoggerMock(), userRepo, tokenRepo, roleRepo, tokenMgr, email)
+	svc := newAdminServiceForTest(tx, newAuditLoggerMock(), userRepo, tokenRepo, roleRepo, tokenMgr, notiPublisher)
 	user, err := svc.CreateUser(context.Background(), meta, actor, CreateUserInput{
 		Email:     " Jane@Example.COM ",
 		Username:  " Jane ",

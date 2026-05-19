@@ -30,7 +30,7 @@ func New() (*App, error) {
 		return nil, err
 	}
 
-	kafkaCfg := config.LoadKafkaConfig()
+	kafkaCfg, err := config.LoadKafkaConfig()
 	if err != nil {
 		return nil, err
 	}

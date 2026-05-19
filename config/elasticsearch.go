@@ -25,7 +25,8 @@ func LoadElasticsearchConfig() ElasticsearchConfig {
 	}
 
 	return ElasticsearchConfig{
-		URL:       url,
-		UserIndex: userIndex,
+		URL:        url,
+		UserIndex:  userIndex,
+		AuditIndex: auditIndex,
 	}
 }

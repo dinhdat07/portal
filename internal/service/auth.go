@@ -13,6 +13,7 @@ import (
 	"portal-system/internal/domain"
 	"portal-system/internal/model"
 	"portal-system/internal/repository"
+	notificationv1 "portal-system/shared/events/notification/v1"
 
 	"github.com/google/uuid"
 	"golang.org/x/crypto/bcrypt"
@@ -35,18 +36,18 @@ type AuthService interface {
 }
 
 type authService struct {
-	txManager       repository.TxManager
-	auditLogger     AuditLogger
-	userRepo        repository.UserRepository
-	refreshRepo     repository.RefreshTokenRepository
-	tokenRepo       repository.UserTokenRepository
-	roleRepo        repository.RoleRepository
-	sessionRepo     repository.AuthSessionRepository
-	revoStore       SessionRevocationStore
-	tokenManager    TokenIssuer
-	emailService    EmailSender
-	frontendBaseURL string
-	refreshTTL      time.Duration
+	txManager             repository.TxManager
+	auditLogger           AuditLogger
+	userRepo              repository.UserRepository
+	refreshRepo           repository.RefreshTokenRepository
+	tokenRepo             repository.UserTokenRepository
+	roleRepo              repository.RoleRepository
+	sessionRepo           repository.AuthSessionRepository
+	revoStore             SessionRevocationStore
+	tokenManager          TokenIssuer
+	notificationPublisher NotificationPublisher
+	frontendBaseURL       string
+	refreshTTL            time.Duration
 }
 
 type AuthServiceDeps struct {
@@ -59,26 +60,26 @@ type AuthServiceDeps struct {
 	SessionRepo      repository.AuthSessionRepository
 	RevoStore        SessionRevocationStore
 
-	TokenManager    TokenIssuer
-	EmailService    EmailSender
-	FrontendBaseURL string
-	RefreshTTL      time.Duration
+	TokenManager          TokenIssuer
+	NotificationPublisher NotificationPublisher
+	FrontendBaseURL       string
+	RefreshTTL            time.Duration
 }
 
 func NewAuthService(deps AuthServiceDeps) *authService {
 	return &authService{
-		txManager:       deps.TxManager,
-		auditLogger:     deps.AuditLogger,
-		userRepo:        deps.UserRepo,
-		refreshRepo:     deps.RefreshTokenRepo,
-		tokenRepo:       deps.TokenRepo,
-		roleRepo:        deps.RoleRepo,
-		sessionRepo:     deps.SessionRepo,
-		revoStore:       deps.RevoStore,
-		tokenManager:    deps.TokenManager,
-		emailService:    deps.EmailService,
-		frontendBaseURL: deps.FrontendBaseURL,
-		refreshTTL:      deps.RefreshTTL,
+		txManager:             deps.TxManager,
+		auditLogger:           deps.AuditLogger,
+		userRepo:              deps.UserRepo,
+		refreshRepo:           deps.RefreshTokenRepo,
+		tokenRepo:             deps.TokenRepo,
+		roleRepo:              deps.RoleRepo,
+		sessionRepo:           deps.SessionRepo,
+		revoStore:             deps.RevoStore,
+		tokenManager:          deps.TokenManager,
+		notificationPublisher: deps.NotificationPublisher,
+		frontendBaseURL:       deps.FrontendBaseURL,
+		refreshTTL:            deps.RefreshTTL,
 	}
 }
 
@@ -161,8 +162,8 @@ func (s *authService) Register(ctx context.Context, meta *AuditMeta, email, user
 		}
 
 		verifyURL := fmt.Sprintf("%s/verify-email?token=%s", s.frontendBaseURL, url.QueryEscape(rawToken))
-
-		if err := s.emailService.SendVerificationEmail(ctx, email, firstName, verifyURL); err != nil {
+		event := newEmailNotificationEvent(notificationv1.NotificationTypeVerifyEmail, notificationv1.TemplateVerifyEmail, *user, verifyURL)
+		if err := s.notificationPublisher.PublishNotificationRequested(ctx, event); err != nil {
 			return ErrSendVerificationEmail
 		}
 
@@ -348,8 +349,8 @@ func (s *authService) ResendVerification(ctx context.Context, meta *AuditMeta, e
 		}
 
 		verifyURL := fmt.Sprintf("%s/verify-email?token=%s", s.frontendBaseURL, url.QueryEscape(rawToken))
-
-		if err := s.emailService.SendVerificationEmail(ctx, email, user.FirstName, verifyURL); err != nil {
+		event := newEmailNotificationEvent(notificationv1.NotificationTypeVerifyEmail, notificationv1.TemplateVerifyEmail, *user, verifyURL)
+		if err := s.notificationPublisher.PublishNotificationRequested(ctx, event); err != nil {
 			return ErrSendVerificationEmail
 		}
 
@@ -415,11 +416,9 @@ func (s *authService) ForgotPassword(ctx context.Context, meta *AuditMeta, email
 		return ErrInternalServer
 	}
 
-	// build link
 	resetURL := fmt.Sprintf("%s/auth/reset-password?token=%s", s.frontendBaseURL, url.QueryEscape(rawToken))
-
-	// send mail
-	if err := s.emailService.SendResetPasswordEmail(ctx, user.Email, user.FirstName, resetURL); err != nil {
+	event := newEmailNotificationEvent(notificationv1.NotificationTypeResetPassword, notificationv1.TemplateResetPassword, *user, resetURL)
+	if err := s.notificationPublisher.PublishNotificationRequested(ctx, event); err != nil {
 		return ErrSendResetPasswordEmail
 	}
 

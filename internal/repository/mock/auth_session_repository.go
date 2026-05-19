@@ -12,7 +12,7 @@ import (
 	mock "github.com/stretchr/testify/mock"
 )
 
-// NewAuthSessionRepository creates a new instance of AuthSessionRepository. It also registers a testing interface on the mock and a cleanup function to assert the mock expectations.
+// NewAuthSessionRepository creates a new instance of AuthSessionRepository. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.
 // The first argument is typically a *testing.T value.
 func NewAuthSessionRepository(t interface {
 	mock.TestingT

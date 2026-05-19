@@ -8,6 +8,7 @@ import (
 	"portal-system/internal/domain"
 	"portal-system/internal/model"
 	"portal-system/internal/repository"
+	notificationv1 "portal-system/shared/events/notification/v1"
 
 	appLogger "log"
 	"time"
@@ -25,37 +26,37 @@ type AdminService interface {
 }
 
 type adminService struct {
-	txManager    repository.TxManager
-	auditLogger  AuditLogger
-	userRepo     repository.UserRepository
-	tokenRepo    repository.UserTokenRepository
-	tokenManager TokenIssuer
-	roleRepo     repository.RoleRepository
-	emailSvc     EmailSender
-	frontendURL  string
+	txManager             repository.TxManager
+	auditLogger           AuditLogger
+	userRepo              repository.UserRepository
+	tokenRepo             repository.UserTokenRepository
+	tokenManager          TokenIssuer
+	roleRepo              repository.RoleRepository
+	notificationPublisher NotificationPublisher
+	frontendURL           string
 }
 
 type AdminServiceDeps struct {
-	TxManager    repository.TxManager
-	AuditLogger  AuditLogger
-	UserRepo     repository.UserRepository
-	TokenManager TokenIssuer
-	TokenRepo    repository.UserTokenRepository
-	RoleRepo     repository.RoleRepository
-	EmailSvc     EmailSender
-	FrontendURL  string
+	TxManager             repository.TxManager
+	AuditLogger           AuditLogger
+	UserRepo              repository.UserRepository
+	TokenManager          TokenIssuer
+	TokenRepo             repository.UserTokenRepository
+	RoleRepo              repository.RoleRepository
+	NotificationPublisher NotificationPublisher
+	FrontendURL           string
 }
 
 func NewAdminService(deps AdminServiceDeps) *adminService {
 	return &adminService{
-		txManager:    deps.TxManager,
-		userRepo:     deps.UserRepo,
-		tokenRepo:    deps.TokenRepo,
-		roleRepo:     deps.RoleRepo,
-		tokenManager: deps.TokenManager,
-		auditLogger:  deps.AuditLogger,
-		emailSvc:     deps.EmailSvc,
-		frontendURL:  deps.FrontendURL,
+		txManager:             deps.TxManager,
+		userRepo:              deps.UserRepo,
+		tokenRepo:             deps.TokenRepo,
+		roleRepo:              deps.RoleRepo,
+		tokenManager:          deps.TokenManager,
+		auditLogger:           deps.AuditLogger,
+		notificationPublisher: deps.NotificationPublisher,
+		frontendURL:           deps.FrontendURL,
 	}
 }
 
@@ -201,8 +202,9 @@ func (svc *adminService) CreateUser(ctx context.Context, meta *AuditMeta, actor 
 		}
 
 		setPasswordURL := fmt.Sprintf("%s/set-password?token=%s", svc.frontendURL, url.QueryEscape(rawToken))
+		event := newEmailNotificationEvent(notificationv1.NotificationTypeSetPassword, notificationv1.TemplateSetPassword, *user, setPasswordURL)
 
-		if err := svc.emailSvc.SendSetPasswordEmail(ctx, user.Email, user.FirstName, setPasswordURL); err != nil {
+		if err := svc.notificationPublisher.PublishNotificationRequested(ctx, event); err != nil {
 			return ErrSendSetPasswordEmail
 		}
 

@@ -1,6 +1,7 @@
 package config
 
 import (
+	"fmt"
 	"os"
 	"strings"
 )
@@ -17,10 +18,10 @@ type KafkaConfig struct {
 	ConsumerGroup string
 }
 
-func LoadKafkaConfig() KafkaConfig {
+func LoadKafkaConfig() (KafkaConfig, error) {
 	brokers := getEnv("KAFKA_BROKERS", "kafka:9092")
 
-	return KafkaConfig{
+	cfg := KafkaConfig{
 		Brokers: splitAndTrim(brokers),
 
 		UserTopic:                  getEnv("KAFKA_USER_TOPIC", "portal.public.users"),
@@ -29,8 +30,13 @@ func LoadKafkaConfig() KafkaConfig {
 
 		ConsumerGroup: getEnv("KAFKA_CONSUMER_GROUP", "portal-user-search-indexer"),
 	}
-}
 
+	if len(cfg.Brokers) == 0 {
+		return KafkaConfig{}, fmt.Errorf("KAFKA_BROKERS is required")
+	}
+
+	return cfg, nil
+}
 func getEnv(key string, fallback string) string {
 	value := strings.TrimSpace(os.Getenv(key))
 	if value == "" {

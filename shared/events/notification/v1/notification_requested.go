@@ -4,24 +4,31 @@ import "time"
 
 const (
 	EventTypeNotificationRequested = "notification.requested"
+)
 
+const (
 	ChannelEmail = "email"
+)
 
+const (
 	NotificationTypeVerifyEmail   = "verify_email"
 	NotificationTypeResetPassword = "reset_password"
 	NotificationTypeSetPassword   = "set_password"
 )
 
+const (
+	TemplateVerifyEmail   = "verify_email"
+	TemplateResetPassword = "reset_password"
+	TemplateSetPassword   = "set_password"
+)
+
 type NotificationRequestedEvent struct {
 	EventID          string         `json:"event_id"`
-	EventType        string         `json:"event_type"`
 	OccurredAt       time.Time      `json:"occurred_at"`
 	NotificationType string         `json:"notification_type"`
 	Recipient        Recipient      `json:"recipient"`
-	Channels         []string       `json:"channels"`
 	Template         string         `json:"template"`
 	Data             map[string]any `json:"data"`
-	Metadata         Metadata       `json:"metadata"`
 }
 
 type Recipient struct {
