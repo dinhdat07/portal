@@ -31,6 +31,24 @@ func NewMailer(cfg Config) *Mailer {
 	return &Mailer{cfg: cfg}
 }
 
+func Ping(ctx context.Context, host string, port string) error {
+	addr := net.JoinHostPort(host, port)
+
+	dialer := &net.Dialer{}
+	conn, err := dialer.DialContext(ctx, "tcp", addr)
+	if err != nil {
+		return fmt.Errorf("dial smtp server %s: %w", addr, err)
+	}
+	defer func() {
+		if err := conn.Close(); err != nil {
+			appLogger.Println("failed to close smtp ping connection", "error", err)
+		}
+	}()
+
+	appLogger.Println("smtp server connection verified", "address", addr)
+	return nil
+}
+
 func (m *Mailer) Send(ctx context.Context, msg email.Message) error {
 	fromHeader := m.cfg.From
 	if strings.TrimSpace(m.cfg.FromName) != "" {
@@ -58,7 +76,11 @@ func (m *Mailer) Send(ctx context.Context, msg email.Message) error {
 		_ = conn.Close()
 		return fmt.Errorf("create smtp client: %w", err)
 	}
+	closed := false
 	defer func() {
+		if closed {
+			return
+		}
 		if err := client.Close(); err != nil {
 			appLogger.Println("failed to close smtp client connection", "error", err)
 		}
@@ -105,6 +127,7 @@ func (m *Mailer) Send(ctx context.Context, msg email.Message) error {
 	if err := client.Quit(); err != nil {
 		return fmt.Errorf("smtp quit: %w", err)
 	}
+	closed = true
 
 	return nil
 }

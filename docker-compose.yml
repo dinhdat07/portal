@@ -59,13 +59,44 @@ services:
     volumes:
       - kafka_portal_data:/var/lib/kafka/data
 
+  kafka-init:
+    image: apache/kafka:4.1.2
+    container_name: portal_kafka_init
+    depends_on:
+      - kafka
+    restart: "no"
+    command:
+      - bash
+      - -lc
+      - |
+        set -e
+
+        until /opt/kafka/bin/kafka-topics.sh --bootstrap-server kafka:29092 --list >/dev/null 2>&1; do
+          sleep 2
+        done
+
+        create_topic() {
+          local topic="$$1"
+          /opt/kafka/bin/kafka-topics.sh --bootstrap-server kafka:29092 \
+            --create --if-not-exists \
+            --topic "$$topic" \
+            --partitions 1 \
+            --replication-factor 1
+        }
+
+        create_topic notification.requested
+        create_topic portal.public.users
+        create_topic portal.public.action_logs
+
   kafka-connect:
     image: quay.io/debezium/connect:3.1
     container_name: portal_kafka_connect
     restart: unless-stopped
     depends_on:
-      - kafka
-      - db
+      db:
+        condition: service_started
+      kafka-init:
+        condition: service_completed_successfully
     ports:
       - "8083:8083"
     environment:
@@ -121,8 +152,10 @@ services:
     container_name: portal_cdc_consumer
     restart: unless-stopped
     depends_on:
-      - kafka
-      - elasticsearch
+      elasticsearch:
+        condition: service_started
+      kafka-init:
+        condition: service_completed_successfully
     environment:
       KAFKA_BROKERS: kafka:29092
       KAFKA_USER_TOPIC: portal.public.users
