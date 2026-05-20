@@ -9,6 +9,8 @@ import (
 	redisx "portal-system/internal/infrastructure/redis"
 	"portal-system/internal/infrastructure/storage"
 	"portal-system/internal/infrastructure/validator"
+	outbox "portal-system/internal/worker"
+	"time"
 
 	kafkainfra "portal-system/internal/infrastructure/kafka"
 
@@ -95,6 +97,7 @@ func New() (*App, error) {
 	repos := newRepositories(db)
 	svcs := newServices(cfg, infra, repos)
 	grpcServers := newGRPCServers(svcs)
+	outboxWorker := outbox.NewWorker(repos.TxManager, repos.OutboxRepo, infra.KafkaPublisher, 2*time.Second, 50)
 
 	return &App{
 		Config:              cfg,
@@ -105,6 +108,7 @@ func New() (*App, error) {
 		AuthGRPC:            grpcServers.Auth,
 		UserGRPC:            grpcServers.User,
 		AdminGRPC:           grpcServers.Admin,
+		OutboxWorker:        outboxWorker,
 		RateLimiter:         rateLimiter,
 		RateLimitKeyBuilder: rateLimitKeyBuilder,
 		RateLimitConfig:     rateLimitCfg,

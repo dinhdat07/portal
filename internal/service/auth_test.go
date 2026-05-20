@@ -88,8 +88,8 @@ func TestAuthService_Register_Table(t *testing.T) {
 			}).Maybe()
 			auditLogger := servicemock.NewAuditLogger(t)
 			auditLogger.EXPECT().Log(mock.Anything, mock.Anything, domain.ActionRegister, mock.Anything, mock.Anything).Return(tc.auditErr).Maybe()
-			notiPublisher := servicemock.NewNotificationPublisher(t)
-			notiPublisher.EXPECT().PublishNotificationRequested(mock.Anything, mock.MatchedBy(func(event notificationv1.NotificationRequestedEvent) bool {
+			outboxRepo := repositorymock.NewOutboxRepository(t)
+			outboxRepo.EXPECT().Create(mock.Anything, matchOutboxNotification(func(event notificationv1.NotificationRequestedEvent) bool {
 				return event.NotificationType == notificationv1.NotificationTypeVerifyEmail &&
 					event.Template == notificationv1.TemplateVerifyEmail &&
 					event.Recipient.Email == "john@example.com" &&
@@ -101,12 +101,12 @@ func TestAuthService_Register_Table(t *testing.T) {
 				return fn(ctx)
 			}).Maybe()
 			svc := newAuthServiceForTest(authServiceTestDeps{
-				auditLogger:   auditLogger,
-				userRepo:      userRepo,
-				tokenRepo:     tokenRepo,
-				roleRepo:      roleRepo,
-				notiPublisher: notiPublisher,
-				tx:            tx,
+				auditLogger: auditLogger,
+				userRepo:    userRepo,
+				tokenRepo:   tokenRepo,
+				roleRepo:    roleRepo,
+				outboxRepo:  outboxRepo,
+				tx:          tx,
 			})
 
 			err := svc.Register(context.Background(), meta, "john@example.com", "john", "Passw0rd!", "John", "Doe", dob)
@@ -123,7 +123,7 @@ func TestAuthService_Register_Table(t *testing.T) {
 				t.Fatalf("expected error %v, got %v", tc.expectedErr, err)
 			}
 			if tc.expectPublish {
-				notiPublisher.AssertNumberOfCalls(t, "PublishNotificationRequested", 1)
+				outboxRepo.AssertNumberOfCalls(t, "Create", 1)
 			}
 		})
 	}
@@ -152,8 +152,8 @@ func TestAuthService_Register_NormalizesIdentity(t *testing.T) {
 	roleRepo := repositorymock.NewRoleRepository(t)
 	roleRepo.EXPECT().FindByCode(mock.Anything, domain.RoleCodeUser).Return(role, nil)
 
-	notiPublisher := servicemock.NewNotificationPublisher(t)
-	notiPublisher.EXPECT().PublishNotificationRequested(mock.Anything, mock.MatchedBy(func(event notificationv1.NotificationRequestedEvent) bool {
+	outboxRepo := repositorymock.NewOutboxRepository(t)
+	outboxRepo.EXPECT().Create(mock.Anything, matchOutboxNotification(func(event notificationv1.NotificationRequestedEvent) bool {
 		return event.NotificationType == notificationv1.NotificationTypeVerifyEmail &&
 			event.Template == notificationv1.TemplateVerifyEmail &&
 			event.Recipient.Email == "john@example.com" &&
@@ -163,11 +163,11 @@ func TestAuthService_Register_NormalizesIdentity(t *testing.T) {
 	})).Return(nil)
 
 	svc := newAuthServiceForTest(authServiceTestDeps{
-		auditLogger:   newAuditLoggerMock(),
-		userRepo:      userRepo,
-		tokenRepo:     tokenRepo,
-		roleRepo:      roleRepo,
-		notiPublisher: notiPublisher,
+		auditLogger: newAuditLoggerMock(),
+		userRepo:    userRepo,
+		tokenRepo:   tokenRepo,
+		roleRepo:    roleRepo,
+		outboxRepo:  outboxRepo,
 	})
 
 	err := svc.Register(context.Background(), meta, " John@Example.COM ", " John ", "Passw0rd!", "John", "Doe", dob)
@@ -395,8 +395,8 @@ func TestAuthService_ResendVerification_Table(t *testing.T) {
 			tokenRepo.EXPECT().Create(mock.Anything, mock.Anything).RunAndReturn(func(ctx context.Context, token *model.UserToken) error {
 				return tc.tokenCreateErr
 			}).Maybe()
-			notiPublisher := servicemock.NewNotificationPublisher(t)
-			notiPublisher.EXPECT().PublishNotificationRequested(mock.Anything, mock.MatchedBy(func(event notificationv1.NotificationRequestedEvent) bool {
+			outboxRepo := repositorymock.NewOutboxRepository(t)
+			outboxRepo.EXPECT().Create(mock.Anything, matchOutboxNotification(func(event notificationv1.NotificationRequestedEvent) bool {
 				return event.NotificationType == notificationv1.NotificationTypeVerifyEmail &&
 					event.Template == notificationv1.TemplateVerifyEmail &&
 					event.Recipient.Email == user.Email &&
@@ -407,10 +407,10 @@ func TestAuthService_ResendVerification_Table(t *testing.T) {
 			auditLogger := servicemock.NewAuditLogger(t)
 			auditLogger.EXPECT().Log(mock.Anything, meta, domain.ActionResendVerification, mock.Anything, mock.Anything).Return(tc.auditErr).Maybe()
 			svc := newAuthServiceForTest(authServiceTestDeps{
-				auditLogger:   auditLogger,
-				userRepo:      userRepo,
-				tokenRepo:     tokenRepo,
-				notiPublisher: notiPublisher,
+				auditLogger: auditLogger,
+				userRepo:    userRepo,
+				tokenRepo:   tokenRepo,
+				outboxRepo:  outboxRepo,
 			})
 
 			err := svc.ResendVerification(context.Background(), meta, user.Email, domain.TokenTypeEmailVerification)
@@ -422,7 +422,7 @@ func TestAuthService_ResendVerification_Table(t *testing.T) {
 				t.Fatalf("expected error %v, got %v", tc.expectedErr, err)
 			}
 			if tc.expectPublish {
-				notiPublisher.AssertNumberOfCalls(t, "PublishNotificationRequested", 1)
+				outboxRepo.AssertNumberOfCalls(t, "Create", 1)
 			}
 		})
 	}
@@ -471,8 +471,8 @@ func TestAuthService_ForgotPassword_Table(t *testing.T) {
 			}).Maybe()
 			auditLogger := servicemock.NewAuditLogger(t)
 			auditLogger.EXPECT().Log(mock.Anything, meta, domain.ActionForgotPassword, mock.Anything, mock.Anything).Return(tc.auditErr).Maybe()
-			notiPublisher := servicemock.NewNotificationPublisher(t)
-			notiPublisher.EXPECT().PublishNotificationRequested(mock.Anything, mock.MatchedBy(func(event notificationv1.NotificationRequestedEvent) bool {
+			outboxRepo := repositorymock.NewOutboxRepository(t)
+			outboxRepo.EXPECT().Create(mock.Anything, matchOutboxNotification(func(event notificationv1.NotificationRequestedEvent) bool {
 				return event.NotificationType == notificationv1.NotificationTypeResetPassword &&
 					event.Template == notificationv1.TemplateResetPassword &&
 					event.Recipient.Email == user.Email &&
@@ -481,10 +481,10 @@ func TestAuthService_ForgotPassword_Table(t *testing.T) {
 					event.Data["url"] == "http://frontend.local/auth/reset-password?token=raw-token"
 			})).Return(tc.publishErr).Maybe()
 			svc := newAuthServiceForTest(authServiceTestDeps{
-				auditLogger:   auditLogger,
-				userRepo:      userRepo,
-				tokenRepo:     tokenRepo,
-				notiPublisher: notiPublisher,
+				auditLogger: auditLogger,
+				userRepo:    userRepo,
+				tokenRepo:   tokenRepo,
+				outboxRepo:  outboxRepo,
 			})
 
 			err := svc.ForgotPassword(context.Background(), meta, "john@example.com")
@@ -496,7 +496,7 @@ func TestAuthService_ForgotPassword_Table(t *testing.T) {
 				t.Fatalf("expected error %v, got %v", tc.expectedErr, err)
 			}
 			if tc.expectPublish {
-				notiPublisher.AssertNumberOfCalls(t, "PublishNotificationRequested", 1)
+				outboxRepo.AssertNumberOfCalls(t, "Create", 1)
 			}
 		})
 	}

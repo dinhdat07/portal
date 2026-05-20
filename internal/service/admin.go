@@ -26,37 +26,40 @@ type AdminService interface {
 }
 
 type adminService struct {
-	txManager             repository.TxManager
-	auditLogger           AuditLogger
-	userRepo              repository.UserRepository
-	tokenRepo             repository.UserTokenRepository
-	tokenManager          TokenIssuer
-	roleRepo              repository.RoleRepository
-	notificationPublisher NotificationPublisher
-	frontendURL           string
+	txManager         repository.TxManager
+	auditLogger       AuditLogger
+	userRepo          repository.UserRepository
+	tokenRepo         repository.UserTokenRepository
+	tokenManager      TokenIssuer
+	roleRepo          repository.RoleRepository
+	outboxRepo        repository.OutboxRepository
+	notificationTopic string
+	frontendURL       string
 }
 
 type AdminServiceDeps struct {
-	TxManager             repository.TxManager
-	AuditLogger           AuditLogger
-	UserRepo              repository.UserRepository
-	TokenManager          TokenIssuer
-	TokenRepo             repository.UserTokenRepository
-	RoleRepo              repository.RoleRepository
-	NotificationPublisher NotificationPublisher
-	FrontendURL           string
+	TxManager         repository.TxManager
+	AuditLogger       AuditLogger
+	UserRepo          repository.UserRepository
+	TokenManager      TokenIssuer
+	TokenRepo         repository.UserTokenRepository
+	RoleRepo          repository.RoleRepository
+	OutboxRepo        repository.OutboxRepository
+	NotificationTopic string
+	FrontendURL       string
 }
 
 func NewAdminService(deps AdminServiceDeps) *adminService {
 	return &adminService{
-		txManager:             deps.TxManager,
-		userRepo:              deps.UserRepo,
-		tokenRepo:             deps.TokenRepo,
-		roleRepo:              deps.RoleRepo,
-		tokenManager:          deps.TokenManager,
-		auditLogger:           deps.AuditLogger,
-		notificationPublisher: deps.NotificationPublisher,
-		frontendURL:           deps.FrontendURL,
+		txManager:         deps.TxManager,
+		userRepo:          deps.UserRepo,
+		tokenRepo:         deps.TokenRepo,
+		roleRepo:          deps.RoleRepo,
+		tokenManager:      deps.TokenManager,
+		auditLogger:       deps.AuditLogger,
+		outboxRepo:        deps.OutboxRepo,
+		notificationTopic: deps.NotificationTopic,
+		frontendURL:       deps.FrontendURL,
 	}
 }
 
@@ -204,7 +207,7 @@ func (svc *adminService) CreateUser(ctx context.Context, meta *AuditMeta, actor 
 		setPasswordURL := fmt.Sprintf("%s/set-password?token=%s", svc.frontendURL, url.QueryEscape(rawToken))
 		event := newEmailNotificationEvent(notificationv1.NotificationTypeSetPassword, notificationv1.TemplateSetPassword, *user, setPasswordURL)
 
-		if err := svc.notificationPublisher.PublishNotificationRequested(ctx, event); err != nil {
+		if err := createNotificationOutboxEvent(txCtx, svc.outboxRepo, svc.notificationTopic, event); err != nil {
 			return ErrSendSetPasswordEmail
 		}
 

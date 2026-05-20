@@ -1,6 +1,7 @@
 package app
 
 import (
+	"context"
 	"portal-system/config"
 	redisx "portal-system/internal/infrastructure/redis"
 	"portal-system/internal/service"
@@ -12,16 +13,22 @@ import (
 	"github.com/segmentio/kafka-go"
 )
 
+type KafkaPublisher interface {
+	Publish(ctx context.Context, topic string, key string, payload []byte) error
+}
+
 type Infra struct {
-	NotificationPublisher service.NotificationPublisher
-	TokenManager          service.TokenIssuer
-	RevocationStore       service.SessionRevocationStore
+	KafkaPublisher    KafkaPublisher
+	NotificationTopic string
+	TokenManager      service.TokenIssuer
+	RevocationStore   service.SessionRevocationStore
 }
 
 func newInfra(cfg *config.Config, kafkaWriter *kafka.Writer, kafkaCfg config.KafkaConfig, rdb redis.UniversalClient) *Infra {
 	return &Infra{
-		NotificationPublisher: kafkainfra.NewNotificationPublisher(kafkaWriter, kafkaCfg.NotificationRequestedTopic),
-		TokenManager:          security.New(cfg.JWTSecret, cfg.JWTAccessTTL),
-		RevocationStore:       redisx.NewRedisSessionRevocationStore(rdb),
+		KafkaPublisher:    kafkainfra.NewPublisher(kafkaWriter),
+		NotificationTopic: kafkaCfg.NotificationRequestedTopic,
+		TokenManager:      security.New(cfg.JWTSecret, cfg.JWTAccessTTL),
+		RevocationStore:   redisx.NewRedisSessionRevocationStore(rdb),
 	}
 }

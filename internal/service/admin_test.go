@@ -82,9 +82,9 @@ func TestAdminService_ListUsers_Table(t *testing.T) {
 
 			tx := repositorymock.NewTxManager(t)
 			tokenRepo := repositorymock.NewUserTokenRepository(t)
-			notiPublisher := servicemock.NewNotificationPublisher(t)
+			outboxRepo := repositorymock.NewOutboxRepository(t)
 			tokenMgr := servicemock.NewTokenIssuer(t)
-			svc := newAdminServiceForTest(tx, auditLogger, userRepo, tokenRepo, roleRepo, tokenMgr, notiPublisher)
+			svc := newAdminServiceForTest(tx, auditLogger, userRepo, tokenRepo, roleRepo, tokenMgr, outboxRepo)
 			out, err := svc.ListUsers(context.Background(), meta, actor, tc.filter)
 			if tc.expected == nil {
 				if err != nil {
@@ -261,8 +261,8 @@ func TestAdminService_CreateUser_Table(t *testing.T) {
 				}
 				return role, nil
 			}).Maybe()
-			notiPublisher := servicemock.NewNotificationPublisher(t)
-			notiPublisher.EXPECT().PublishNotificationRequested(mock.Anything, mock.MatchedBy(func(event notificationv1.NotificationRequestedEvent) bool {
+			outboxRepo := repositorymock.NewOutboxRepository(t)
+			outboxRepo.EXPECT().Create(mock.Anything, matchOutboxNotification(func(event notificationv1.NotificationRequestedEvent) bool {
 				return event.NotificationType == notificationv1.NotificationTypeSetPassword &&
 					event.Template == notificationv1.TemplateSetPassword &&
 					event.Recipient.Email == input.Email &&
@@ -272,7 +272,7 @@ func TestAdminService_CreateUser_Table(t *testing.T) {
 			})).Return(tc.publishErr).Maybe()
 			tokenMgr := servicemock.NewTokenIssuer(t)
 			tokenMgr.EXPECT().GenerateHashToken().Return("token-hash", "raw-token", nil).Maybe()
-			svc := newAdminServiceForTest(tx, auditLogger, userRepo, tokenRepo, roleRepo, tokenMgr, notiPublisher)
+			svc := newAdminServiceForTest(tx, auditLogger, userRepo, tokenRepo, roleRepo, tokenMgr, outboxRepo)
 
 			user, err := svc.CreateUser(context.Background(), meta, actor, tc.in)
 			if tc.expected == nil {
@@ -290,7 +290,7 @@ func TestAdminService_CreateUser_Table(t *testing.T) {
 				tx.AssertNumberOfCalls(t, "WithTx", 1)
 			}
 			if tc.expectPublish {
-				notiPublisher.AssertNumberOfCalls(t, "PublishNotificationRequested", 1)
+				outboxRepo.AssertNumberOfCalls(t, "Create", 1)
 			}
 		})
 	}
@@ -327,8 +327,8 @@ func TestAdminService_CreateUser_NormalizesIdentity(t *testing.T) {
 	tokenMgr := servicemock.NewTokenIssuer(t)
 	tokenMgr.EXPECT().GenerateHashToken().Return("token-hash", "raw-token", nil)
 
-	notiPublisher := servicemock.NewNotificationPublisher(t)
-	notiPublisher.EXPECT().PublishNotificationRequested(mock.Anything, mock.MatchedBy(func(event notificationv1.NotificationRequestedEvent) bool {
+	outboxRepo := repositorymock.NewOutboxRepository(t)
+	outboxRepo.EXPECT().Create(mock.Anything, matchOutboxNotification(func(event notificationv1.NotificationRequestedEvent) bool {
 		return event.NotificationType == notificationv1.NotificationTypeSetPassword &&
 			event.Template == notificationv1.TemplateSetPassword &&
 			event.Recipient.Email == "jane@example.com" &&
@@ -337,7 +337,7 @@ func TestAdminService_CreateUser_NormalizesIdentity(t *testing.T) {
 			event.Data["url"] == "http://frontend.local/set-password?token=raw-token"
 	})).Return(nil)
 
-	svc := newAdminServiceForTest(tx, newAuditLoggerMock(), userRepo, tokenRepo, roleRepo, tokenMgr, notiPublisher)
+	svc := newAdminServiceForTest(tx, newAuditLoggerMock(), userRepo, tokenRepo, roleRepo, tokenMgr, outboxRepo)
 	user, err := svc.CreateUser(context.Background(), meta, actor, CreateUserInput{
 		Email:     " Jane@Example.COM ",
 		Username:  " Jane ",
