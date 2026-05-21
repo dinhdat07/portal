@@ -1,12 +1,9 @@
 package config
 
 import (
-	"errors"
 	"fmt"
 	"os"
 	"strconv"
-
-	"github.com/joho/godotenv"
 )
 
 type Config struct {
@@ -27,9 +24,7 @@ type Config struct {
 
 func Load() (*Config, error) {
 	// load .env into os env
-	if err := godotenv.Load(); err != nil {
-		return nil, errors.New("errors: cannot load env variables")
-	}
+	loadEnv()
 
 	accessTTL, err := strconv.Atoi(os.Getenv("JWT_ACCESS_TTL"))
 	if err != nil {

@@ -13,6 +13,12 @@ var loadEnvOnce sync.Once
 
 func loadEnv() {
 	loadEnvOnce.Do(func() {
+		envFile := os.Getenv("ENV_FILE")
+		if envFile != "" {
+			_ = godotenv.Load(envFile)
+			return
+		}
+
 		_ = godotenv.Load()
 	})
 }

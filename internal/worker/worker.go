@@ -11,6 +11,16 @@ import (
 	"github.com/google/uuid"
 )
 
+type Config struct {
+	Interval          time.Duration
+	BatchSize         int
+	MaxRetry          int
+	RetryDelay1       time.Duration
+	RetryDelay2       time.Duration
+	RetryDelay3       time.Duration
+	RetryDelayDefault time.Duration
+}
+
 type Publisher interface {
 	Publish(ctx context.Context, topic string, key string, payload []byte) error
 }
@@ -20,24 +30,22 @@ type Worker struct {
 	repo      repository.OutboxRepository
 	publisher Publisher
 
-	workerID  string
-	interval  time.Duration
-	batchSize int
+	workerID string
+	cfg      Config
 }
 
-func NewWorker(txManager repository.TxManager, repo repository.OutboxRepository, publisher Publisher, interval time.Duration, batchSize int) *Worker {
+func NewWorker(txManager repository.TxManager, repo repository.OutboxRepository, publisher Publisher, cfg Config) *Worker {
 	return &Worker{
 		txManager: txManager,
 		repo:      repo,
 		publisher: publisher,
 		workerID:  uuid.NewString(),
-		interval:  interval,
-		batchSize: batchSize,
+		cfg:       cfg,
 	}
 }
 
 func (w *Worker) Run(ctx context.Context) error {
-	ticker := time.NewTicker(w.interval)
+	ticker := time.NewTicker(w.cfg.Interval)
 	defer ticker.Stop()
 
 	for {
@@ -77,7 +85,7 @@ func (w *Worker) claimPendingEvents(ctx context.Context) ([]model.OutboxEvent, e
 	var events []model.OutboxEvent
 
 	err := w.txManager.WithTx(ctx, func(ctx context.Context) error {
-		pendingEvents, err := w.repo.ListPendingForUpdate(ctx, w.batchSize)
+		pendingEvents, err := w.repo.ListPendingForUpdate(ctx, w.cfg.BatchSize)
 		if err != nil {
 			return err
 		}
@@ -109,7 +117,12 @@ func (w *Worker) claimPendingEvents(ctx context.Context) ([]model.OutboxEvent, e
 func (w *Worker) handlePublishFailed(ctx context.Context, event model.OutboxEvent, publishErr error) {
 	retryCount := event.RetryCount + 1
 
-	if retryCount >= event.MaxRetry {
+	maxRetry := event.MaxRetry
+	if maxRetry <= 0 {
+		maxRetry = w.cfg.MaxRetry
+	}
+
+	if retryCount >= maxRetry {
 		if err := w.repo.MarkDeadLetter(ctx, event.ID, publishErr.Error()); err != nil {
 			log.Printf("mark outbox event dead_letter failed event_id=%s error=%v", event.ID, err)
 		}
@@ -121,8 +134,9 @@ func (w *Worker) handlePublishFailed(ctx context.Context, event model.OutboxEven
 		event.ID,
 		retryCount,
 		publishErr.Error(),
-		nextRetryAt(retryCount),
+		nextRetryAt(retryCount, w.cfg),
 	); err != nil {
 		log.Printf("mark outbox event retry_scheduled failed event_id=%s error=%v", event.ID, err)
 	}
 }
+

@@ -18,8 +18,6 @@ type RateLimitConfig struct {
 }
 
 func LoadRateLimitConfig() (*RateLimitConfig, error) {
-	loadEnv()
-
 	enabled, err := getEnvBool("RATE_LIMIT_ENABLED", false)
 	if err != nil {
 		return nil, fmt.Errorf("invalid RATE_LIMIT_ENABLED: %w", err)

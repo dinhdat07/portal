@@ -8,8 +8,13 @@ import (
 	emailchannel "portal-system/services/notification-service/internal/channel/email"
 	kafkax "portal-system/services/notification-service/internal/infrastructure/kafka"
 	smtpx "portal-system/services/notification-service/internal/infrastructure/smtp"
+	"portal-system/services/notification-service/internal/model"
+	"portal-system/services/notification-service/internal/repository/impl"
 	emailworker "portal-system/services/notification-service/internal/worker"
 	"time"
+
+	"gorm.io/driver/postgres"
+	"gorm.io/gorm"
 )
 
 func New() (*App, error) {
@@ -38,12 +43,23 @@ func New() (*App, error) {
 		return nil, fmt.Errorf("verify smtp connection: %w", err)
 	}
 
+	db, err := gorm.Open(postgres.Open(cfg.DBUrl), &gorm.Config{})
+	if err != nil {
+		return nil, err
+	}
+
+	if err := db.AutoMigrate(&model.NotificationDelivery{}); err != nil {
+		return nil, fmt.Errorf("auto migrate notification deliveries: %w", err)
+	}
+
 	reader := kafkax.NewReader(
 		cfg.Kafka.Brokers,
 		[]string{cfg.Kafka.NotificationRequestedTopic},
 		cfg.Kafka.ConsumerGroup,
 	)
 	log.Println("kafka reader initialized")
+
+	deliveryRepo := impl.NewGormDeliveryRepository(db)
 
 	smtpMailer := smtpx.NewMailer(smtpx.Config{
 		Host:     cfg.SMTP.Host,
@@ -56,16 +72,21 @@ func New() (*App, error) {
 		FromName: cfg.SMTP.FromName,
 	})
 	log.Println("smtp mailer initialized")
-
 	emailRenderer := emailchannel.NewEmailRenderer()
 	emailSender := emailchannel.NewSender(emailRenderer, smtpMailer)
 	log.Println("email sender initialized")
 
-	worker := emailworker.NewWorker(reader, emailSender)
+	worker := emailworker.NewWorker(reader, emailSender, deliveryRepo,
+		emailworker.Config{
+			FetchRetryInitialBackoff: cfg.Worker.FetchRetryInitialBackoff,
+			FetchRetryMaxBackoff:     cfg.Worker.FetchRetryMaxBackoff,
+		},
+	)
 	log.Println("email notification worker initialized")
 
 	return &App{
 		EmailWorker: worker,
 		KafkaReader: reader,
+		DB:          db,
 	}, nil
 }

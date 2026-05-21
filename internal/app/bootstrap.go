@@ -10,7 +10,6 @@ import (
 	"portal-system/internal/infrastructure/storage"
 	"portal-system/internal/infrastructure/validator"
 	outbox "portal-system/internal/worker"
-	"time"
 
 	kafkainfra "portal-system/internal/infrastructure/kafka"
 
@@ -41,6 +40,12 @@ func New() (*App, error) {
 	if err != nil {
 		return nil, err
 	}
+
+	workerCfg, err := config.LoadOutboxWorkerConfig()
+	if err != nil {
+		return nil, err
+	}
+
 
 	if rateLimitCfg.Enabled && !redisCfg.Enabled {
 		return nil, fmt.Errorf("RATE_LIMIT_ENABLED=true requires REDIS_ENABLED=true")
@@ -97,7 +102,16 @@ func New() (*App, error) {
 	repos := newRepositories(db)
 	svcs := newServices(cfg, infra, repos)
 	grpcServers := newGRPCServers(svcs)
-	outboxWorker := outbox.NewWorker(repos.TxManager, repos.OutboxRepo, infra.KafkaPublisher, 2*time.Second, 50)
+	outboxWorker := outbox.NewWorker(repos.TxManager, repos.OutboxRepo, infra.KafkaPublisher, outbox.Config{
+		Interval:          workerCfg.Interval,
+		BatchSize:         workerCfg.BatchSize,
+		MaxRetry:          workerCfg.MaxRetry,
+		RetryDelay1:       workerCfg.RetryDelay1,
+		RetryDelay2:       workerCfg.RetryDelay2,
+		RetryDelay3:       workerCfg.RetryDelay3,
+		RetryDelayDefault: workerCfg.RetryDelayDefault,
+	})
+
 
 	return &App{
 		Config:              cfg,

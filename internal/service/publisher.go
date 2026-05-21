@@ -4,6 +4,8 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"os"
+	"strconv"
 	"strings"
 	"time"
 
@@ -61,6 +63,19 @@ func createNotificationOutboxEvent(
 		MessageKey: event.EventID,
 		Payload:    datatypes.JSON(payload),
 		Status:     model.OutboxStatusPending,
-		MaxRetry:   10,
+		MaxRetry:   getMaxRetryFromEnv(),
 	})
 }
+
+func getMaxRetryFromEnv() int {
+	val := os.Getenv("OUTBOX_WORKER_MAX_RETRY")
+	if val == "" {
+		return 10
+	}
+	parsed, err := strconv.Atoi(val)
+	if err != nil {
+		return 10
+	}
+	return parsed
+}
+

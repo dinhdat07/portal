@@ -1,10 +1,5 @@
 package config
 
-import (
-	"os"
-	"strings"
-)
-
 type SMTPConfig struct {
 	Host     string
 	Port     string
@@ -27,13 +22,4 @@ func LoadSMTPConfig() SMTPConfig {
 		From:     getEnv("SMTP_FROM", "noreply@portal.local"),
 		FromName: getEnv("SMTP_FROM_NAME", "Portal System"),
 	}
-}
-
-func getEnv(key string, fallback string) string {
-	value := strings.TrimSpace(os.Getenv(key))
-	if value == "" {
-		return fallback
-	}
-
-	return value
 }
