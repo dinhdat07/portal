@@ -6,13 +6,12 @@ import (
 )
 
 type OutboxWorkerConfig struct {
-	Interval          time.Duration
-	BatchSize         int
-	MaxRetry          int
-	RetryDelay1       time.Duration
-	RetryDelay2       time.Duration
-	RetryDelay3       time.Duration
-	RetryDelayDefault time.Duration
+	Interval            time.Duration
+	BatchSize           int
+	MaxRetry            int
+	RetryInitialBackoff time.Duration
+	RetryMaxBackoff     time.Duration
+	RetryJitterRatio    float64
 }
 
 func LoadOutboxWorkerConfig() (*OutboxWorkerConfig, error) {
@@ -33,33 +32,27 @@ func LoadOutboxWorkerConfig() (*OutboxWorkerConfig, error) {
 		return nil, fmt.Errorf("invalid OUTBOX_WORKER_MAX_RETRY: %w", err)
 	}
 
-	delay1, err := getEnvDuration("OUTBOX_WORKER_RETRY_DELAY_1", 30*time.Second)
+	initialBackoff, err := getEnvDuration("OUTBOX_WORKER_RETRY_INITIAL_BACKOFF", 30*time.Second)
 	if err != nil {
-		return nil, fmt.Errorf("invalid OUTBOX_WORKER_RETRY_DELAY_1: %w", err)
+		return nil, fmt.Errorf("invalid OUTBOX_WORKER_RETRY_INITIAL_BACKOFF: %w", err)
 	}
 
-	delay2, err := getEnvDuration("OUTBOX_WORKER_RETRY_DELAY_2", 2*time.Minute)
+	maxBackoff, err := getEnvDuration("OUTBOX_WORKER_RETRY_MAX_BACKOFF", 30*time.Minute)
 	if err != nil {
-		return nil, fmt.Errorf("invalid OUTBOX_WORKER_RETRY_DELAY_2: %w", err)
+		return nil, fmt.Errorf("invalid OUTBOX_WORKER_RETRY_MAX_BACKOFF: %w", err)
 	}
 
-	delay3, err := getEnvDuration("OUTBOX_WORKER_RETRY_DELAY_3", 10*time.Minute)
+	jitterRatio, err := getEnvFloat("OUTBOX_WORKER_RETRY_JITTER_RATIO", 0.2)
 	if err != nil {
-		return nil, fmt.Errorf("invalid OUTBOX_WORKER_RETRY_DELAY_3: %w", err)
-	}
-
-	delayDefault, err := getEnvDuration("OUTBOX_WORKER_RETRY_DELAY_DEFAULT", 30*time.Minute)
-	if err != nil {
-		return nil, fmt.Errorf("invalid OUTBOX_WORKER_RETRY_DELAY_DEFAULT: %w", err)
+		return nil, fmt.Errorf("invalid OUTBOX_WORKER_RETRY_JITTER_RATIO: %w", err)
 	}
 
 	return &OutboxWorkerConfig{
-		Interval:          interval,
-		BatchSize:         batchSize,
-		MaxRetry:          maxRetry,
-		RetryDelay1:       delay1,
-		RetryDelay2:       delay2,
-		RetryDelay3:       delay3,
-		RetryDelayDefault: delayDefault,
+		Interval:            interval,
+		BatchSize:           batchSize,
+		MaxRetry:            maxRetry,
+		RetryInitialBackoff: initialBackoff,
+		RetryMaxBackoff:     maxBackoff,
+		RetryJitterRatio:    jitterRatio,
 	}, nil
 }

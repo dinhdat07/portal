@@ -4,9 +4,10 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"log"
+	"log/slog"
 	"time"
 
+	notificationmetrics "portal-system/services/notification-service/internal/metrics"
 	"portal-system/services/notification-service/internal/model"
 	"portal-system/services/notification-service/internal/repository"
 )
@@ -23,10 +24,18 @@ type RetryWorkerConfig struct {
 type RetryWorker struct {
 	emailSender  EmailSender
 	deliveryRepo repository.DeliveryRepository
+	logger       *slog.Logger
+	metrics      notificationmetrics.RetryMetrics
 	cfg          RetryWorkerConfig
 }
 
-func NewRetryWorker(emailSender EmailSender, deliveryRepo repository.DeliveryRepository, cfg RetryWorkerConfig) *RetryWorker {
+func NewRetryWorker(
+	emailSender EmailSender,
+	deliveryRepo repository.DeliveryRepository,
+	logger *slog.Logger,
+	metrics notificationmetrics.RetryMetrics,
+	cfg RetryWorkerConfig,
+) *RetryWorker {
 	if cfg.Interval <= 0 {
 		cfg.Interval = 10 * time.Second
 	}
@@ -45,16 +54,24 @@ func NewRetryWorker(emailSender EmailSender, deliveryRepo repository.DeliveryRep
 	if cfg.DeliveryRetryJitterRatio < 0 {
 		cfg.DeliveryRetryJitterRatio = 0.2
 	}
+	if logger == nil {
+		logger = slog.Default()
+	}
+	if metrics == nil {
+		metrics = notificationmetrics.NoopRetryMetrics{}
+	}
 
 	return &RetryWorker{
 		emailSender:  emailSender,
 		deliveryRepo: deliveryRepo,
+		logger:       logger,
+		metrics:      metrics,
 		cfg:          cfg,
 	}
 }
 
 func (w *RetryWorker) Run(ctx context.Context) error {
-	log.Printf("retry worker started; checking for retryable deliveries every %s (batch size: %d)", w.cfg.Interval, w.cfg.BatchSize)
+	w.logger.Info("retry_worker_started", slog.Duration("interval", w.cfg.Interval), slog.Int("batch_size", w.cfg.BatchSize))
 
 	ticker := time.NewTicker(w.cfg.Interval)
 	defer ticker.Stop()
@@ -62,11 +79,11 @@ func (w *RetryWorker) Run(ctx context.Context) error {
 	for {
 		select {
 		case <-ctx.Done():
-			log.Println("retry worker stopped by context cancellation")
+			w.logger.Info("retry_worker_stopped")
 			return nil
 		case <-ticker.C:
 			if err := w.processRetryQueue(ctx); err != nil {
-				log.Printf("failed to process retry queue: %v", err)
+				w.logger.Error("process_retry_queue_failed", slog.Any("error", err))
 			}
 		}
 	}
@@ -82,11 +99,13 @@ func (w *RetryWorker) processRetryQueue(ctx context.Context) error {
 		return nil
 	}
 
-	log.Printf("claimed %d deliveries for retry", len(deliveries))
+	w.metrics.RetryBatchClaimed(len(deliveries))
+
+	w.logger.Info("claimed_retry_deliveries", slog.Int("count", len(deliveries)))
 
 	for _, delivery := range deliveries {
 		if err := w.processDelivery(ctx, delivery); err != nil {
-			log.Printf("failed to retry delivery event_id=%s error=%v", delivery.EventID, err)
+			w.logger.Error("retry_delivery_failed", slog.String("event_id", delivery.EventID), slog.Any("error", err))
 		}
 	}
 
@@ -95,17 +114,25 @@ func (w *RetryWorker) processRetryQueue(ctx context.Context) error {
 
 func (w *RetryWorker) processDelivery(ctx context.Context, delivery model.NotificationDelivery) error {
 	if isExpired(delivery.ValidUntil) {
-		log.Printf("delivery event_id=%s has expired; marking expired", delivery.EventID)
-		return w.deliveryRepo.MarkExpired(ctx, delivery.EventID, "delivery expired before retry attempt")
+		w.logger.Info("delivery_expired_before_retry", slog.String("event_id", delivery.EventID))
+		if err := w.deliveryRepo.MarkExpired(ctx, delivery.EventID, "delivery expired before retry attempt"); err != nil {
+			return err
+		}
+		w.metrics.Expired(delivery.NotificationType)
+		return nil
 	}
 
 	var data map[string]any
 	if err := json.Unmarshal(delivery.Data, &data); err != nil {
-		log.Printf("failed to unmarshal delivery data for event_id=%s: %v; moving to dead letter", delivery.EventID, err)
-		return w.deliveryRepo.MarkDeadLetter(ctx, delivery.EventID, fmt.Sprintf("unmarshal data: %v", err))
+		w.logger.Error("unmarshal_delivery_data_failed", slog.String("event_id", delivery.EventID), slog.Any("error", err))
+		if err := w.deliveryRepo.MarkDeadLetter(ctx, delivery.EventID, fmt.Sprintf("unmarshal data: %v", err)); err != nil {
+			return err
+		}
+		w.metrics.DeadLettered(delivery.NotificationType)
+		return nil
 	}
 
-	log.Printf("retrying delivery event_id=%s count=%d recipient=%s", delivery.EventID, delivery.RetryCount, delivery.RecipientEmail)
+	w.logger.Info("retrying_delivery", slog.String("event_id", delivery.EventID), slog.Int("retry_count", delivery.RetryCount), slog.String("recipient_email", delivery.RecipientEmail))
 
 	if err := w.emailSender.Send(
 		ctx,
@@ -114,24 +141,43 @@ func (w *RetryWorker) processDelivery(ctx context.Context, delivery model.Notifi
 		delivery.RecipientName,
 		data,
 	); err != nil {
+		w.metrics.EmailFailed(delivery.NotificationType)
 		if updateErr := w.handleRetryFailure(ctx, delivery, err.Error()); updateErr != nil {
 			return fmt.Errorf("send email retry failed: %w; update delivery retry state failed: %v", err, updateErr)
 		}
 		return err
 	}
 
-	log.Printf("retry delivery successful event_id=%s", delivery.EventID)
+	w.metrics.EmailSent(delivery.NotificationType)
+
+	w.logger.Info("notification_email_sent",
+		slog.String("event_id", delivery.EventID),
+		slog.String("business_key", delivery.BusinessKey),
+		slog.String("notification_type", delivery.NotificationType),
+		slog.String("template", delivery.Template),
+		slog.String("recipient_email", delivery.RecipientEmail),
+	)
+
+	w.logger.Info("retry_delivery_successful", slog.String("event_id", delivery.EventID))
 	return w.deliveryRepo.MarkSent(ctx, delivery.EventID)
 }
 
 func (w *RetryWorker) handleRetryFailure(ctx context.Context, delivery model.NotificationDelivery, lastError string) error {
 	if isExpired(delivery.ValidUntil) {
-		return w.deliveryRepo.MarkExpired(ctx, delivery.EventID, lastError)
+		if err := w.deliveryRepo.MarkExpired(ctx, delivery.EventID, lastError); err != nil {
+			return err
+		}
+		w.metrics.Expired(delivery.NotificationType)
+		return nil
 	}
 
 	nextRetryCount := delivery.RetryCount + 1
 	if nextRetryCount >= delivery.MaxRetry {
-		return w.deliveryRepo.MarkDeadLetter(ctx, delivery.EventID, lastError)
+		if err := w.deliveryRepo.MarkDeadLetter(ctx, delivery.EventID, lastError); err != nil {
+			return err
+		}
+		w.metrics.DeadLettered(delivery.NotificationType)
+		return nil
 	}
 
 	nextAt := nextRetryAt(
@@ -142,8 +188,16 @@ func (w *RetryWorker) handleRetryFailure(ctx context.Context, delivery model.Not
 	)
 
 	if delivery.ValidUntil != nil && !nextAt.Before(*delivery.ValidUntil) {
-		return w.deliveryRepo.MarkExpired(ctx, delivery.EventID, lastError)
+		if err := w.deliveryRepo.MarkExpired(ctx, delivery.EventID, lastError); err != nil {
+			return err
+		}
+		w.metrics.Expired(delivery.NotificationType)
+		return nil
 	}
 
-	return w.deliveryRepo.ScheduleRetry(ctx, delivery.EventID, nextRetryCount, lastError, nextAt)
+	if err := w.deliveryRepo.ScheduleRetry(ctx, delivery.EventID, nextRetryCount, lastError, nextAt); err != nil {
+		return err
+	}
+	w.metrics.RetryScheduled(delivery.NotificationType)
+	return nil
 }

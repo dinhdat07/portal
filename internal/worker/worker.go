@@ -2,9 +2,10 @@ package outbox
 
 import (
 	"context"
-	"log"
+	"log/slog"
 	"time"
 
+	portalmetrics "portal-system/internal/metrics"
 	"portal-system/internal/model"
 	"portal-system/internal/repository"
 
@@ -12,13 +13,12 @@ import (
 )
 
 type Config struct {
-	Interval          time.Duration
-	BatchSize         int
-	MaxRetry          int
-	RetryDelay1       time.Duration
-	RetryDelay2       time.Duration
-	RetryDelay3       time.Duration
-	RetryDelayDefault time.Duration
+	Interval            time.Duration
+	BatchSize           int
+	MaxRetry            int
+	RetryInitialBackoff time.Duration
+	RetryMaxBackoff     time.Duration
+	RetryJitterRatio    float64
 }
 
 type Publisher interface {
@@ -29,16 +29,33 @@ type Worker struct {
 	txManager repository.TxManager
 	repo      repository.OutboxRepository
 	publisher Publisher
+	logger    *slog.Logger
+	metrics   portalmetrics.OutboxMetrics
 
 	workerID string
 	cfg      Config
 }
 
-func NewWorker(txManager repository.TxManager, repo repository.OutboxRepository, publisher Publisher, cfg Config) *Worker {
+func NewWorker(
+	txManager repository.TxManager,
+	repo repository.OutboxRepository,
+	publisher Publisher,
+	logger *slog.Logger,
+	metrics portalmetrics.OutboxMetrics,
+	cfg Config,
+) *Worker {
+	if logger == nil {
+		logger = slog.Default()
+	}
+	if metrics == nil {
+		metrics = portalmetrics.NoopOutboxMetrics{}
+	}
 	return &Worker{
 		txManager: txManager,
 		repo:      repo,
 		publisher: publisher,
+		logger:    logger,
+		metrics:   metrics,
 		workerID:  uuid.NewString(),
 		cfg:       cfg,
 	}
@@ -55,7 +72,7 @@ func (w *Worker) Run(ctx context.Context) error {
 
 		case <-ticker.C:
 			if err := w.publishPending(ctx); err != nil {
-				log.Printf("outbox worker failed: %v", err)
+				w.logger.Error("outbox worker failed", slog.Any("error", err))
 			}
 		}
 	}
@@ -67,7 +84,17 @@ func (w *Worker) publishPending(ctx context.Context) error {
 		return err
 	}
 
+	w.metrics.EventsClaimed(len(events))
+
 	for _, event := range events {
+		w.logger.Info("outbox_event_claimed",
+			slog.String("outbox_event_id", event.ID.String()),
+			slog.String("topic", event.Topic),
+			slog.String("key", event.MessageKey),
+			slog.Int("retry_count", event.RetryCount),
+			slog.String("worker_id", w.workerID),
+		)
+
 		if err := w.publisher.Publish(ctx, event.Topic, event.MessageKey, []byte(event.Payload)); err != nil {
 			w.handlePublishFailed(ctx, event, err)
 			continue
@@ -76,6 +103,14 @@ func (w *Worker) publishPending(ctx context.Context) error {
 		if err := w.repo.MarkPublished(ctx, event.ID); err != nil {
 			return err
 		}
+
+		w.metrics.EventsPublished()
+
+		w.logger.Info("outbox_event_published",
+			slog.String("outbox_event_id", event.ID.String()),
+			slog.String("topic", event.Topic),
+			slog.String("key", event.MessageKey),
+		)
 	}
 
 	return nil
@@ -108,6 +143,10 @@ func (w *Worker) claimPendingEvents(ctx context.Context) ([]model.OutboxEvent, e
 	})
 
 	if err != nil {
+		w.logger.Error("outbox_events_claim_failed",
+			slog.String("worker_id", w.workerID),
+			slog.String("error", err.Error()),
+		)
 		return nil, err
 	}
 
@@ -115,6 +154,7 @@ func (w *Worker) claimPendingEvents(ctx context.Context) ([]model.OutboxEvent, e
 }
 
 func (w *Worker) handlePublishFailed(ctx context.Context, event model.OutboxEvent, publishErr error) {
+	w.metrics.EventsPublishFailed()
 	retryCount := event.RetryCount + 1
 
 	maxRetry := event.MaxRetry
@@ -124,19 +164,44 @@ func (w *Worker) handlePublishFailed(ctx context.Context, event model.OutboxEven
 
 	if retryCount >= maxRetry {
 		if err := w.repo.MarkDeadLetter(ctx, event.ID, publishErr.Error()); err != nil {
-			log.Printf("mark outbox event dead_letter failed event_id=%s error=%v", event.ID, err)
+			w.logger.Error("mark outbox event dead_letter failed",
+				slog.String("outbox_event_id", event.ID.String()),
+				slog.Any("error", err),
+			)
+		} else {
+			w.metrics.EventsDeadLettered()
 		}
+		w.logger.Error("outbox_event_dead_lettered",
+			slog.String("outbox_event_id", event.ID.String()),
+			slog.String("topic", event.Topic),
+			slog.String("key", event.MessageKey),
+			slog.Int("retry_count", retryCount),
+			slog.String("last_error", publishErr.Error()),
+		)
 		return
 	}
 
+	nextAt := nextRetryAt(retryCount, w.cfg)
 	if err := w.repo.MarkRetryScheduled(
 		ctx,
 		event.ID,
 		retryCount,
 		publishErr.Error(),
-		nextRetryAt(retryCount, w.cfg),
+		nextAt,
 	); err != nil {
-		log.Printf("mark outbox event retry_scheduled failed event_id=%s error=%v", event.ID, err)
+		w.logger.Error("mark outbox event retry_scheduled failed",
+			slog.String("outbox_event_id", event.ID.String()),
+			slog.Any("error", err),
+		)
+	} else {
+		w.metrics.EventsRetryScheduled()
 	}
+	w.logger.Warn("outbox_event_publish_failed",
+		slog.String("outbox_event_id", event.ID.String()),
+		slog.String("topic", event.Topic),
+		slog.String("key", event.MessageKey),
+		slog.Int("retry_count", retryCount),
+		slog.Time("next_retry_at", nextAt),
+		slog.Any("error", publishErr),
+	)
 }
-

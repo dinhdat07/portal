@@ -6,6 +6,11 @@ import (
 	"strconv"
 )
 
+type LoggerConfig struct {
+	Level  string
+	Format string
+}
+
 type Config struct {
 	GRPCPort string
 	HTTPPort string
@@ -20,6 +25,8 @@ type Config struct {
 	AdminPassword string
 	ApiBaseUrl    string
 	FrontEndUrl   string
+
+	Logger LoggerConfig
 }
 
 func Load() (*Config, error) {
@@ -49,10 +56,14 @@ func Load() (*Config, error) {
 		JWTAccessTTL:  accessTTL,
 		RefreshTTL:    refreshTTL,
 		Port:          os.Getenv("PORT"),
-		Env:           os.Getenv("ENV"),
+		Env:           getEnvDefault("ENV", "development"),
 		AdminEmail:    os.Getenv("ADMIN_EMAIL"),
 		AdminPassword: os.Getenv("ADMIN_PASSWORD"),
 		ApiBaseUrl:    os.Getenv("API_BASE_URL"),
 		FrontEndUrl:   os.Getenv("FRONTEND_BASE_URL"),
+		Logger: LoggerConfig{
+			Level:  getEnvDefault("LOG_LEVEL", "info"),
+			Format: getEnvDefault("LOG_FORMAT", "text"),
+		},
 	}, nil
 }

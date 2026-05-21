@@ -3,33 +3,43 @@ package app
 import (
 	"context"
 	"fmt"
-	"log"
+	"log/slog"
 	"portal-system/services/notification-service/config"
 	emailchannel "portal-system/services/notification-service/internal/channel/email"
 	kafkax "portal-system/services/notification-service/internal/infrastructure/kafka"
+	logger "portal-system/services/notification-service/internal/infrastructure/logger"
+	metricsx "portal-system/services/notification-service/internal/infrastructure/metrics"
 	smtpx "portal-system/services/notification-service/internal/infrastructure/smtp"
 	"portal-system/services/notification-service/internal/model"
 	"portal-system/services/notification-service/internal/repository/impl"
 	emailworker "portal-system/services/notification-service/internal/worker"
 	"time"
 
+	"github.com/prometheus/client_golang/prometheus"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )
 
 func New() (*App, error) {
-	log.Println("starting notification service bootstrap")
-
 	cfg := config.Load()
-	log.Printf(
-		"notification service config loaded kafka_brokers=%v notification_topic=%s consumer_group=%s smtp_host=%s smtp_port=%s smtp_auth=%t smtp_tls=%t",
-		cfg.Kafka.Brokers,
-		cfg.Kafka.NotificationRequestedTopic,
-		cfg.Kafka.ConsumerGroup,
-		cfg.SMTP.Host,
-		cfg.SMTP.Port,
-		cfg.SMTP.UseAuth,
-		cfg.SMTP.UseTLS,
+
+	slogLogger := logger.New(logger.Config{
+		Env:    cfg.Logger.Env,
+		Level:  cfg.Logger.Level,
+		Format: cfg.Logger.Format,
+	})
+	slog.SetDefault(slogLogger)
+
+	slogLogger.Info("starting_notification_service_bootstrap")
+
+	slogLogger.Info("notification_service_config_loaded",
+		slog.Any("kafka_brokers", cfg.Kafka.Brokers),
+		slog.String("notification_topic", cfg.Kafka.NotificationRequestedTopic),
+		slog.String("consumer_group", cfg.Kafka.ConsumerGroup),
+		slog.String("smtp_host", cfg.SMTP.Host),
+		slog.String("smtp_port", cfg.SMTP.Port),
+		slog.Bool("smtp_use_auth", cfg.SMTP.UseAuth),
+		slog.Bool("smtp_use_tls", cfg.SMTP.UseTLS),
 	)
 
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
@@ -57,7 +67,7 @@ func New() (*App, error) {
 		[]string{cfg.Kafka.NotificationRequestedTopic},
 		cfg.Kafka.ConsumerGroup,
 	)
-	log.Println("kafka reader initialized")
+	slogLogger.Info("kafka_reader_initialized")
 
 	deliveryRepo := impl.NewGormDeliveryRepository(db)
 	txManager := impl.NewGormTxManager(db)
@@ -72,39 +82,43 @@ func New() (*App, error) {
 		From:     cfg.SMTP.From,
 		FromName: cfg.SMTP.FromName,
 	})
-	log.Println("smtp mailer initialized")
+
+	emailMetrics, retryMetrics := metricsx.NewPrometheusMetrics(prometheus.DefaultRegisterer)
+
+	slogLogger.Info("smtp_mailer_initialized")
 	emailRenderer := emailchannel.NewEmailRenderer()
 	emailSender := emailchannel.NewSender(emailRenderer, smtpMailer)
-	log.Println("email sender initialized")
+	slogLogger.Info("email_sender_initialized")
 
-	worker := emailworker.NewWorker(reader, emailSender, txManager, deliveryRepo,
+	worker := emailworker.NewWorker(reader, emailSender, txManager, deliveryRepo, slogLogger, emailMetrics,
 		emailworker.Config{
-			FetchRetryInitialBackoff:     cfg.Worker.FetchRetryInitialBackoff,
-			FetchRetryMaxBackoff:         cfg.Worker.FetchRetryMaxBackoff,
-			MaxRetry:                     cfg.Worker.MaxRetry,
+			FetchRetryInitialBackoff:    cfg.Worker.FetchRetryInitialBackoff,
+			FetchRetryMaxBackoff:        cfg.Worker.FetchRetryMaxBackoff,
+			MaxRetry:                    cfg.Worker.MaxRetry,
 			DeliveryRetryInitialBackoff: cfg.Worker.DeliveryRetryInitialBackoff,
-			DeliveryRetryMaxBackoff:      cfg.Worker.DeliveryRetryMaxBackoff,
-			DeliveryRetryJitterRatio:     cfg.Worker.DeliveryRetryJitterRatio,
+			DeliveryRetryMaxBackoff:     cfg.Worker.DeliveryRetryMaxBackoff,
+			DeliveryRetryJitterRatio:    cfg.Worker.DeliveryRetryJitterRatio,
 		},
 	)
-	log.Println("email notification worker initialized")
+	slogLogger.Info("email_notification_worker_initialized")
 
-	retryWorker := emailworker.NewRetryWorker(emailSender, deliveryRepo,
+	retryWorker := emailworker.NewRetryWorker(emailSender, deliveryRepo, slogLogger, retryMetrics,
 		emailworker.RetryWorkerConfig{
 			Interval:                    cfg.Worker.RetryWorkerInterval,
 			BatchSize:                   cfg.Worker.RetryWorkerBatchSize,
 			MaxRetry:                    cfg.Worker.MaxRetry,
 			DeliveryRetryInitialBackoff: cfg.Worker.DeliveryRetryInitialBackoff,
-			DeliveryRetryMaxBackoff:      cfg.Worker.DeliveryRetryMaxBackoff,
-			DeliveryRetryJitterRatio:     cfg.Worker.DeliveryRetryJitterRatio,
+			DeliveryRetryMaxBackoff:     cfg.Worker.DeliveryRetryMaxBackoff,
+			DeliveryRetryJitterRatio:    cfg.Worker.DeliveryRetryJitterRatio,
 		},
 	)
-	log.Println("email notification retry worker initialized")
+	slogLogger.Info("email_notification_retry_worker_initialized")
 
 	return &App{
 		EmailWorker: worker,
 		RetryWorker: retryWorker,
 		KafkaReader: reader,
 		DB:          db,
+		MetricsPort: cfg.MetricsPort,
 	}, nil
 }

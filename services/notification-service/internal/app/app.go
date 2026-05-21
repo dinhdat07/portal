@@ -12,4 +12,5 @@ type App struct {
 	RetryWorker *emailworker.RetryWorker
 	KafkaReader *kafka.Reader
 	DB          *gorm.DB
+	MetricsPort string
 }
