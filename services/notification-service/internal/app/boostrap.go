@@ -60,6 +60,7 @@ func New() (*App, error) {
 	log.Println("kafka reader initialized")
 
 	deliveryRepo := impl.NewGormDeliveryRepository(db)
+	txManager := impl.NewGormTxManager(db)
 
 	smtpMailer := smtpx.NewMailer(smtpx.Config{
 		Host:     cfg.SMTP.Host,
@@ -76,16 +77,33 @@ func New() (*App, error) {
 	emailSender := emailchannel.NewSender(emailRenderer, smtpMailer)
 	log.Println("email sender initialized")
 
-	worker := emailworker.NewWorker(reader, emailSender, deliveryRepo,
+	worker := emailworker.NewWorker(reader, emailSender, txManager, deliveryRepo,
 		emailworker.Config{
-			FetchRetryInitialBackoff: cfg.Worker.FetchRetryInitialBackoff,
-			FetchRetryMaxBackoff:     cfg.Worker.FetchRetryMaxBackoff,
+			FetchRetryInitialBackoff:     cfg.Worker.FetchRetryInitialBackoff,
+			FetchRetryMaxBackoff:         cfg.Worker.FetchRetryMaxBackoff,
+			MaxRetry:                     cfg.Worker.MaxRetry,
+			DeliveryRetryInitialBackoff: cfg.Worker.DeliveryRetryInitialBackoff,
+			DeliveryRetryMaxBackoff:      cfg.Worker.DeliveryRetryMaxBackoff,
+			DeliveryRetryJitterRatio:     cfg.Worker.DeliveryRetryJitterRatio,
 		},
 	)
 	log.Println("email notification worker initialized")
 
+	retryWorker := emailworker.NewRetryWorker(emailSender, deliveryRepo,
+		emailworker.RetryWorkerConfig{
+			Interval:                    cfg.Worker.RetryWorkerInterval,
+			BatchSize:                   cfg.Worker.RetryWorkerBatchSize,
+			MaxRetry:                    cfg.Worker.MaxRetry,
+			DeliveryRetryInitialBackoff: cfg.Worker.DeliveryRetryInitialBackoff,
+			DeliveryRetryMaxBackoff:      cfg.Worker.DeliveryRetryMaxBackoff,
+			DeliveryRetryJitterRatio:     cfg.Worker.DeliveryRetryJitterRatio,
+		},
+	)
+	log.Println("email notification retry worker initialized")
+
 	return &App{
 		EmailWorker: worker,
+		RetryWorker: retryWorker,
 		KafkaReader: reader,
 		DB:          db,
 	}, nil

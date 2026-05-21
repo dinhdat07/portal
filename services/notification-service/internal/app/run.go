@@ -7,6 +7,8 @@ import (
 	"os"
 	"os/signal"
 	"syscall"
+
+	"golang.org/x/sync/errgroup"
 )
 
 func (a *App) Run() error {
@@ -32,11 +34,21 @@ func (a *App) Run() error {
 		log.Println("kafka reader closed")
 	}()
 
-	err := a.EmailWorker.Run(ctx)
-	if errors.Is(err, context.Canceled) {
-		log.Println("notification service stopped by context cancellation")
-		return nil
+	g, gCtx := errgroup.WithContext(ctx)
+
+	g.Go(func() error {
+		return a.EmailWorker.Run(gCtx)
+	})
+
+	g.Go(func() error {
+		return a.RetryWorker.Run(gCtx)
+	})
+
+	err := g.Wait()
+	if err != nil && !errors.Is(err, context.Canceled) {
+		return err
 	}
 
-	return err
+	log.Println("notification service stopped cleanly")
+	return nil
 }

@@ -29,6 +29,8 @@ type NotificationRequestedEvent struct {
 	Recipient        Recipient      `json:"recipient"`
 	Template         string         `json:"template"`
 	Data             map[string]any `json:"data"`
+	ValidUntil       *time.Time     `json:"valid_until"`
+	BusinessKey      string         `json:"business_key"`
 }
 
 type Recipient struct {

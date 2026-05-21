@@ -22,18 +22,58 @@ func newEmailNotificationEvent(notificationType string, template string, user mo
 		"username": user.Username,
 		"url":      url,
 	}
+
+	ttl := getNotificationTTLFromEnv(notificationType)
+	occurredAt := time.Now().UTC()
+	validUntil := occurredAt.Add(ttl)
+	businessKey := fmt.Sprintf("email:%s:%s", user.ID.String(), notificationType)
+
 	return notificationv1.NotificationRequestedEvent{
 		EventID:          uuid.NewString(),
-		OccurredAt:       time.Now().UTC(),
+		OccurredAt:       occurredAt,
 		NotificationType: notificationType,
 		Recipient: notificationv1.Recipient{
 			UserID: user.ID.String(),
 			Email:  user.Email,
 			Name:   strings.TrimSpace(user.FirstName + " " + user.LastName),
 		},
-		Template: template,
-		Data:     data,
+		Template:    template,
+		Data:        data,
+		ValidUntil:  &validUntil,
+		BusinessKey: businessKey,
 	}
+}
+
+func getNotificationTTLFromEnv(notificationType string) time.Duration {
+	var envKey string
+	var defaultTTL time.Duration
+
+	switch notificationType {
+	case notificationv1.NotificationTypeVerifyEmail:
+		envKey = "NOTIFICATION_VERIFY_EMAIL_TTL"
+		defaultTTL = 24 * time.Hour
+	case notificationv1.NotificationTypeResetPassword:
+		envKey = "NOTIFICATION_RESET_PASSWORD_TTL"
+		defaultTTL = 1 * time.Hour
+	case notificationv1.NotificationTypeSetPassword:
+		envKey = "NOTIFICATION_SET_PASSWORD_TTL"
+		defaultTTL = 24 * time.Hour
+	default:
+		envKey = "NOTIFICATION_EVENT_TTL"
+		defaultTTL = 24 * time.Hour
+	}
+
+	if val := os.Getenv(envKey); val != "" {
+		if d, err := time.ParseDuration(val); err == nil {
+			return d
+		}
+	}
+	if val := os.Getenv("NOTIFICATION_EVENT_TTL"); val != "" {
+		if d, err := time.ParseDuration(val); err == nil {
+			return d
+		}
+	}
+	return defaultTTL
 }
 
 func createNotificationOutboxEvent(
@@ -78,4 +118,3 @@ func getMaxRetryFromEnv() int {
 	}
 	return parsed
 }
-
