@@ -3,11 +3,12 @@ package admin
 import (
 	"encoding/json"
 	"net/http"
+	"portal-system/internal/observability/health"
 
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
 
-func NewMux() http.Handler {
+func NewMux(readinessChecker health.Checker) http.Handler {
 	mux := http.NewServeMux()
 
 	mux.Handle("/metrics", promhttp.Handler())
@@ -18,15 +19,13 @@ func NewMux() http.Handler {
 		})
 	})
 
-	mux.HandleFunc("/readiness", func(w http.ResponseWriter, _ *http.Request) {
-		writeJSON(w, http.StatusOK, map[string]any{
-			"status": "ok",
-			"checks": map[string]string{
-				"db":    "not_checked",
-				"kafka": "not_checked",
-				"smtp":  "not_checked",
-			},
-		})
+	mux.HandleFunc("/readiness", func(w http.ResponseWriter, r *http.Request) {
+		report := health.NewReport(map[string]string{})
+		if readinessChecker != nil {
+			report = readinessChecker(r.Context())
+		}
+
+		writeJSON(w, health.HTTPStatus(report), report)
 	})
 
 	return mux

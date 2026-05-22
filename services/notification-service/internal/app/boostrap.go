@@ -115,10 +115,13 @@ func New() (*App, error) {
 	slogLogger.Info("email_notification_retry_worker_initialized")
 
 	return &App{
-		EmailWorker: worker,
-		RetryWorker: retryWorker,
-		KafkaReader: reader,
-		DB:          db,
-		MetricsPort: cfg.MetricsPort,
+		EmailWorker:  worker,
+		RetryWorker:  retryWorker,
+		KafkaReader:  reader,
+		DB:           db,
+		MetricsPort:  cfg.MetricsPort,
+		KafkaBrokers: cfg.Kafka.Brokers,
+		SMTPHost:     cfg.SMTP.Host,
+		SMTPPort:     cfg.SMTP.Port,
 	}, nil
 }

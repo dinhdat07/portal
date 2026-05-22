@@ -136,5 +136,7 @@ func New() (*App, error) {
 		RateLimiter:         rateLimiter,
 		RateLimitKeyBuilder: rateLimitKeyBuilder,
 		RateLimitConfig:     rateLimitCfg,
+		RedisClient:         rdb,
+		KafkaBrokers:        kafkaCfg.Brokers,
 	}, nil
 }

@@ -3,11 +3,12 @@ package gateway
 import (
 	"encoding/json"
 	"net/http"
+	"portal-system/internal/observability/health"
 
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
 
-func NewRootMux(gatewayHandler http.Handler) http.Handler {
+func NewRootMux(gatewayHandler http.Handler, readinessChecker health.Checker) http.Handler {
 	rootMux := http.NewServeMux()
 
 	rootMux.Handle("/metrics", promhttp.Handler())
@@ -18,14 +19,13 @@ func NewRootMux(gatewayHandler http.Handler) http.Handler {
 		})
 	})
 
-	rootMux.HandleFunc("/readiness", func(w http.ResponseWriter, _ *http.Request) {
-		writeJSON(w, http.StatusOK, map[string]any{
-			"status": "ok",
-			"checks": map[string]string{
-				"db":    "not_checked",
-				"kafka": "not_checked",
-			},
-		})
+	rootMux.HandleFunc("/readiness", func(w http.ResponseWriter, r *http.Request) {
+		report := health.NewReport(map[string]string{})
+		if readinessChecker != nil {
+			report = readinessChecker(r.Context())
+		}
+
+		writeJSON(w, health.HTTPStatus(report), report)
 	})
 
 	rootMux.Handle("/", gatewayHandler)
