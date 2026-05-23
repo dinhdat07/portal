@@ -3,8 +3,10 @@ package app
 import (
 	"context"
 	"fmt"
+	"log/slog"
 	"portal-system/config"
 	"portal-system/internal/infrastructure/logger"
+	metricsx "portal-system/internal/infrastructure/metrics"
 	"portal-system/internal/infrastructure/ratelimit"
 	redisx "portal-system/internal/infrastructure/redis"
 	"portal-system/internal/infrastructure/storage"
@@ -13,6 +15,7 @@ import (
 
 	kafkainfra "portal-system/internal/infrastructure/kafka"
 
+	"github.com/prometheus/client_golang/prometheus"
 	"github.com/redis/go-redis/v9"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
@@ -25,6 +28,13 @@ func New() (*App, error) {
 	if err != nil {
 		return nil, err
 	}
+
+	slogLogger := logger.New(logger.Config{
+		Env:    cfg.Env,
+		Level:  cfg.Logger.Level,
+		Format: cfg.Logger.Format,
+	})
+	slog.SetDefault(slogLogger)
 
 	redisCfg, err := config.LoadRedisConfig()
 	if err != nil {
@@ -45,7 +55,6 @@ func New() (*App, error) {
 	if err != nil {
 		return nil, err
 	}
-
 
 	if rateLimitCfg.Enabled && !redisCfg.Enabled {
 		return nil, fmt.Errorf("RATE_LIMIT_ENABLED=true requires REDIS_ENABLED=true")
@@ -102,16 +111,17 @@ func New() (*App, error) {
 	repos := newRepositories(db)
 	svcs := newServices(cfg, infra, repos)
 	grpcServers := newGRPCServers(svcs)
-	outboxWorker := outbox.NewWorker(repos.TxManager, repos.OutboxRepo, infra.KafkaPublisher, outbox.Config{
-		Interval:          workerCfg.Interval,
-		BatchSize:         workerCfg.BatchSize,
-		MaxRetry:          workerCfg.MaxRetry,
-		RetryDelay1:       workerCfg.RetryDelay1,
-		RetryDelay2:       workerCfg.RetryDelay2,
-		RetryDelay3:       workerCfg.RetryDelay3,
-		RetryDelayDefault: workerCfg.RetryDelayDefault,
-	})
 
+	outboxMetrics := metricsx.NewPrometheusOutboxMetrics(prometheus.DefaultRegisterer)
+
+	outboxWorker := outbox.NewWorker(repos.TxManager, repos.OutboxRepo, infra.KafkaPublisher, slogLogger, outboxMetrics, outbox.Config{
+		Interval:            workerCfg.Interval,
+		BatchSize:           workerCfg.BatchSize,
+		MaxRetry:            workerCfg.MaxRetry,
+		RetryInitialBackoff: workerCfg.RetryInitialBackoff,
+		RetryMaxBackoff:     workerCfg.RetryMaxBackoff,
+		RetryJitterRatio:    workerCfg.RetryJitterRatio,
+	})
 
 	return &App{
 		Config:              cfg,
@@ -126,5 +136,7 @@ func New() (*App, error) {
 		RateLimiter:         rateLimiter,
 		RateLimitKeyBuilder: rateLimitKeyBuilder,
 		RateLimitConfig:     rateLimitCfg,
+		RedisClient:         rdb,
+		KafkaBrokers:        kafkaCfg.Brokers,
 	}, nil
 }

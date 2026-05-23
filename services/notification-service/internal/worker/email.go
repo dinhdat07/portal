@@ -5,10 +5,11 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"log"
+	"log/slog"
 	"math/rand/v2"
 	"time"
 
+	notificationmetrics "portal-system/services/notification-service/internal/metrics"
 	"portal-system/services/notification-service/internal/model"
 	"portal-system/services/notification-service/internal/repository"
 	notificationv1 "portal-system/shared/events/notification/v1"
@@ -36,10 +37,20 @@ type Worker struct {
 	emailSender  EmailSender
 	deliveryRepo repository.DeliveryRepository
 	txManager    repository.TxManager
+	logger       *slog.Logger
+	metrics      notificationmetrics.EmailMetrics
 	cfg          Config
 }
 
-func NewWorker(reader *kafka.Reader, emailSender EmailSender, txManager repository.TxManager, deliveryRepo repository.DeliveryRepository, cfg Config) *Worker {
+func NewWorker(
+	reader *kafka.Reader,
+	emailSender EmailSender,
+	txManager repository.TxManager,
+	deliveryRepo repository.DeliveryRepository,
+	logger *slog.Logger,
+	metrics notificationmetrics.EmailMetrics,
+	cfg Config,
+) *Worker {
 	if cfg.FetchRetryInitialBackoff <= 0 {
 		cfg.FetchRetryInitialBackoff = time.Second
 	}
@@ -58,18 +69,26 @@ func NewWorker(reader *kafka.Reader, emailSender EmailSender, txManager reposito
 	if cfg.DeliveryRetryJitterRatio < 0 {
 		cfg.DeliveryRetryJitterRatio = 0.2
 	}
+	if logger == nil {
+		logger = slog.Default()
+	}
+	if metrics == nil {
+		metrics = notificationmetrics.NoopEmailMetrics{}
+	}
 
 	return &Worker{
 		reader:       reader,
 		emailSender:  emailSender,
 		deliveryRepo: deliveryRepo,
 		txManager:    txManager,
+		logger:       logger,
+		metrics:      metrics,
 		cfg:          cfg,
 	}
 }
 
 func (w *Worker) Run(ctx context.Context) error {
-	log.Println("email notification worker started; waiting for kafka messages")
+	w.logger.Info("email_notification_worker_started")
 
 	backoff := w.cfg.FetchRetryInitialBackoff
 	maxBackoff := w.cfg.FetchRetryMaxBackoff
@@ -78,13 +97,18 @@ func (w *Worker) Run(ctx context.Context) error {
 		msg, err := w.reader.FetchMessage(ctx)
 		if err != nil {
 			if errors.Is(err, context.Canceled) || ctx.Err() != nil {
-				log.Println("email notification worker stopped")
+				w.logger.Info("email_notification_worker_stopped")
 				return nil
 			}
 
-			log.Printf("fetch kafka message failed: %v; retrying in %s", err, backoff)
+			w.logger.WarnContext(ctx, "kafka_fetch_message_failed",
+				slog.String("error", err.Error()),
+				slog.Duration("retry_in", backoff),
+			)
+
 			select {
 			case <-ctx.Done():
+				w.logger.Info("email_notification_worker_stopped")
 				return nil
 			case <-time.After(backoff):
 			}
@@ -99,36 +123,43 @@ func (w *Worker) Run(ctx context.Context) error {
 
 		backoff = w.cfg.FetchRetryInitialBackoff
 
-		log.Printf(
-			"fetched kafka message topic=%s partition=%d offset=%d key=%s bytes=%d",
-			msg.Topic,
-			msg.Partition,
-			msg.Offset,
-			string(msg.Key),
-			len(msg.Value),
+		w.logger.DebugContext(ctx, "kafka_message_fetched",
+			slog.String("topic", msg.Topic),
+			slog.Int("partition", int(msg.Partition)),
+			slog.Int64("offset", msg.Offset),
+			slog.String("key", string(msg.Key)),
+			slog.Int("bytes", len(msg.Value)),
 		)
 
 		err = w.handleMessage(ctx, msg)
-		if err != nil && !errors.Is(err, ErrNonRetryable) {
-			log.Printf(
-				"failed to handle email notification topic=%s partition=%d offset=%d error=%v",
-				msg.Topic,
-				msg.Partition,
-				msg.Offset,
-				err,
+		if err != nil {
+			w.logger.ErrorContext(ctx, "notification_message_handle_failed",
+				slog.String("topic", msg.Topic),
+				slog.Int("partition", int(msg.Partition)),
+				slog.Int64("offset", msg.Offset),
+				slog.String("error", err.Error()),
 			)
 
-			continue
+			if !errors.Is(err, ErrNonRetryable) {
+				continue
+			}
 		}
 
 		if err := w.reader.CommitMessages(ctx, msg); err != nil {
+			w.logger.ErrorContext(ctx, "kafka_commit_message_failed",
+				slog.String("topic", msg.Topic),
+				slog.Int("partition", int(msg.Partition)),
+				slog.Int64("offset", msg.Offset),
+				slog.String("error", err.Error()),
+			)
+
 			return fmt.Errorf("commit kafka message: %w", err)
 		}
-		log.Printf(
-			"committed kafka message topic=%s partition=%d offset=%d",
-			msg.Topic,
-			msg.Partition,
-			msg.Offset,
+
+		w.logger.DebugContext(ctx, "kafka_message_committed",
+			slog.String("topic", msg.Topic),
+			slog.Int("partition", int(msg.Partition)),
+			slog.Int64("offset", msg.Offset),
 		)
 	}
 }
@@ -136,21 +167,47 @@ func (w *Worker) Run(ctx context.Context) error {
 func (w *Worker) handleMessage(ctx context.Context, msg kafka.Message) error {
 	var event notificationv1.NotificationRequestedEvent
 	if err := json.Unmarshal(msg.Value, &event); err != nil {
+		w.metrics.EventInvalid("unmarshal_failed")
+
+		w.logger.WarnContext(ctx, "notification_event_unmarshal_failed",
+			slog.String("topic", msg.Topic),
+			slog.Int("partition", int(msg.Partition)),
+			slog.Int64("offset", msg.Offset),
+			slog.String("error", err.Error()),
+		)
+
 		return fmt.Errorf("%w: unmarshal notification event: %v", ErrNonRetryable, err)
 	}
 
 	if err := validateEmailEvent(event); err != nil {
+		w.metrics.EventInvalid("validation_failed")
+
+		w.logger.WarnContext(ctx, "notification_event_validation_failed",
+			slog.String("event_id", event.EventID),
+			slog.String("notification_type", event.NotificationType),
+			slog.String("template", event.Template),
+			slog.String("topic", msg.Topic),
+			slog.Int("partition", int(msg.Partition)),
+			slog.Int64("offset", msg.Offset),
+			slog.String("error", err.Error()),
+		)
+
 		return fmt.Errorf("%w: validate notification event: %v", ErrNonRetryable, err)
 	}
 
-	log.Printf(
-		"handling notification event event_id=%s notification_type=%s template=%s topic=%s partition=%d offset=%d",
-		event.EventID,
-		event.NotificationType,
-		event.Template,
-		msg.Topic,
-		msg.Partition,
-		msg.Offset,
+	w.metrics.EventConsumed(event.NotificationType)
+
+	w.logger.InfoContext(ctx, "notification_event_consumed",
+		slog.String("event_id", event.EventID),
+		slog.String("business_key", event.BusinessKey),
+		slog.String("notification_type", event.NotificationType),
+		slog.String("template", event.Template),
+		slog.String("recipient_user_id", event.Recipient.UserID),
+		slog.String("recipient_email", event.Recipient.Email),
+		slog.String("topic", msg.Topic),
+		slog.Int("partition", int(msg.Partition)),
+		slog.Int64("offset", msg.Offset),
+		slog.String("key", string(msg.Key)),
 	)
 
 	shouldSend, err := w.ensureDelivery(ctx, event)
@@ -159,11 +216,13 @@ func (w *Worker) handleMessage(ctx context.Context, msg kafka.Message) error {
 	}
 
 	if !shouldSend {
-		log.Printf(
-			"skip notification event event_id=%s notification_type=%s reason=duplicate_or_terminal_state",
-			event.EventID,
-			event.NotificationType,
+		w.logger.InfoContext(ctx, "notification_event_skipped",
+			slog.String("event_id", event.EventID),
+			slog.String("business_key", event.BusinessKey),
+			slog.String("notification_type", event.NotificationType),
+			slog.String("reason", "duplicate_or_terminal_state"),
 		)
+
 		return nil
 	}
 
@@ -176,11 +235,15 @@ func (w *Worker) handleMessage(ctx context.Context, msg kafka.Message) error {
 			return fmt.Errorf("mark delivery expired: %w", err)
 		}
 
-		log.Printf(
-			"skip expired notification event event_id=%s notification_type=%s",
-			event.EventID,
-			event.NotificationType,
+		w.metrics.Expired(event.NotificationType)
+
+		w.logger.InfoContext(ctx, "notification_delivery_expired",
+			slog.String("event_id", event.EventID),
+			slog.String("business_key", event.BusinessKey),
+			slog.String("notification_type", event.NotificationType),
+			slog.String("reason", "expired_before_first_send"),
 		)
+
 		return nil
 	}
 
@@ -191,15 +254,19 @@ func (w *Worker) handleMessage(ctx context.Context, msg kafka.Message) error {
 		event.Recipient.Name,
 		event.Data,
 	); err != nil {
+		w.metrics.EmailFailed(event.NotificationType)
+
 		if updateErr := w.handleSendFailure(ctx, event.EventID, err.Error()); updateErr != nil {
 			return fmt.Errorf("send email failed: %w; update delivery retry state failed: %v", err, updateErr)
 		}
 
-		log.Printf(
-			"scheduled retry or finalized failed notification event_id=%s notification_type=%s error=%v",
-			event.EventID,
-			event.NotificationType,
-			err,
+		w.logger.WarnContext(ctx, "notification_email_send_failed",
+			slog.String("event_id", event.EventID),
+			slog.String("business_key", event.BusinessKey),
+			slog.String("notification_type", event.NotificationType),
+			slog.String("template", event.Template),
+			slog.String("recipient_email", event.Recipient.Email),
+			slog.String("error", err.Error()),
 		)
 
 		return nil
@@ -209,14 +276,24 @@ func (w *Worker) handleMessage(ctx context.Context, msg kafka.Message) error {
 		return fmt.Errorf("mark delivery sent: %w", err)
 	}
 
-	log.Printf(
-		"handled notification event successfully event_id=%s notification_type=%s template=%s topic=%s partition=%d offset=%d",
-		event.EventID,
-		event.NotificationType,
-		event.Template,
-		msg.Topic,
-		msg.Partition,
-		msg.Offset,
+	w.metrics.EmailSent(event.NotificationType)
+
+	w.logger.InfoContext(ctx, "notification_email_sent",
+		slog.String("event_id", event.EventID),
+		slog.String("business_key", event.BusinessKey),
+		slog.String("notification_type", event.NotificationType),
+		slog.String("template", event.Template),
+		slog.String("recipient_email", event.Recipient.Email),
+	)
+
+	w.logger.InfoContext(ctx, "notification_event_handled",
+		slog.String("event_id", event.EventID),
+		slog.String("business_key", event.BusinessKey),
+		slog.String("notification_type", event.NotificationType),
+		slog.String("template", event.Template),
+		slog.String("topic", msg.Topic),
+		slog.Int("partition", int(msg.Partition)),
+		slog.Int64("offset", msg.Offset),
 	)
 
 	return nil
@@ -225,6 +302,7 @@ func (w *Worker) handleMessage(ctx context.Context, msg kafka.Message) error {
 func (w *Worker) ensureDelivery(ctx context.Context, event notificationv1.NotificationRequestedEvent) (bool, error) {
 	data, err := json.Marshal(event.Data)
 	if err != nil {
+		w.metrics.EventInvalid("marshal_delivery_data_failed")
 		return false, fmt.Errorf("%w: marshal delivery data: %v", ErrNonRetryable, err)
 	}
 
@@ -252,16 +330,40 @@ func (w *Worker) ensureDelivery(ctx context.Context, event notificationv1.Notifi
 	err = w.txManager.WithTx(ctx, func(ctx context.Context) error {
 		err := w.deliveryRepo.CreateProcessing(ctx, delivery)
 		if err == nil {
-			if err := w.deliveryRepo.SupersedeRetryableByBusinessKey(
+			rows, err := w.deliveryRepo.SupersedeRetryableByBusinessKey(
 				ctx,
 				event.BusinessKey,
 				event.EventID,
 				"superseded by newer notification event",
-			); err != nil {
+			)
+			if err != nil {
 				return fmt.Errorf("supersede previous retryable deliveries: %w", err)
 			}
 
 			shouldSend = true
+
+			w.metrics.DeliveryCreated(event.NotificationType)
+
+			w.logger.InfoContext(ctx, "notification_delivery_created",
+				slog.String("event_id", event.EventID),
+				slog.String("business_key", event.BusinessKey),
+				slog.String("notification_type", event.NotificationType),
+				slog.String("channel", model.DeliveryChannelEmail),
+				slog.String("status", model.DeliveryStatusProcessing),
+			)
+
+			if rows > 0 {
+				w.metrics.Superseded(event.NotificationType, rows)
+
+				w.logger.InfoContext(ctx, "notification_delivery_superseded_previous_retryable",
+					slog.String("event_id", event.EventID),
+					slog.String("business_key", event.BusinessKey),
+					slog.String("notification_type", event.NotificationType),
+					slog.Int64("count", rows),
+					slog.String("reason", "superseded by newer notification event"),
+				)
+			}
+
 			return nil
 		}
 
@@ -274,6 +376,15 @@ func (w *Worker) ensureDelivery(ctx context.Context, event notificationv1.Notifi
 			return fmt.Errorf("find existing notification delivery: %w", err)
 		}
 
+		w.metrics.DeliveryDuplicate(existing.Status)
+
+		w.logger.InfoContext(ctx, "notification_delivery_duplicate_detected",
+			slog.String("event_id", event.EventID),
+			slog.String("business_key", event.BusinessKey),
+			slog.String("notification_type", event.NotificationType),
+			slog.String("existing_status", existing.Status),
+		)
+
 		switch existing.Status {
 		case model.DeliveryStatusSent,
 			model.DeliveryStatusProcessing,
@@ -285,6 +396,11 @@ func (w *Worker) ensureDelivery(ctx context.Context, event notificationv1.Notifi
 			return nil
 
 		default:
+			w.logger.ErrorContext(ctx, "notification_delivery_unknown_status",
+				slog.String("event_id", event.EventID),
+				slog.String("status", existing.Status),
+			)
+
 			return fmt.Errorf("unknown delivery status: %s", existing.Status)
 		}
 	})
@@ -295,6 +411,7 @@ func (w *Worker) ensureDelivery(ctx context.Context, event notificationv1.Notifi
 
 	return shouldSend, nil
 }
+
 func validateEmailEvent(event notificationv1.NotificationRequestedEvent) error {
 	if event.EventID == "" {
 		return fmt.Errorf("event_id is required")
@@ -315,16 +432,50 @@ func validateEmailEvent(event notificationv1.NotificationRequestedEvent) error {
 func (w *Worker) handleSendFailure(ctx context.Context, eventID string, lastError string) error {
 	delivery, err := w.deliveryRepo.FindByEventID(ctx, eventID)
 	if err != nil {
+		w.logger.ErrorContext(ctx, "notification_delivery_find_failed",
+			slog.String("event_id", eventID),
+			slog.String("error", err.Error()),
+		)
+
 		return fmt.Errorf("find delivery before retry scheduling: %w", err)
 	}
 
 	if isExpired(delivery.ValidUntil) {
-		return w.deliveryRepo.MarkExpired(ctx, eventID, lastError)
+		if err := w.deliveryRepo.MarkExpired(ctx, eventID, lastError); err != nil {
+			return err
+		}
+
+		w.metrics.Expired(delivery.NotificationType)
+
+		w.logger.InfoContext(ctx, "notification_delivery_expired",
+			slog.String("event_id", eventID),
+			slog.String("business_key", delivery.BusinessKey),
+			slog.String("notification_type", delivery.NotificationType),
+			slog.String("reason", "expired_after_send_failure"),
+			slog.String("last_error", lastError),
+		)
+
+		return nil
 	}
 
 	nextRetryCount := delivery.RetryCount + 1
 	if nextRetryCount >= delivery.MaxRetry {
-		return w.deliveryRepo.MarkDeadLetter(ctx, eventID, lastError)
+		if err := w.deliveryRepo.MarkDeadLetter(ctx, eventID, lastError); err != nil {
+			return err
+		}
+
+		w.metrics.DeadLettered(delivery.NotificationType)
+
+		w.logger.ErrorContext(ctx, "notification_delivery_dead_lettered",
+			slog.String("event_id", eventID),
+			slog.String("business_key", delivery.BusinessKey),
+			slog.String("notification_type", delivery.NotificationType),
+			slog.Int("retry_count", nextRetryCount),
+			slog.Int("max_retry", delivery.MaxRetry),
+			slog.String("last_error", lastError),
+		)
+
+		return nil
 	}
 
 	nextAt := nextRetryAt(
@@ -335,10 +486,41 @@ func (w *Worker) handleSendFailure(ctx context.Context, eventID string, lastErro
 	)
 
 	if delivery.ValidUntil != nil && !nextAt.Before(*delivery.ValidUntil) {
-		return w.deliveryRepo.MarkExpired(ctx, eventID, lastError)
+		if err := w.deliveryRepo.MarkExpired(ctx, eventID, lastError); err != nil {
+			return err
+		}
+
+		w.metrics.Expired(delivery.NotificationType)
+
+		w.logger.InfoContext(ctx, "notification_delivery_expired",
+			slog.String("event_id", eventID),
+			slog.String("business_key", delivery.BusinessKey),
+			slog.String("notification_type", delivery.NotificationType),
+			slog.String("reason", "next_retry_exceeds_valid_until"),
+			slog.Time("next_retry_at", nextAt),
+			slog.String("last_error", lastError),
+		)
+
+		return nil
 	}
 
-	return w.deliveryRepo.ScheduleRetry(ctx, eventID, nextRetryCount, lastError, nextAt)
+	if err := w.deliveryRepo.ScheduleRetry(ctx, eventID, nextRetryCount, lastError, nextAt); err != nil {
+		return err
+	}
+
+	w.metrics.RetryScheduled(delivery.NotificationType)
+
+	w.logger.WarnContext(ctx, "notification_delivery_retry_scheduled",
+		slog.String("event_id", eventID),
+		slog.String("business_key", delivery.BusinessKey),
+		slog.String("notification_type", delivery.NotificationType),
+		slog.Int("retry_count", nextRetryCount),
+		slog.Int("max_retry", delivery.MaxRetry),
+		slog.Time("next_retry_at", nextAt),
+		slog.String("last_error", lastError),
+	)
+
+	return nil
 }
 
 func isExpired(validUntil *time.Time) bool {

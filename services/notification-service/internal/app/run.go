@@ -3,16 +3,20 @@ package app
 import (
 	"context"
 	"errors"
-	"log"
+	"fmt"
+	"log/slog"
+	"net/http"
 	"os"
 	"os/signal"
+	"portal-system/services/notification-service/internal/admin"
 	"syscall"
+	"time"
 
 	"golang.org/x/sync/errgroup"
 )
 
 func (a *App) Run() error {
-	log.Println("notification service runtime starting")
+	slog.Info("notification service runtime starting")
 
 	ctx, stop := signal.NotifyContext(
 		context.Background(),
@@ -27,11 +31,11 @@ func (a *App) Run() error {
 		}
 
 		if err := a.KafkaReader.Close(); err != nil {
-			log.Printf("failed to close kafka reader: %v", err)
+			slog.Error("failed to close kafka reader", slog.Any("error", err))
 			return
 		}
 
-		log.Println("kafka reader closed")
+		slog.Info("kafka reader closed")
 	}()
 
 	g, gCtx := errgroup.WithContext(ctx)
@@ -44,11 +48,33 @@ func (a *App) Run() error {
 		return a.RetryWorker.Run(gCtx)
 	})
 
+	adminAddr := ":" + a.MetricsPort
+	srv := &http.Server{
+		Addr:    adminAddr,
+		Handler: admin.NewMux(a.readinessReport),
+	}
+
+	g.Go(func() error {
+		slog.Info("admin HTTP server listening", slog.String("addr", adminAddr))
+		if err := srv.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
+			return fmt.Errorf("admin HTTP server failed: %w", err)
+		}
+		return nil
+	})
+
+	g.Go(func() error {
+		<-gCtx.Done()
+		shutdownCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+		defer cancel()
+		slog.Info("stopping admin HTTP server")
+		return srv.Shutdown(shutdownCtx)
+	})
+
 	err := g.Wait()
 	if err != nil && !errors.Is(err, context.Canceled) {
 		return err
 	}
 
-	log.Println("notification service stopped cleanly")
+	slog.Info("notification service stopped cleanly")
 	return nil
 }

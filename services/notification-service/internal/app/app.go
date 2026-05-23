@@ -8,8 +8,12 @@ import (
 )
 
 type App struct {
-	EmailWorker *emailworker.Worker
-	RetryWorker *emailworker.RetryWorker
-	KafkaReader *kafka.Reader
-	DB          *gorm.DB
+	EmailWorker  *emailworker.Worker
+	RetryWorker  *emailworker.RetryWorker
+	KafkaReader  *kafka.Reader
+	DB           *gorm.DB
+	MetricsPort  string
+	KafkaBrokers []string
+	SMTPHost     string
+	SMTPPort     string
 }

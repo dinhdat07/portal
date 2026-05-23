@@ -9,6 +9,7 @@ import (
 	outbox "portal-system/internal/worker"
 
 	"buf.build/go/protovalidate"
+	"github.com/redis/go-redis/v9"
 	"google.golang.org/grpc"
 	"gorm.io/gorm"
 )
@@ -33,4 +34,6 @@ type App struct {
 	RateLimiter         ratelimit.Limiter
 	RateLimitKeyBuilder ratelimit.KeyBuilder
 	RateLimitConfig     *config.RateLimitConfig
+	RedisClient         redis.UniversalClient
+	KafkaBrokers        []string
 }

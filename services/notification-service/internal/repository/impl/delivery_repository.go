@@ -35,9 +35,9 @@ func (r *GormDeliveryRepository) CreateProcessing(ctx context.Context, delivery 
 	return err
 }
 
-func (r *GormDeliveryRepository) SupersedeRetryableByBusinessKey(ctx context.Context, businessKey string, excludeEventID string, reason string) error {
+func (r *GormDeliveryRepository) SupersedeRetryableByBusinessKey(ctx context.Context, businessKey string, excludeEventID string, reason string) (int64, error) {
 	if businessKey == "" {
-		return nil
+		return 0, nil
 	}
 
 	now := time.Now().UTC()
@@ -60,10 +60,10 @@ func (r *GormDeliveryRepository) SupersedeRetryableByBusinessKey(ctx context.Con
 	})
 
 	if result.Error != nil {
-		return result.Error
+		return 0, result.Error
 	}
 
-	return nil
+	return result.RowsAffected, nil
 }
 
 func (r *GormDeliveryRepository) FindByEventID(ctx context.Context, eventID string) (*model.NotificationDelivery, error) {
