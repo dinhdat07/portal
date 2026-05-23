@@ -17,6 +17,18 @@ A Backend API service for the Portal system. This project is built using modern 
 
 ---
 
+## 📚 Engineering Documentation
+
+The repository contains detailed, production-grade engineering documentation, including architectural deep-dives, sequence diagrams, and infrastructure guides.
+
+* **[Core System Documentation](docs/README.md)**: Entry point for the core monolith architecture and infrastructure.
+* **[System Architecture (HLD)](docs/architecture.md)**: Details on CQRS, Outbox Pattern, and Service Boundaries.
+* **[Infrastructure Deep Dive](docs/infrastructure.md)**: Guides on PostgreSQL logical replication, Debezium, and Kafka.
+* **[Notification Service](services/notification-service/docs/README.md)**: Dedicated docs for the resilient, idempotent notification microservice.
+* **[Architecture Diagrams](docs/diagrams/)**: Visual Mermaid flows for Authentication, Outbox Registration, CDC Sync, and Email Processing.
+
+---
+
 ## 🛠️ Technology Stack
 
 **Core API:**
@@ -42,13 +54,14 @@ A Backend API service for the Portal system. This project is built using modern 
 ```text
 portal_backend/
 ├── cmd/
-│   └── api/main.go               # Application entry point
+│   ├── api/main.go               # API Server entry point
+│   └── cdc-consumer/main.go      # CDC Consumer entry point
 ├── proto/                        # Protobuf definitions (Contracts)
 ├── gen/                          # Auto-generated Go stubs from Protobuf
+├── config/                       # Environment and service configuration loaders
 ├── internal/                     # Private application code
 │   ├── app/                      # Application bootstrap, DI, and server assembly
-│   ├── config/                   # Environment and service configuration loaders
-│   ├── domain/                   # Core business models, constants, and enums
+│   ├── domain/                   # Business enums and constants
 │   ├── handler/                  # Protocol boundary
 │   │   ├── grpcserver/           # gRPC service implementations
 │   │   └── gateway/              # HTTP REST gateway mux configuration
@@ -57,14 +70,18 @@ portal_backend/
 │   │   ├── debezium/             # Debezium connector configs
 │   │   ├── elasticsearch/        # ES indexing and querying logic
 │   │   ├── kafka/                # Kafka producer/consumer setup
+│   │   ├── metrics/              # Prometheus metrics
 │   │   ├── ratelimit/            # Redis-based token bucket rate limiter
 │   │   └── security/             # JWT Authenticator & RBAC Authorizer Interceptors
 │   ├── model/                    # GORM database entities
 │   ├── repository/               # Postgres Data Access Layer (GORM)
-│   └── service/                  # Core Business Logic & Orchestration
+│   ├── service/                  # Core Business Logic & Orchestration
+│   └── worker/                   # Background workers (Outbox Publisher)
+├── shared/                       # Shared event schemas
+├── services/                     # Satellite microservices
+│   └── notification-service/     # Async email notification worker
 ├── buf.yaml & buf.gen.yaml       # Protobuf generation configurations
-├── docker-compose.yml            # Local infrastructure orchestration
-└── .env.example                  # Environment variables template
+└── docker-compose.yml            # Local infrastructure orchestration
 ```
 
 ---
@@ -77,7 +94,7 @@ graph LR
     A[Client] -->|HTTP/JSON| B(gRPC-Gateway)
     B -->|gRPC| C{Interceptors}
     C -->|Validate, Auth, Limit| D[gRPC Server]
-    D --> E[UseCase Layer]
+    D --> E[Service Layer]
     E --> F[Repository]
     F --> G[(PostgreSQL)]
 ```
@@ -105,10 +122,12 @@ graph LR
 Create a `.env` file in the root directory (copy from defaults if available):
 ```env
 DB_URL=postgres://postgres:postgres@localhost:5433/postgres?sslmode=disable
-REDIS_URL=redis://localhost:6379/0
+REDIS_ENABLED=true
+REDIS_ADDR=localhost:6379
 JWT_SECRET=super-secret-key-change-in-production
 JWT_ACCESS_TTL=3600
-PORT=8000
+JWT_REFRESH_TTL=604800
+HTTP_PORT=8000
 GRPC_PORT=50051
 ENV=development
 
