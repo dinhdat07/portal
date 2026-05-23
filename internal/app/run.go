@@ -44,10 +44,10 @@ func (a *App) Run() error {
 
 	a.HTTPServer = &http.Server{
 		Addr:    httpAddr,
-		Handler: gatewayHandler,
+		Handler: gateway.NewRootMux(gatewayHandler, a.readinessReport),
 	}
 
-	errCh := make(chan error, 2)
+	errCh := make(chan error, 3)
 
 	go func() {
 		log.Printf("grpc listening on %s", grpcAddr)
@@ -58,6 +58,13 @@ func (a *App) Run() error {
 		log.Printf("gateway listening on %s", httpAddr)
 		errCh <- a.runHTTPServer()
 	}()
+
+	if a.OutboxWorker != nil {
+		go func() {
+			log.Println("outbox worker started")
+			errCh <- a.OutboxWorker.Run(ctx)
+		}()
+	}
 
 	select {
 	case <-ctx.Done():

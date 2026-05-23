@@ -13,7 +13,7 @@ import (
 	mock "github.com/stretchr/testify/mock"
 )
 
-// NewUserTokenRepository creates a new instance of UserTokenRepository. It also registers a testing interface on the mock and a cleanup function to assert the mock expectations.
+// NewUserTokenRepository creates a new instance of UserTokenRepository. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.
 // The first argument is typically a *testing.T value.
 func NewUserTokenRepository(t interface {
 	mock.TestingT

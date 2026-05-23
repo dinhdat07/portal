@@ -1,26 +1,34 @@
 package app
 
 import (
+	"context"
 	"portal-system/config"
-	"portal-system/internal/infrastructure/email"
 	redisx "portal-system/internal/infrastructure/redis"
 	"portal-system/internal/service"
 
+	kafkainfra "portal-system/internal/infrastructure/kafka"
 	"portal-system/internal/infrastructure/security"
 
 	"github.com/redis/go-redis/v9"
+	"github.com/segmentio/kafka-go"
 )
 
-type Infra struct {
-	EmailService    service.EmailSender
-	TokenManager    service.TokenIssuer
-	RevocationStore service.SessionRevocationStore
+type KafkaPublisher interface {
+	Publish(ctx context.Context, topic string, key string, payload []byte) error
 }
 
-func newInfra(cfg *config.Config, smtpCfg *config.SMTPConfig, rdb redis.UniversalClient) *Infra {
+type Infra struct {
+	KafkaPublisher    KafkaPublisher
+	NotificationTopic string
+	TokenManager      service.TokenIssuer
+	RevocationStore   service.SessionRevocationStore
+}
+
+func newInfra(cfg *config.Config, kafkaWriter *kafka.Writer, kafkaCfg config.KafkaConfig, rdb redis.UniversalClient) *Infra {
 	return &Infra{
-		EmailService:    email.NewSMTPEmailService(*smtpCfg),
-		TokenManager:    security.New(cfg.JWTSecret, cfg.JWTAccessTTL),
-		RevocationStore: redisx.NewRedisSessionRevocationStore(rdb),
+		KafkaPublisher:    kafkainfra.NewPublisher(kafkaWriter),
+		NotificationTopic: kafkaCfg.NotificationRequestedTopic,
+		TokenManager:      security.New(cfg.JWTSecret, cfg.JWTAccessTTL),
+		RevocationStore:   redisx.NewRedisSessionRevocationStore(rdb),
 	}
 }

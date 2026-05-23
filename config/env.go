@@ -13,6 +13,12 @@ var loadEnvOnce sync.Once
 
 func loadEnv() {
 	loadEnvOnce.Do(func() {
+		envFile := os.Getenv("ENV_FILE")
+		if envFile != "" {
+			_ = godotenv.Load(envFile)
+			return
+		}
+
 		_ = godotenv.Load()
 	})
 }
@@ -47,4 +53,12 @@ func getEnvDuration(key string, fallback time.Duration) (time.Duration, error) {
 		return fallback, nil
 	}
 	return time.ParseDuration(val)
+}
+
+func getEnvFloat(key string, fallback float64) (float64, error) {
+	val := os.Getenv(key)
+	if val == "" {
+		return fallback, nil
+	}
+	return strconv.ParseFloat(val, 64)
 }

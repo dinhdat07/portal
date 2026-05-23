@@ -13,7 +13,7 @@ import (
 	mock "github.com/stretchr/testify/mock"
 )
 
-// NewUserService creates a new instance of UserService. It also registers a testing interface on the mock and a cleanup function to assert the mock expectations.
+// NewUserService creates a new instance of UserService. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.
 // The first argument is typically a *testing.T value.
 func NewUserService(t interface {
 	mock.TestingT

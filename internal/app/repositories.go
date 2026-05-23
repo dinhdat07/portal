@@ -14,6 +14,7 @@ type Repositories struct {
 	PermissionRepo *repository.GormPermissionRepository
 	SessionRepo    *repository.GormAuthSessionRepository
 	RefreshRepo    *repository.GormRefreshTokenRepository
+	OutboxRepo     *repository.GormOutboxRepository
 	TxManager      *repository.GormTxManager
 }
 
@@ -26,6 +27,7 @@ func newRepositories(db *gorm.DB) *Repositories {
 		PermissionRepo: repository.NewGormPermissionRepository(db),
 		SessionRepo:    repository.NewGormAuthSessionRepository(db),
 		RefreshRepo:    repository.NewGormRefreshTokenRepository(db),
+		OutboxRepo:     repository.NewGormOutboxRepository(db),
 		TxManager:      repository.NewGormTxManager(db),
 	}
 }

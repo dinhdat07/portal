@@ -33,18 +33,19 @@ func newServices(
 
 	// auth service
 	authService := service.NewAuthService(service.AuthServiceDeps{
-		TxManager:        repos.TxManager,
-		AuditLogger:      auditLogService,
-		UserRepo:         repos.UserRepo,
-		TokenRepo:        repos.TokenRepo,
-		RoleRepo:         repos.RoleRepo,
-		RefreshTokenRepo: repos.RefreshRepo,
-		SessionRepo:      repos.SessionRepo,
-		RevoStore:        infra.RevocationStore,
-		TokenManager:     infra.TokenManager,
-		EmailService:     infra.EmailService,
-		FrontendBaseURL:  cfg.FrontEndUrl,
-		RefreshTTL:       time.Duration(cfg.RefreshTTL) * time.Second,
+		TxManager:         repos.TxManager,
+		AuditLogger:       auditLogService,
+		UserRepo:          repos.UserRepo,
+		TokenRepo:         repos.TokenRepo,
+		RoleRepo:          repos.RoleRepo,
+		RefreshTokenRepo:  repos.RefreshRepo,
+		SessionRepo:       repos.SessionRepo,
+		RevoStore:         infra.RevocationStore,
+		TokenManager:      infra.TokenManager,
+		OutboxRepo:        repos.OutboxRepo,
+		NotificationTopic: infra.NotificationTopic,
+		FrontendBaseURL:   cfg.FrontEndUrl,
+		RefreshTTL:        time.Duration(cfg.RefreshTTL) * time.Second,
 	})
 
 	// user service
@@ -57,14 +58,15 @@ func newServices(
 
 	// admin service
 	adminService := service.NewAdminService(service.AdminServiceDeps{
-		TxManager:    repos.TxManager,
-		AuditLogger:  auditLogService,
-		UserRepo:     repos.UserRepo,
-		TokenManager: infra.TokenManager,
-		TokenRepo:    repos.TokenRepo,
-		RoleRepo:     repos.RoleRepo,
-		EmailSvc:     infra.EmailService,
-		FrontendURL:  cfg.FrontEndUrl,
+		TxManager:         repos.TxManager,
+		AuditLogger:       auditLogService,
+		UserRepo:          repos.UserRepo,
+		TokenManager:      infra.TokenManager,
+		TokenRepo:         repos.TokenRepo,
+		RoleRepo:          repos.RoleRepo,
+		OutboxRepo:        repos.OutboxRepo,
+		NotificationTopic: infra.NotificationTopic,
+		FrontendURL:       cfg.FrontEndUrl,
 	})
 
 	roleService := service.NewRoleService(service.RoleServiceDeps{

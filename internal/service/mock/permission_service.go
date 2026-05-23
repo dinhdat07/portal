@@ -11,7 +11,7 @@ import (
 	mock "github.com/stretchr/testify/mock"
 )
 
-// NewPermissionService creates a new instance of PermissionService. It also registers a testing interface on the mock and a cleanup function to assert the mock expectations.
+// NewPermissionService creates a new instance of PermissionService. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.
 // The first argument is typically a *testing.T value.
 func NewPermissionService(t interface {
 	mock.TestingT

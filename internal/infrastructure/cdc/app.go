@@ -12,7 +12,11 @@ import (
 
 func New() (*Consumer, error) {
 	ctx := context.Background()
-	kafkaCfg := config.LoadKafkaConfig()
+
+	kafkaCfg, err := config.LoadKafkaConfig()
+	if err != nil {
+		return nil, fmt.Errorf("load kafka config: %w", err)
+	}
 	esCfg := config.LoadElasticsearchConfig()
 
 	esClient, err := esinfra.Connect(ctx, esCfg.URL)
