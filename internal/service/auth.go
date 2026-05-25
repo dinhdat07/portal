@@ -13,6 +13,7 @@ import (
 	"portal-system/internal/domain"
 	"portal-system/internal/model"
 	"portal-system/internal/repository"
+	notificationv1 "portal-system/shared/events/notification/v1"
 
 	"github.com/google/uuid"
 	"golang.org/x/crypto/bcrypt"
@@ -35,18 +36,19 @@ type AuthService interface {
 }
 
 type authService struct {
-	txManager       repository.TxManager
-	auditLogger     AuditLogger
-	userRepo        repository.UserRepository
-	refreshRepo     repository.RefreshTokenRepository
-	tokenRepo       repository.UserTokenRepository
-	roleRepo        repository.RoleRepository
-	sessionRepo     repository.AuthSessionRepository
-	revoStore       SessionRevocationStore
-	tokenManager    TokenIssuer
-	emailService    EmailSender
-	frontendBaseURL string
-	refreshTTL      time.Duration
+	txManager         repository.TxManager
+	auditLogger       AuditLogger
+	userRepo          repository.UserRepository
+	refreshRepo       repository.RefreshTokenRepository
+	tokenRepo         repository.UserTokenRepository
+	roleRepo          repository.RoleRepository
+	sessionRepo       repository.AuthSessionRepository
+	revoStore         SessionRevocationStore
+	tokenManager      TokenIssuer
+	outboxRepo        repository.OutboxRepository
+	notificationTopic string
+	frontendBaseURL   string
+	refreshTTL        time.Duration
 }
 
 type AuthServiceDeps struct {
@@ -59,26 +61,28 @@ type AuthServiceDeps struct {
 	SessionRepo      repository.AuthSessionRepository
 	RevoStore        SessionRevocationStore
 
-	TokenManager    TokenIssuer
-	EmailService    EmailSender
-	FrontendBaseURL string
-	RefreshTTL      time.Duration
+	TokenManager      TokenIssuer
+	OutboxRepo        repository.OutboxRepository
+	NotificationTopic string
+	FrontendBaseURL   string
+	RefreshTTL        time.Duration
 }
 
 func NewAuthService(deps AuthServiceDeps) *authService {
 	return &authService{
-		txManager:       deps.TxManager,
-		auditLogger:     deps.AuditLogger,
-		userRepo:        deps.UserRepo,
-		refreshRepo:     deps.RefreshTokenRepo,
-		tokenRepo:       deps.TokenRepo,
-		roleRepo:        deps.RoleRepo,
-		sessionRepo:     deps.SessionRepo,
-		revoStore:       deps.RevoStore,
-		tokenManager:    deps.TokenManager,
-		emailService:    deps.EmailService,
-		frontendBaseURL: deps.FrontendBaseURL,
-		refreshTTL:      deps.RefreshTTL,
+		txManager:         deps.TxManager,
+		auditLogger:       deps.AuditLogger,
+		userRepo:          deps.UserRepo,
+		refreshRepo:       deps.RefreshTokenRepo,
+		tokenRepo:         deps.TokenRepo,
+		roleRepo:          deps.RoleRepo,
+		sessionRepo:       deps.SessionRepo,
+		revoStore:         deps.RevoStore,
+		tokenManager:      deps.TokenManager,
+		outboxRepo:        deps.OutboxRepo,
+		notificationTopic: deps.NotificationTopic,
+		frontendBaseURL:   deps.FrontendBaseURL,
+		refreshTTL:        deps.RefreshTTL,
 	}
 }
 
@@ -140,12 +144,12 @@ func (s *authService) Register(ctx context.Context, meta *AuditMeta, email, user
 
 	// transaction, critical
 	err = s.txManager.WithTx(ctx, func(txCtx context.Context) error {
-		if err := s.userRepo.Create(ctx, user); err != nil {
+		if err := s.userRepo.Create(txCtx, user); err != nil {
 			return err
 		}
 
 		if err := s.tokenRepo.
-			RevokeByUserAndType(ctx, user.ID, domain.TokenTypeEmailVerification); err != nil {
+			RevokeByUserAndType(txCtx, user.ID, domain.TokenTypeEmailVerification); err != nil {
 			return err
 		}
 
@@ -156,18 +160,18 @@ func (s *authService) Register(ctx context.Context, meta *AuditMeta, email, user
 			ExpiresAt: time.Now().UTC().Add(24 * time.Hour),
 		}
 
-		if err := s.tokenRepo.Create(ctx, verifyToken); err != nil {
+		if err := s.tokenRepo.Create(txCtx, verifyToken); err != nil {
 			return err
 		}
 
 		verifyURL := fmt.Sprintf("%s/verify-email?token=%s", s.frontendBaseURL, url.QueryEscape(rawToken))
-
-		if err := s.emailService.SendVerificationEmail(ctx, email, firstName, verifyURL); err != nil {
+		event := newEmailNotificationEvent(notificationv1.NotificationTypeVerifyEmail, notificationv1.TemplateVerifyEmail, *user, verifyURL)
+		if err := createNotificationOutboxEvent(txCtx, s.outboxRepo, s.notificationTopic, event); err != nil {
 			return ErrSendVerificationEmail
 		}
 
 		target := MapUserToAuditUser(user)
-		return s.auditLogger.Log(ctx, meta, domain.ActionRegister, nil, target)
+		return s.auditLogger.Log(txCtx, meta, domain.ActionRegister, nil, target)
 	})
 
 	if err != nil {
@@ -324,11 +328,6 @@ func (s *authService) ResendVerification(ctx context.Context, meta *AuditMeta, e
 		return ErrUserNotFound
 	}
 
-	// revoke old token
-	if err = s.tokenRepo.RevokeByUserAndType(ctx, user.ID, tokenType); err != nil {
-		return ErrInternalServer
-	}
-
 	// generate new token
 	tokenHash, rawToken, err := s.tokenManager.GenerateHashToken()
 	if err != nil {
@@ -336,6 +335,11 @@ func (s *authService) ResendVerification(ctx context.Context, meta *AuditMeta, e
 	}
 
 	err = s.txManager.WithTx(ctx, func(txCtx context.Context) error {
+		// revoke old token
+		if err := s.tokenRepo.RevokeByUserAndType(txCtx, user.ID, tokenType); err != nil {
+			return ErrInternalServer
+		}
+
 		verifyToken := &model.UserToken{
 			UserID:    user.ID,
 			TokenType: domain.TokenTypeEmailVerification,
@@ -343,18 +347,18 @@ func (s *authService) ResendVerification(ctx context.Context, meta *AuditMeta, e
 			ExpiresAt: time.Now().UTC().Add(24 * time.Hour),
 		}
 
-		if err := s.tokenRepo.Create(ctx, verifyToken); err != nil {
+		if err := s.tokenRepo.Create(txCtx, verifyToken); err != nil {
 			return err
 		}
 
 		verifyURL := fmt.Sprintf("%s/verify-email?token=%s", s.frontendBaseURL, url.QueryEscape(rawToken))
-
-		if err := s.emailService.SendVerificationEmail(ctx, email, user.FirstName, verifyURL); err != nil {
+		event := newEmailNotificationEvent(notificationv1.NotificationTypeVerifyEmail, notificationv1.TemplateVerifyEmail, *user, verifyURL)
+		if err := createNotificationOutboxEvent(txCtx, s.outboxRepo, s.notificationTopic, event); err != nil {
 			return ErrSendVerificationEmail
 		}
 
 		actor := MapUserToAuditUser(user)
-		return s.auditLogger.Log(ctx, meta, domain.ActionResendVerification, actor, actor)
+		return s.auditLogger.Log(txCtx, meta, domain.ActionResendVerification, actor, actor)
 	})
 
 	if err != nil {
@@ -391,7 +395,7 @@ func (s *authService) ForgotPassword(ctx context.Context, meta *AuditMeta, email
 
 		// revoke old token
 		if err := s.tokenRepo.
-			RevokeByUserAndType(ctx, user.ID, domain.TokenTypePasswordReset); err != nil {
+			RevokeByUserAndType(txCtx, user.ID, domain.TokenTypePasswordReset); err != nil {
 			return err
 		}
 
@@ -403,24 +407,26 @@ func (s *authService) ForgotPassword(ctx context.Context, meta *AuditMeta, email
 			ExpiresAt: time.Now().UTC().Add(1 * time.Hour),
 		}
 
-		if err := s.tokenRepo.Create(ctx, resetToken); err != nil {
+		if err := s.tokenRepo.Create(txCtx, resetToken); err != nil {
 			return err
 		}
+
+		resetURL := fmt.Sprintf("%s/auth/reset-password?token=%s", s.frontendBaseURL, url.QueryEscape(rawToken))
+		event := newEmailNotificationEvent(notificationv1.NotificationTypeResetPassword, notificationv1.TemplateResetPassword, *user, resetURL)
+		if err := createNotificationOutboxEvent(txCtx, s.outboxRepo, s.notificationTopic, event); err != nil {
+			return ErrSendResetPasswordEmail
+		}
+
 		actor := MapUserToAuditUser(user)
 		return s.auditLogger.
-			Log(ctx, meta, domain.ActionForgotPassword, actor, actor)
+			Log(txCtx, meta, domain.ActionForgotPassword, actor, actor)
 	})
 
 	if err != nil {
+		if errors.Is(err, ErrSendResetPasswordEmail) {
+			return ErrSendResetPasswordEmail
+		}
 		return ErrInternalServer
-	}
-
-	// build link
-	resetURL := fmt.Sprintf("%s/auth/reset-password?token=%s", s.frontendBaseURL, url.QueryEscape(rawToken))
-
-	// send mail
-	if err := s.emailService.SendResetPasswordEmail(ctx, user.Email, user.FirstName, resetURL); err != nil {
-		return ErrSendResetPasswordEmail
 	}
 
 	return nil

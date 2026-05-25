@@ -19,8 +19,6 @@ type RedisConfig struct {
 }
 
 func LoadRedisConfig() (*RedisConfig, error) {
-	loadEnv()
-
 	enabled, err := getEnvBool("REDIS_ENABLED", false)
 	if err != nil {
 		return nil, fmt.Errorf("invalid REDIS_ENABLED: %w", err)

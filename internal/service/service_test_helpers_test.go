@@ -2,11 +2,14 @@ package service_test
 
 import (
 	"context"
+	"encoding/json"
+	"portal-system/internal/model"
 	"time"
 
 	repositorymock "portal-system/internal/repository/mock"
 	. "portal-system/internal/service"
 	servicemock "portal-system/internal/service/mock"
+	notificationv1 "portal-system/shared/events/notification/v1"
 
 	"github.com/stretchr/testify/mock"
 )
@@ -21,7 +24,7 @@ type authServiceTestDeps struct {
 	sessionRepo *repositorymock.AuthSessionRepository
 	revoStore   *servicemock.SessionRevocationStore
 	tokenMgr    *servicemock.TokenIssuer
-	email       *servicemock.EmailSender
+	outboxRepo  *repositorymock.OutboxRepository
 }
 
 func newAdminServiceForTest(
@@ -31,7 +34,7 @@ func newAdminServiceForTest(
 	tokenRepo *repositorymock.UserTokenRepository,
 	roleRepo *repositorymock.RoleRepository,
 	tokenMgr *servicemock.TokenIssuer,
-	email *servicemock.EmailSender,
+	outboxRepo *repositorymock.OutboxRepository,
 ) AdminService {
 	if tx == nil {
 		tx = newPassthroughTxManager()
@@ -48,18 +51,19 @@ func newAdminServiceForTest(
 	if tokenMgr == nil {
 		tokenMgr = newTokenIssuerMock()
 	}
-	if email == nil {
-		email = newEmailSenderMock()
+	if outboxRepo == nil {
+		outboxRepo = newOutboxRepositoryMock()
 	}
 	return NewAdminService(AdminServiceDeps{
-		TxManager:    tx,
-		AuditLogger:  auditLogger,
-		UserRepo:     userRepo,
-		TokenManager: tokenMgr,
-		TokenRepo:    tokenRepo,
-		RoleRepo:     roleRepo,
-		EmailSvc:     email,
-		FrontendURL:  "http://frontend.local",
+		TxManager:         tx,
+		AuditLogger:       auditLogger,
+		UserRepo:          userRepo,
+		TokenManager:      tokenMgr,
+		TokenRepo:         tokenRepo,
+		RoleRepo:          roleRepo,
+		OutboxRepo:        outboxRepo,
+		NotificationTopic: "notification.requested",
+		FrontendURL:       "http://frontend.local",
 	})
 }
 
@@ -76,22 +80,23 @@ func newAuthServiceForTest(deps authServiceTestDeps) AuthService {
 	if deps.tokenMgr == nil {
 		deps.tokenMgr = newTokenIssuerMock()
 	}
-	if deps.email == nil {
-		deps.email = newEmailSenderMock()
+	if deps.outboxRepo == nil {
+		deps.outboxRepo = newOutboxRepositoryMock()
 	}
 	return NewAuthService(AuthServiceDeps{
-		TxManager:        deps.tx,
-		AuditLogger:      deps.auditLogger,
-		UserRepo:         deps.userRepo,
-		RefreshTokenRepo: deps.refreshRepo,
-		TokenRepo:        deps.tokenRepo,
-		RoleRepo:         deps.roleRepo,
-		SessionRepo:      deps.sessionRepo,
-		RevoStore:        deps.revoStore,
-		TokenManager:     deps.tokenMgr,
-		EmailService:     deps.email,
-		FrontendBaseURL:  "http://frontend.local",
-		RefreshTTL:       24 * time.Hour,
+		TxManager:         deps.tx,
+		AuditLogger:       deps.auditLogger,
+		UserRepo:          deps.userRepo,
+		RefreshTokenRepo:  deps.refreshRepo,
+		TokenRepo:         deps.tokenRepo,
+		RoleRepo:          deps.roleRepo,
+		SessionRepo:       deps.sessionRepo,
+		RevoStore:         deps.revoStore,
+		TokenManager:      deps.tokenMgr,
+		OutboxRepo:        deps.outboxRepo,
+		NotificationTopic: "notification.requested",
+		FrontendBaseURL:   "http://frontend.local",
+		RefreshTTL:        24 * time.Hour,
 	})
 }
 
@@ -167,10 +172,29 @@ func newTokenIssuerMock() *servicemock.TokenIssuer {
 	return tokenMgr
 }
 
-func newEmailSenderMock() *servicemock.EmailSender {
-	email := &servicemock.EmailSender{}
-	email.EXPECT().SendVerificationEmail(mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(nil).Maybe()
-	email.EXPECT().SendResetPasswordEmail(mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(nil).Maybe()
-	email.EXPECT().SendSetPasswordEmail(mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(nil).Maybe()
-	return email
+func newOutboxRepositoryMock() *repositorymock.OutboxRepository {
+	outboxRepo := &repositorymock.OutboxRepository{}
+	outboxRepo.EXPECT().Create(mock.Anything, mock.Anything).Return(nil).Maybe()
+	return outboxRepo
+}
+
+func matchOutboxNotification(match func(notificationv1.NotificationRequestedEvent) bool) interface{} {
+	return mock.MatchedBy(func(event *model.OutboxEvent) bool {
+		if event == nil {
+			return false
+		}
+		if event.Topic != "notification.requested" || event.MessageKey == "" || event.Status != model.OutboxStatusPending {
+			return false
+		}
+
+		var payload notificationv1.NotificationRequestedEvent
+		if err := json.Unmarshal(event.Payload, &payload); err != nil {
+			return false
+		}
+		if payload.EventID == "" || payload.EventID != event.MessageKey {
+			return false
+		}
+
+		return match(payload)
+	})
 }

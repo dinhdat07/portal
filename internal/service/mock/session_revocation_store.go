@@ -12,7 +12,7 @@ import (
 	mock "github.com/stretchr/testify/mock"
 )
 
-// NewSessionRevocationStore creates a new instance of SessionRevocationStore. It also registers a testing interface on the mock and a cleanup function to assert the mock expectations.
+// NewSessionRevocationStore creates a new instance of SessionRevocationStore. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.
 // The first argument is typically a *testing.T value.
 func NewSessionRevocationStore(t interface {
 	mock.TestingT

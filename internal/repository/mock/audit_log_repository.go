@@ -12,7 +12,7 @@ import (
 	mock "github.com/stretchr/testify/mock"
 )
 
-// NewAuditLogRepository creates a new instance of AuditLogRepository. It also registers a testing interface on the mock and a cleanup function to assert the mock expectations.
+// NewAuditLogRepository creates a new instance of AuditLogRepository. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.
 // The first argument is typically a *testing.T value.
 func NewAuditLogRepository(t interface {
 	mock.TestingT
