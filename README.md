@@ -24,7 +24,7 @@ The repository contains detailed, production-grade engineering documentation, in
 * **[Core System Documentation](docs/README.md)**: Entry point for the core monolith architecture and infrastructure.
 * **[System Architecture (HLD)](docs/architecture.md)**: Details on CQRS, Outbox Pattern, and Service Boundaries.
 * **[Infrastructure Deep Dive](docs/infrastructure.md)**: Guides on PostgreSQL logical replication, Debezium, and Kafka.
-* **[Notification Service](services/notification-service/docs/README.md)**: Dedicated docs for the resilient, idempotent notification microservice.
+* **Notification Service**: Extracted into a standalone repository (portal-notification).
 * **[Architecture Diagrams](docs/diagrams/)**: Visual Mermaid flows for Authentication, Outbox Registration, CDC Sync, and Email Processing.
 
 ---
@@ -78,8 +78,6 @@ portal_backend/
 │   ├── service/                  # Core Business Logic & Orchestration
 │   └── worker/                   # Background workers (Outbox Publisher)
 ├── shared/                       # Shared event schemas
-├── services/                     # Satellite microservices
-│   └── notification-service/     # Async email notification worker
 ├── buf.yaml & buf.gen.yaml       # Protobuf generation configurations
 └── docker-compose.yml            # Local infrastructure orchestration
 ```
