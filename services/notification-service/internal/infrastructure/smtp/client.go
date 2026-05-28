@@ -23,12 +23,12 @@ type Config struct {
 	FromName string
 }
 
-type Mailer struct {
+type SMTPMailer struct {
 	cfg Config
 }
 
-func NewMailer(cfg Config) *Mailer {
-	return &Mailer{cfg: cfg}
+func NewMailer(cfg Config) *SMTPMailer {
+	return &SMTPMailer{cfg: cfg}
 }
 
 func Ping(ctx context.Context, host string, port string) error {
@@ -49,7 +49,7 @@ func Ping(ctx context.Context, host string, port string) error {
 	return nil
 }
 
-func (m *Mailer) Send(ctx context.Context, msg email.Message) error {
+func (m *SMTPMailer) Send(ctx context.Context, msg email.Message) error {
 	fromHeader := m.cfg.From
 	if strings.TrimSpace(m.cfg.FromName) != "" {
 		fromHeader = fmt.Sprintf("%s <%s>", mimeHeaderEncode(m.cfg.FromName), m.cfg.From)

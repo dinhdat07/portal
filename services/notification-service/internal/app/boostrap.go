@@ -82,12 +82,17 @@ func New() (*App, error) {
 		From:     cfg.SMTP.From,
 		FromName: cfg.SMTP.FromName,
 	})
+	slogLogger.Info("smtp_mailer_initialized")
 
+	emailCBProxy := emailchannel.NewCircuitBreakerProxy(
+		smtpMailer,
+		cfg.SMTP.CircuitBreaker,
+	)
+	slogLogger.Info("email_circuit_breaker_initialized")
 	emailMetrics, retryMetrics := metricsx.NewPrometheusMetrics(prometheus.DefaultRegisterer)
 
-	slogLogger.Info("smtp_mailer_initialized")
 	emailRenderer := emailchannel.NewEmailRenderer()
-	emailSender := emailchannel.NewSender(emailRenderer, smtpMailer)
+	emailSender := emailchannel.NewSender(emailRenderer, emailCBProxy)
 	slogLogger.Info("email_sender_initialized")
 
 	worker := emailworker.NewWorker(reader, emailSender, txManager, deliveryRepo, slogLogger, emailMetrics,
