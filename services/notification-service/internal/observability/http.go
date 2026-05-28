@@ -1,4 +1,4 @@
-package admin
+package observability
 
 import (
 	"encoding/json"

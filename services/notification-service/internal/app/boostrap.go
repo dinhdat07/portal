@@ -95,7 +95,9 @@ func New() (*App, error) {
 	emailSender := emailchannel.NewSender(emailRenderer, emailCBProxy)
 	slogLogger.Info("email_sender_initialized")
 
-	worker := emailworker.NewWorker(reader, emailSender, txManager, deliveryRepo, slogLogger, emailMetrics,
+	consumer := kafkax.NewConsumer(reader)
+
+	worker := emailworker.NewWorker(consumer, emailSender, txManager, deliveryRepo, slogLogger, emailMetrics,
 		emailworker.Config{
 			FetchRetryInitialBackoff:    cfg.Worker.FetchRetryInitialBackoff,
 			FetchRetryMaxBackoff:        cfg.Worker.FetchRetryMaxBackoff,

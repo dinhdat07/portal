@@ -8,7 +8,7 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
-	"portal-system/services/notification-service/internal/admin"
+	"portal-system/services/notification-service/internal/observability"
 	"syscall"
 	"time"
 
@@ -51,7 +51,7 @@ func (a *App) Run() error {
 	adminAddr := ":" + a.MetricsPort
 	srv := &http.Server{
 		Addr:    adminAddr,
-		Handler: admin.NewMux(a.readinessReport),
+		Handler: observability.NewMux(a.readinessReport),
 	}
 
 	g.Go(func() error {

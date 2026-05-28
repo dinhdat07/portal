@@ -15,9 +15,26 @@ import (
 	notificationv1 "portal-system/shared/events/notification/v1"
 
 	"github.com/google/uuid"
-	"github.com/segmentio/kafka-go"
 	"gorm.io/datatypes"
 )
+
+// Message represents a message consumed from a message broker (e.g., Kafka).
+type Message struct {
+	Topic     string
+	Partition int
+	Offset    int64
+	Key       []byte
+	Value     []byte
+	Original  any // Holds the underlying broker message for committing
+}
+
+// Consumer abstracts the message consumption process.
+type Consumer interface {
+	FetchMessage(ctx context.Context) (Message, error)
+	CommitMessages(ctx context.Context, msgs ...Message) error
+	Close() error
+}
+
 
 type EmailSender interface {
 	Send(ctx context.Context, template string, to string, name string, data map[string]any) error
@@ -33,7 +50,7 @@ type Config struct {
 }
 
 type Worker struct {
-	reader       *kafka.Reader
+	consumer     Consumer
 	emailSender  EmailSender
 	deliveryRepo repository.DeliveryRepository
 	txManager    repository.TxManager
@@ -43,7 +60,7 @@ type Worker struct {
 }
 
 func NewWorker(
-	reader *kafka.Reader,
+	consumer Consumer,
 	emailSender EmailSender,
 	txManager repository.TxManager,
 	deliveryRepo repository.DeliveryRepository,
@@ -77,7 +94,7 @@ func NewWorker(
 	}
 
 	return &Worker{
-		reader:       reader,
+		consumer:     consumer,
 		emailSender:  emailSender,
 		deliveryRepo: deliveryRepo,
 		txManager:    txManager,
@@ -94,7 +111,7 @@ func (w *Worker) Run(ctx context.Context) error {
 	maxBackoff := w.cfg.FetchRetryMaxBackoff
 
 	for {
-		msg, err := w.reader.FetchMessage(ctx)
+		msg, err := w.consumer.FetchMessage(ctx)
 		if err != nil {
 			if errors.Is(err, context.Canceled) || ctx.Err() != nil {
 				w.logger.Info("email_notification_worker_stopped")
@@ -145,7 +162,7 @@ func (w *Worker) Run(ctx context.Context) error {
 			}
 		}
 
-		if err := w.reader.CommitMessages(ctx, msg); err != nil {
+		if err := w.consumer.CommitMessages(ctx, msg); err != nil {
 			w.logger.ErrorContext(ctx, "kafka_commit_message_failed",
 				slog.String("topic", msg.Topic),
 				slog.Int("partition", int(msg.Partition)),
@@ -164,7 +181,7 @@ func (w *Worker) Run(ctx context.Context) error {
 	}
 }
 
-func (w *Worker) handleMessage(ctx context.Context, msg kafka.Message) error {
+func (w *Worker) handleMessage(ctx context.Context, msg Message) error {
 	var event notificationv1.NotificationRequestedEvent
 	if err := json.Unmarshal(msg.Value, &event); err != nil {
 		w.metrics.EventInvalid("unmarshal_failed")
