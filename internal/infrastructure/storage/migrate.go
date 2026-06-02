@@ -16,5 +16,7 @@ func AutoMigrate(db *gorm.DB) error {
 		&model.AuthSession{},
 		&model.RefreshToken{},
 		&model.OutboxEvent{},
+		&model.Announcement{},
+		&model.UserNotification{},
 	)
 }
