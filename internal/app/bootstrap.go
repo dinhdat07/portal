@@ -12,7 +12,7 @@ import (
 	redisx "portal-system/internal/infrastructure/redis"
 	"portal-system/internal/infrastructure/storage"
 	"portal-system/internal/infrastructure/validator"
-	outbox "portal-system/internal/worker"
+	"portal-system/internal/worker"
 
 	kafkainfra "portal-system/internal/infrastructure/kafka"
 
@@ -51,6 +51,11 @@ func New() (*App, error) {
 	}
 
 	workerCfg, err := config.LoadOutboxWorkerConfig()
+	if err != nil {
+		return nil, err
+	}
+
+	announcementWorkerCfg, err := config.LoadAnnouncementWorkerConfig()
 	if err != nil {
 		return nil, err
 	}
@@ -113,7 +118,7 @@ func New() (*App, error) {
 
 	outboxMetrics := metricsx.NewPrometheusOutboxMetrics(prometheus.DefaultRegisterer)
 
-	outboxWorker := outbox.NewWorker(repos.TxManager, repos.OutboxRepo, infra.KafkaPublisher, slogLogger, outboxMetrics, outbox.Config{
+	outboxPublisher := worker.NewOutboxPublisher(repos.TxManager, repos.OutboxRepo, infra.KafkaPublisher, slogLogger, outboxMetrics, worker.Config{
 		Interval:            workerCfg.Interval,
 		BatchSize:           workerCfg.BatchSize,
 		MaxRetry:            workerCfg.MaxRetry,
@@ -121,6 +126,23 @@ func New() (*App, error) {
 		RetryMaxBackoff:     workerCfg.RetryMaxBackoff,
 		RetryJitterRatio:    workerCfg.RetryJitterRatio,
 	})
+
+	announcementWorker := worker.NewAnnouncementWorker(
+		repos.TxManager,
+		repos.AnnouncementRepo,
+		repos.UserRepo,
+		repos.UserNotificationRepo,
+		repos.OutboxRepo,
+		slogLogger,
+		worker.AnnouncementWorkerConfig{
+			Interval:          announcementWorkerCfg.Interval,
+			BatchSize:         announcementWorkerCfg.BatchSize,
+			MaxUsersPerBatch:  announcementWorkerCfg.MaxUsersPerBatch,
+			MaxRetry:          announcementWorkerCfg.MaxRetry,
+			EventTTL:          announcementWorkerCfg.EventTTL,
+			NotificationTopic: infra.NotificationTopic,
+		},
+	)
 
 	return &App{
 		Config:              cfg,
@@ -131,7 +153,8 @@ func New() (*App, error) {
 		AuthGRPC:            grpcServers.Auth,
 		UserGRPC:            grpcServers.User,
 		AdminGRPC:           grpcServers.Admin,
-		OutboxWorker:        outboxWorker,
+		OutboxPublisher:     outboxPublisher,
+		AnnouncementWorker:  announcementWorker,
 		RateLimiter:         rateLimiter,
 		RateLimitKeyBuilder: rateLimitKeyBuilder,
 		RateLimitConfig:     rateLimitCfg,

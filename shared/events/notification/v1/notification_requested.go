@@ -14,12 +14,14 @@ const (
 	NotificationTypeVerifyEmail   = "verify_email"
 	NotificationTypeResetPassword = "reset_password"
 	NotificationTypeSetPassword   = "set_password"
+	NotificationTypeAnnouncement  = "announcement"
 )
 
 const (
 	TemplateVerifyEmail   = "verify_email"
 	TemplateResetPassword = "reset_password"
 	TemplateSetPassword   = "set_password"
+	TemplateAnnouncement  = "announcement"
 )
 
 type NotificationRequestedEvent struct {

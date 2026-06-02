@@ -29,6 +29,13 @@ func (r *GormOutboxRepository) Create(ctx context.Context, event *model.OutboxEv
 	return r.getDB(ctx).Create(event).Error
 }
 
+func (r *GormOutboxRepository) BatchCreate(ctx context.Context, events []model.OutboxEvent) error {
+	if len(events) == 0 {
+		return nil
+	}
+	return r.getDB(ctx).CreateInBatches(events, 100).Error
+}
+
 func (r *GormOutboxRepository) ListPendingForUpdate(ctx context.Context, limit int) ([]model.OutboxEvent, error) {
 	var events []model.OutboxEvent
 	now := time.Now().UTC()

@@ -14,6 +14,14 @@ type OutboxWorkerConfig struct {
 	RetryJitterRatio    float64
 }
 
+type AnnouncementWorkerConfig struct {
+	Interval         time.Duration
+	BatchSize        int
+	MaxUsersPerBatch int
+	MaxRetry         int
+	EventTTL         time.Duration
+}
+
 func LoadOutboxWorkerConfig() (*OutboxWorkerConfig, error) {
 	loadEnv()
 
@@ -54,5 +62,42 @@ func LoadOutboxWorkerConfig() (*OutboxWorkerConfig, error) {
 		RetryInitialBackoff: initialBackoff,
 		RetryMaxBackoff:     maxBackoff,
 		RetryJitterRatio:    jitterRatio,
+	}, nil
+}
+
+func LoadAnnouncementWorkerConfig() (*AnnouncementWorkerConfig, error) {
+	loadEnv()
+
+	interval, err := getEnvDuration("ANNOUNCEMENT_WORKER_INTERVAL", 10*time.Second)
+	if err != nil {
+		return nil, fmt.Errorf("invalid ANNOUNCEMENT_WORKER_INTERVAL: %w", err)
+	}
+
+	batchSize, err := getEnvInt("ANNOUNCEMENT_WORKER_BATCH_SIZE", 10)
+	if err != nil {
+		return nil, fmt.Errorf("invalid ANNOUNCEMENT_WORKER_BATCH_SIZE: %w", err)
+	}
+
+	maxUsers, err := getEnvInt("ANNOUNCEMENT_WORKER_MAX_USERS_PER_BATCH", 500)
+	if err != nil {
+		return nil, fmt.Errorf("invalid ANNOUNCEMENT_WORKER_MAX_USERS_PER_BATCH: %w", err)
+	}
+
+	maxRetry, err := getEnvInt("OUTBOX_WORKER_MAX_RETRY", 10)
+	if err != nil {
+		return nil, fmt.Errorf("invalid OUTBOX_WORKER_MAX_RETRY: %w", err)
+	}
+
+	eventTTL, err := getEnvDuration("ANNOUNCEMENT_WORKER_EVENT_TTL", 24*time.Hour)
+	if err != nil {
+		return nil, fmt.Errorf("invalid ANNOUNCEMENT_WORKER_EVENT_TTL: %w", err)
+	}
+
+	return &AnnouncementWorkerConfig{
+		Interval:         interval,
+		BatchSize:        batchSize,
+		MaxUsersPerBatch: maxUsers,
+		MaxRetry:         maxRetry,
+		EventTTL:         eventTTL,
 	}, nil
 }

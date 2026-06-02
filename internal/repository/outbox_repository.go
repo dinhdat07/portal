@@ -10,6 +10,7 @@ import (
 
 type OutboxRepository interface {
 	Create(ctx context.Context, event *model.OutboxEvent) error
+	BatchCreate(ctx context.Context, events []model.OutboxEvent) error
 
 	ListPendingForUpdate(ctx context.Context, limit int) ([]model.OutboxEvent, error)
 

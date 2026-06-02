@@ -1,4 +1,4 @@
-package outbox
+package worker
 
 import (
 	"context"
@@ -25,7 +25,7 @@ type Publisher interface {
 	Publish(ctx context.Context, topic string, key string, payload []byte) error
 }
 
-type Worker struct {
+type OutboxPublisher struct {
 	txManager repository.TxManager
 	repo      repository.OutboxRepository
 	publisher Publisher
@@ -36,21 +36,21 @@ type Worker struct {
 	cfg      Config
 }
 
-func NewWorker(
+func NewOutboxPublisher(
 	txManager repository.TxManager,
 	repo repository.OutboxRepository,
 	publisher Publisher,
 	logger *slog.Logger,
 	metrics portalmetrics.OutboxMetrics,
 	cfg Config,
-) *Worker {
+) *OutboxPublisher {
 	if logger == nil {
 		logger = slog.Default()
 	}
 	if metrics == nil {
 		metrics = portalmetrics.NoopOutboxMetrics{}
 	}
-	return &Worker{
+	return &OutboxPublisher{
 		txManager: txManager,
 		repo:      repo,
 		publisher: publisher,
@@ -61,7 +61,7 @@ func NewWorker(
 	}
 }
 
-func (w *Worker) Run(ctx context.Context) error {
+func (w *OutboxPublisher) Run(ctx context.Context) error {
 	ticker := time.NewTicker(w.cfg.Interval)
 	defer ticker.Stop()
 
@@ -78,7 +78,7 @@ func (w *Worker) Run(ctx context.Context) error {
 	}
 }
 
-func (w *Worker) publishPending(ctx context.Context) error {
+func (w *OutboxPublisher) publishPending(ctx context.Context) error {
 	events, err := w.claimPendingEvents(ctx)
 	if err != nil {
 		return err
@@ -116,7 +116,7 @@ func (w *Worker) publishPending(ctx context.Context) error {
 	return nil
 }
 
-func (w *Worker) claimPendingEvents(ctx context.Context) ([]model.OutboxEvent, error) {
+func (w *OutboxPublisher) claimPendingEvents(ctx context.Context) ([]model.OutboxEvent, error) {
 	var events []model.OutboxEvent
 
 	err := w.txManager.WithTx(ctx, func(ctx context.Context) error {
@@ -153,7 +153,7 @@ func (w *Worker) claimPendingEvents(ctx context.Context) ([]model.OutboxEvent, e
 	return events, nil
 }
 
-func (w *Worker) handlePublishFailed(ctx context.Context, event model.OutboxEvent, publishErr error) {
+func (w *OutboxPublisher) handlePublishFailed(ctx context.Context, event model.OutboxEvent, publishErr error) {
 	w.metrics.EventsPublishFailed()
 	retryCount := event.RetryCount + 1
 

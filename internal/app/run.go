@@ -59,10 +59,17 @@ func (a *App) Run() error {
 		errCh <- a.runHTTPServer()
 	}()
 
-	if a.OutboxWorker != nil {
+	if a.OutboxPublisher != nil {
 		go func() {
-			log.Println("outbox worker started")
-			errCh <- a.OutboxWorker.Run(ctx)
+			log.Println("outbox publisher started")
+			errCh <- a.OutboxPublisher.Run(ctx)
+		}()
+	}
+
+	if a.AnnouncementWorker != nil {
+		go func() {
+			log.Println("announcement worker started")
+			errCh <- a.AnnouncementWorker.Run(ctx)
 		}()
 	}
 

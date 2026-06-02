@@ -6,7 +6,7 @@ import (
 	"portal-system/internal/handler/grpcserver"
 	"portal-system/internal/infrastructure/ratelimit"
 	"portal-system/internal/infrastructure/security"
-	outbox "portal-system/internal/worker"
+	"portal-system/internal/worker"
 
 	"buf.build/go/protovalidate"
 	"github.com/redis/go-redis/v9"
@@ -29,7 +29,8 @@ type App struct {
 	UserGRPC  *grpcserver.UserServer
 	AdminGRPC *grpcserver.AdminServer
 
-	OutboxWorker *outbox.Worker
+	OutboxPublisher    *worker.OutboxPublisher
+	AnnouncementWorker *worker.AnnouncementWorker
 
 	RateLimiter         ratelimit.Limiter
 	RateLimitKeyBuilder ratelimit.KeyBuilder
