@@ -20,9 +20,14 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	UserService_GetMyProfile_FullMethodName     = "/portal.user.v1.UserService/GetMyProfile"
-	UserService_UpdateMyProfile_FullMethodName  = "/portal.user.v1.UserService/UpdateMyProfile"
-	UserService_ChangeMyPassword_FullMethodName = "/portal.user.v1.UserService/ChangeMyPassword"
+	UserService_GetMyProfile_FullMethodName               = "/portal.user.v1.UserService/GetMyProfile"
+	UserService_UpdateMyProfile_FullMethodName            = "/portal.user.v1.UserService/UpdateMyProfile"
+	UserService_ChangeMyPassword_FullMethodName           = "/portal.user.v1.UserService/ChangeMyPassword"
+	UserService_ListMyNotifications_FullMethodName        = "/portal.user.v1.UserService/ListMyNotifications"
+	UserService_GetMyNotificationDetail_FullMethodName    = "/portal.user.v1.UserService/GetMyNotificationDetail"
+	UserService_MarkNotificationAsRead_FullMethodName     = "/portal.user.v1.UserService/MarkNotificationAsRead"
+	UserService_MarkAllNotificationsAsRead_FullMethodName = "/portal.user.v1.UserService/MarkAllNotificationsAsRead"
+	UserService_GetUnreadNotificationCount_FullMethodName = "/portal.user.v1.UserService/GetUnreadNotificationCount"
 )
 
 // UserServiceClient is the client API for UserService service.
@@ -32,6 +37,12 @@ type UserServiceClient interface {
 	GetMyProfile(ctx context.Context, in *GetMyProfileRequest, opts ...grpc.CallOption) (*v1.User, error)
 	UpdateMyProfile(ctx context.Context, in *UpdateMyProfileRequest, opts ...grpc.CallOption) (*v1.User, error)
 	ChangeMyPassword(ctx context.Context, in *ChangeMyPasswordRequest, opts ...grpc.CallOption) (*v1.MessageResponse, error)
+	// Notification APIs
+	ListMyNotifications(ctx context.Context, in *ListMyNotificationsRequest, opts ...grpc.CallOption) (*ListMyNotificationsResponse, error)
+	GetMyNotificationDetail(ctx context.Context, in *GetMyNotificationDetailRequest, opts ...grpc.CallOption) (*v1.UserNotification, error)
+	MarkNotificationAsRead(ctx context.Context, in *MarkNotificationAsReadRequest, opts ...grpc.CallOption) (*v1.MessageResponse, error)
+	MarkAllNotificationsAsRead(ctx context.Context, in *MarkAllNotificationsAsReadRequest, opts ...grpc.CallOption) (*v1.MessageResponse, error)
+	GetUnreadNotificationCount(ctx context.Context, in *GetUnreadNotificationCountRequest, opts ...grpc.CallOption) (*GetUnreadNotificationCountResponse, error)
 }
 
 type userServiceClient struct {
@@ -72,6 +83,56 @@ func (c *userServiceClient) ChangeMyPassword(ctx context.Context, in *ChangeMyPa
 	return out, nil
 }
 
+func (c *userServiceClient) ListMyNotifications(ctx context.Context, in *ListMyNotificationsRequest, opts ...grpc.CallOption) (*ListMyNotificationsResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ListMyNotificationsResponse)
+	err := c.cc.Invoke(ctx, UserService_ListMyNotifications_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *userServiceClient) GetMyNotificationDetail(ctx context.Context, in *GetMyNotificationDetailRequest, opts ...grpc.CallOption) (*v1.UserNotification, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(v1.UserNotification)
+	err := c.cc.Invoke(ctx, UserService_GetMyNotificationDetail_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *userServiceClient) MarkNotificationAsRead(ctx context.Context, in *MarkNotificationAsReadRequest, opts ...grpc.CallOption) (*v1.MessageResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(v1.MessageResponse)
+	err := c.cc.Invoke(ctx, UserService_MarkNotificationAsRead_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *userServiceClient) MarkAllNotificationsAsRead(ctx context.Context, in *MarkAllNotificationsAsReadRequest, opts ...grpc.CallOption) (*v1.MessageResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(v1.MessageResponse)
+	err := c.cc.Invoke(ctx, UserService_MarkAllNotificationsAsRead_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *userServiceClient) GetUnreadNotificationCount(ctx context.Context, in *GetUnreadNotificationCountRequest, opts ...grpc.CallOption) (*GetUnreadNotificationCountResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetUnreadNotificationCountResponse)
+	err := c.cc.Invoke(ctx, UserService_GetUnreadNotificationCount_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // UserServiceServer is the server API for UserService service.
 // All implementations must embed UnimplementedUserServiceServer
 // for forward compatibility.
@@ -79,6 +140,12 @@ type UserServiceServer interface {
 	GetMyProfile(context.Context, *GetMyProfileRequest) (*v1.User, error)
 	UpdateMyProfile(context.Context, *UpdateMyProfileRequest) (*v1.User, error)
 	ChangeMyPassword(context.Context, *ChangeMyPasswordRequest) (*v1.MessageResponse, error)
+	// Notification APIs
+	ListMyNotifications(context.Context, *ListMyNotificationsRequest) (*ListMyNotificationsResponse, error)
+	GetMyNotificationDetail(context.Context, *GetMyNotificationDetailRequest) (*v1.UserNotification, error)
+	MarkNotificationAsRead(context.Context, *MarkNotificationAsReadRequest) (*v1.MessageResponse, error)
+	MarkAllNotificationsAsRead(context.Context, *MarkAllNotificationsAsReadRequest) (*v1.MessageResponse, error)
+	GetUnreadNotificationCount(context.Context, *GetUnreadNotificationCountRequest) (*GetUnreadNotificationCountResponse, error)
 	mustEmbedUnimplementedUserServiceServer()
 }
 
@@ -97,6 +164,21 @@ func (UnimplementedUserServiceServer) UpdateMyProfile(context.Context, *UpdateMy
 }
 func (UnimplementedUserServiceServer) ChangeMyPassword(context.Context, *ChangeMyPasswordRequest) (*v1.MessageResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method ChangeMyPassword not implemented")
+}
+func (UnimplementedUserServiceServer) ListMyNotifications(context.Context, *ListMyNotificationsRequest) (*ListMyNotificationsResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method ListMyNotifications not implemented")
+}
+func (UnimplementedUserServiceServer) GetMyNotificationDetail(context.Context, *GetMyNotificationDetailRequest) (*v1.UserNotification, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetMyNotificationDetail not implemented")
+}
+func (UnimplementedUserServiceServer) MarkNotificationAsRead(context.Context, *MarkNotificationAsReadRequest) (*v1.MessageResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method MarkNotificationAsRead not implemented")
+}
+func (UnimplementedUserServiceServer) MarkAllNotificationsAsRead(context.Context, *MarkAllNotificationsAsReadRequest) (*v1.MessageResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method MarkAllNotificationsAsRead not implemented")
+}
+func (UnimplementedUserServiceServer) GetUnreadNotificationCount(context.Context, *GetUnreadNotificationCountRequest) (*GetUnreadNotificationCountResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetUnreadNotificationCount not implemented")
 }
 func (UnimplementedUserServiceServer) mustEmbedUnimplementedUserServiceServer() {}
 func (UnimplementedUserServiceServer) testEmbeddedByValue()                     {}
@@ -173,6 +255,96 @@ func _UserService_ChangeMyPassword_Handler(srv interface{}, ctx context.Context,
 	return interceptor(ctx, in, info, handler)
 }
 
+func _UserService_ListMyNotifications_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListMyNotificationsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(UserServiceServer).ListMyNotifications(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: UserService_ListMyNotifications_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(UserServiceServer).ListMyNotifications(ctx, req.(*ListMyNotificationsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _UserService_GetMyNotificationDetail_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetMyNotificationDetailRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(UserServiceServer).GetMyNotificationDetail(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: UserService_GetMyNotificationDetail_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(UserServiceServer).GetMyNotificationDetail(ctx, req.(*GetMyNotificationDetailRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _UserService_MarkNotificationAsRead_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(MarkNotificationAsReadRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(UserServiceServer).MarkNotificationAsRead(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: UserService_MarkNotificationAsRead_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(UserServiceServer).MarkNotificationAsRead(ctx, req.(*MarkNotificationAsReadRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _UserService_MarkAllNotificationsAsRead_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(MarkAllNotificationsAsReadRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(UserServiceServer).MarkAllNotificationsAsRead(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: UserService_MarkAllNotificationsAsRead_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(UserServiceServer).MarkAllNotificationsAsRead(ctx, req.(*MarkAllNotificationsAsReadRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _UserService_GetUnreadNotificationCount_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetUnreadNotificationCountRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(UserServiceServer).GetUnreadNotificationCount(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: UserService_GetUnreadNotificationCount_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(UserServiceServer).GetUnreadNotificationCount(ctx, req.(*GetUnreadNotificationCountRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // UserService_ServiceDesc is the grpc.ServiceDesc for UserService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -191,6 +363,26 @@ var UserService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ChangeMyPassword",
 			Handler:    _UserService_ChangeMyPassword_Handler,
+		},
+		{
+			MethodName: "ListMyNotifications",
+			Handler:    _UserService_ListMyNotifications_Handler,
+		},
+		{
+			MethodName: "GetMyNotificationDetail",
+			Handler:    _UserService_GetMyNotificationDetail_Handler,
+		},
+		{
+			MethodName: "MarkNotificationAsRead",
+			Handler:    _UserService_MarkNotificationAsRead_Handler,
+		},
+		{
+			MethodName: "MarkAllNotificationsAsRead",
+			Handler:    _UserService_MarkAllNotificationsAsRead_Handler,
+		},
+		{
+			MethodName: "GetUnreadNotificationCount",
+			Handler:    _UserService_GetUnreadNotificationCount_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

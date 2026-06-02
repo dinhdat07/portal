@@ -188,6 +188,322 @@ func (x *ChangeMyPasswordRequest) GetConfirmNewPassword() string {
 	return ""
 }
 
+type ListMyNotificationsRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Page          int32                  `protobuf:"varint,1,opt,name=page,proto3" json:"page,omitempty"`
+	PageSize      int32                  `protobuf:"varint,2,opt,name=page_size,json=pageSize,proto3" json:"page_size,omitempty"`
+	UnreadOnly    bool                   `protobuf:"varint,3,opt,name=unread_only,json=unreadOnly,proto3" json:"unread_only,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ListMyNotificationsRequest) Reset() {
+	*x = ListMyNotificationsRequest{}
+	mi := &file_user_v1_user_proto_msgTypes[3]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListMyNotificationsRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListMyNotificationsRequest) ProtoMessage() {}
+
+func (x *ListMyNotificationsRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_user_v1_user_proto_msgTypes[3]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListMyNotificationsRequest.ProtoReflect.Descriptor instead.
+func (*ListMyNotificationsRequest) Descriptor() ([]byte, []int) {
+	return file_user_v1_user_proto_rawDescGZIP(), []int{3}
+}
+
+func (x *ListMyNotificationsRequest) GetPage() int32 {
+	if x != nil {
+		return x.Page
+	}
+	return 0
+}
+
+func (x *ListMyNotificationsRequest) GetPageSize() int32 {
+	if x != nil {
+		return x.PageSize
+	}
+	return 0
+}
+
+func (x *ListMyNotificationsRequest) GetUnreadOnly() bool {
+	if x != nil {
+		return x.UnreadOnly
+	}
+	return false
+}
+
+type ListMyNotificationsResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Data          []*v1.UserNotification `protobuf:"bytes,1,rep,name=data,proto3" json:"data,omitempty"`
+	Meta          *v1.PaginationMeta     `protobuf:"bytes,2,opt,name=meta,proto3" json:"meta,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ListMyNotificationsResponse) Reset() {
+	*x = ListMyNotificationsResponse{}
+	mi := &file_user_v1_user_proto_msgTypes[4]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListMyNotificationsResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListMyNotificationsResponse) ProtoMessage() {}
+
+func (x *ListMyNotificationsResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_user_v1_user_proto_msgTypes[4]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListMyNotificationsResponse.ProtoReflect.Descriptor instead.
+func (*ListMyNotificationsResponse) Descriptor() ([]byte, []int) {
+	return file_user_v1_user_proto_rawDescGZIP(), []int{4}
+}
+
+func (x *ListMyNotificationsResponse) GetData() []*v1.UserNotification {
+	if x != nil {
+		return x.Data
+	}
+	return nil
+}
+
+func (x *ListMyNotificationsResponse) GetMeta() *v1.PaginationMeta {
+	if x != nil {
+		return x.Meta
+	}
+	return nil
+}
+
+type GetMyNotificationDetailRequest struct {
+	state          protoimpl.MessageState `protogen:"open.v1"`
+	NotificationId string                 `protobuf:"bytes,1,opt,name=notification_id,json=notificationId,proto3" json:"notification_id,omitempty"`
+	unknownFields  protoimpl.UnknownFields
+	sizeCache      protoimpl.SizeCache
+}
+
+func (x *GetMyNotificationDetailRequest) Reset() {
+	*x = GetMyNotificationDetailRequest{}
+	mi := &file_user_v1_user_proto_msgTypes[5]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetMyNotificationDetailRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetMyNotificationDetailRequest) ProtoMessage() {}
+
+func (x *GetMyNotificationDetailRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_user_v1_user_proto_msgTypes[5]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetMyNotificationDetailRequest.ProtoReflect.Descriptor instead.
+func (*GetMyNotificationDetailRequest) Descriptor() ([]byte, []int) {
+	return file_user_v1_user_proto_rawDescGZIP(), []int{5}
+}
+
+func (x *GetMyNotificationDetailRequest) GetNotificationId() string {
+	if x != nil {
+		return x.NotificationId
+	}
+	return ""
+}
+
+type MarkNotificationAsReadRequest struct {
+	state          protoimpl.MessageState `protogen:"open.v1"`
+	NotificationId string                 `protobuf:"bytes,1,opt,name=notification_id,json=notificationId,proto3" json:"notification_id,omitempty"`
+	unknownFields  protoimpl.UnknownFields
+	sizeCache      protoimpl.SizeCache
+}
+
+func (x *MarkNotificationAsReadRequest) Reset() {
+	*x = MarkNotificationAsReadRequest{}
+	mi := &file_user_v1_user_proto_msgTypes[6]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *MarkNotificationAsReadRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*MarkNotificationAsReadRequest) ProtoMessage() {}
+
+func (x *MarkNotificationAsReadRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_user_v1_user_proto_msgTypes[6]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use MarkNotificationAsReadRequest.ProtoReflect.Descriptor instead.
+func (*MarkNotificationAsReadRequest) Descriptor() ([]byte, []int) {
+	return file_user_v1_user_proto_rawDescGZIP(), []int{6}
+}
+
+func (x *MarkNotificationAsReadRequest) GetNotificationId() string {
+	if x != nil {
+		return x.NotificationId
+	}
+	return ""
+}
+
+type MarkAllNotificationsAsReadRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *MarkAllNotificationsAsReadRequest) Reset() {
+	*x = MarkAllNotificationsAsReadRequest{}
+	mi := &file_user_v1_user_proto_msgTypes[7]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *MarkAllNotificationsAsReadRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*MarkAllNotificationsAsReadRequest) ProtoMessage() {}
+
+func (x *MarkAllNotificationsAsReadRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_user_v1_user_proto_msgTypes[7]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use MarkAllNotificationsAsReadRequest.ProtoReflect.Descriptor instead.
+func (*MarkAllNotificationsAsReadRequest) Descriptor() ([]byte, []int) {
+	return file_user_v1_user_proto_rawDescGZIP(), []int{7}
+}
+
+type GetUnreadNotificationCountRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetUnreadNotificationCountRequest) Reset() {
+	*x = GetUnreadNotificationCountRequest{}
+	mi := &file_user_v1_user_proto_msgTypes[8]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetUnreadNotificationCountRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetUnreadNotificationCountRequest) ProtoMessage() {}
+
+func (x *GetUnreadNotificationCountRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_user_v1_user_proto_msgTypes[8]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetUnreadNotificationCountRequest.ProtoReflect.Descriptor instead.
+func (*GetUnreadNotificationCountRequest) Descriptor() ([]byte, []int) {
+	return file_user_v1_user_proto_rawDescGZIP(), []int{8}
+}
+
+type GetUnreadNotificationCountResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Count         int64                  `protobuf:"varint,1,opt,name=count,proto3" json:"count,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetUnreadNotificationCountResponse) Reset() {
+	*x = GetUnreadNotificationCountResponse{}
+	mi := &file_user_v1_user_proto_msgTypes[9]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetUnreadNotificationCountResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetUnreadNotificationCountResponse) ProtoMessage() {}
+
+func (x *GetUnreadNotificationCountResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_user_v1_user_proto_msgTypes[9]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetUnreadNotificationCountResponse.ProtoReflect.Descriptor instead.
+func (*GetUnreadNotificationCountResponse) Descriptor() ([]byte, []int) {
+	return file_user_v1_user_proto_rawDescGZIP(), []int{9}
+}
+
+func (x *GetUnreadNotificationCountResponse) GetCount() int64 {
+	if x != nil {
+		return x.Count
+	}
+	return 0
+}
+
 var File_user_v1_user_proto protoreflect.FileDescriptor
 
 const file_user_v1_user_proto_rawDesc = "" +
@@ -210,11 +526,32 @@ const file_user_v1_user_proto_rawDesc = "" +
 	"\fnew_password\x18\x02 \x01(\tB\n" +
 	"\xbaH\ar\x05\x10\b\x18\xff\x01R\vnewPassword\x12<\n" +
 	"\x14confirm_new_password\x18\x03 \x01(\tB\n" +
-	"\xbaH\ar\x05\x10\b\x18\xff\x01R\x12confirmNewPassword2\xf2\x02\n" +
+	"\xbaH\ar\x05\x10\b\x18\xff\x01R\x12confirmNewPassword\"\x82\x01\n" +
+	"\x1aListMyNotificationsRequest\x12\x1b\n" +
+	"\x04page\x18\x01 \x01(\x05B\a\xbaH\x04\x1a\x02(\x01R\x04page\x12&\n" +
+	"\tpage_size\x18\x02 \x01(\x05B\t\xbaH\x06\x1a\x04\x18d(\x01R\bpageSize\x12\x1f\n" +
+	"\vunread_only\x18\x03 \x01(\bR\n" +
+	"unreadOnly\"\x8b\x01\n" +
+	"\x1bListMyNotificationsResponse\x126\n" +
+	"\x04data\x18\x01 \x03(\v2\".portal.common.v1.UserNotificationR\x04data\x124\n" +
+	"\x04meta\x18\x02 \x01(\v2 .portal.common.v1.PaginationMetaR\x04meta\"S\n" +
+	"\x1eGetMyNotificationDetailRequest\x121\n" +
+	"\x0fnotification_id\x18\x01 \x01(\tB\b\xbaH\x05r\x03\xb0\x01\x01R\x0enotificationId\"R\n" +
+	"\x1dMarkNotificationAsReadRequest\x121\n" +
+	"\x0fnotification_id\x18\x01 \x01(\tB\b\xbaH\x05r\x03\xb0\x01\x01R\x0enotificationId\"#\n" +
+	"!MarkAllNotificationsAsReadRequest\"#\n" +
+	"!GetUnreadNotificationCountRequest\":\n" +
+	"\"GetUnreadNotificationCountResponse\x12\x14\n" +
+	"\x05count\x18\x01 \x01(\x03R\x05count2\xc2\t\n" +
 	"\vUserService\x12e\n" +
 	"\fGetMyProfile\x12#.portal.user.v1.GetMyProfileRequest\x1a\x16.portal.common.v1.User\"\x18\x82\xd3\xe4\x93\x02\x12\x12\x10/api/v1/users/me\x12n\n" +
 	"\x0fUpdateMyProfile\x12&.portal.user.v1.UpdateMyProfileRequest\x1a\x16.portal.common.v1.User\"\x1b\x82\xd3\xe4\x93\x02\x15:\x01*\x1a\x10/api/v1/users/me\x12\x8b\x01\n" +
-	"\x10ChangeMyPassword\x12'.portal.user.v1.ChangeMyPasswordRequest\x1a!.portal.common.v1.MessageResponse\"+\x82\xd3\xe4\x93\x02%:\x01*\x1a /api/v1/users/me/change-passwordB%Z#portal-system/gen/go/user/v1;userv1b\x06proto3"
+	"\x10ChangeMyPassword\x12'.portal.user.v1.ChangeMyPasswordRequest\x1a!.portal.common.v1.MessageResponse\"+\x82\xd3\xe4\x93\x02%:\x01*\x1a /api/v1/users/me/change-password\x12\x96\x01\n" +
+	"\x13ListMyNotifications\x12*.portal.user.v1.ListMyNotificationsRequest\x1a+.portal.user.v1.ListMyNotificationsResponse\"&\x82\xd3\xe4\x93\x02 \x12\x1e/api/v1/users/me/notifications\x12\xa7\x01\n" +
+	"\x17GetMyNotificationDetail\x12..portal.user.v1.GetMyNotificationDetailRequest\x1a\".portal.common.v1.UserNotification\"8\x82\xd3\xe4\x93\x022\x120/api/v1/users/me/notifications/{notification_id}\x12\xa9\x01\n" +
+	"\x16MarkNotificationAsRead\x12-.portal.user.v1.MarkNotificationAsReadRequest\x1a!.portal.common.v1.MessageResponse\"=\x82\xd3\xe4\x93\x02725/api/v1/users/me/notifications/{notification_id}/read\x12\xa3\x01\n" +
+	"\x1aMarkAllNotificationsAsRead\x121.portal.user.v1.MarkAllNotificationsAsReadRequest\x1a!.portal.common.v1.MessageResponse\"/\x82\xd3\xe4\x93\x02)2'/api/v1/users/me/notifications/read-all\x12\xb8\x01\n" +
+	"\x1aGetUnreadNotificationCount\x121.portal.user.v1.GetUnreadNotificationCountRequest\x1a2.portal.user.v1.GetUnreadNotificationCountResponse\"3\x82\xd3\xe4\x93\x02-\x12+/api/v1/users/me/notifications/unread-countB%Z#portal-system/gen/go/user/v1;userv1b\x06proto3"
 
 var (
 	file_user_v1_user_proto_rawDescOnce sync.Once
@@ -228,26 +565,47 @@ func file_user_v1_user_proto_rawDescGZIP() []byte {
 	return file_user_v1_user_proto_rawDescData
 }
 
-var file_user_v1_user_proto_msgTypes = make([]protoimpl.MessageInfo, 3)
+var file_user_v1_user_proto_msgTypes = make([]protoimpl.MessageInfo, 10)
 var file_user_v1_user_proto_goTypes = []any{
-	(*GetMyProfileRequest)(nil),     // 0: portal.user.v1.GetMyProfileRequest
-	(*UpdateMyProfileRequest)(nil),  // 1: portal.user.v1.UpdateMyProfileRequest
-	(*ChangeMyPasswordRequest)(nil), // 2: portal.user.v1.ChangeMyPasswordRequest
-	(*v1.User)(nil),                 // 3: portal.common.v1.User
-	(*v1.MessageResponse)(nil),      // 4: portal.common.v1.MessageResponse
+	(*GetMyProfileRequest)(nil),                // 0: portal.user.v1.GetMyProfileRequest
+	(*UpdateMyProfileRequest)(nil),             // 1: portal.user.v1.UpdateMyProfileRequest
+	(*ChangeMyPasswordRequest)(nil),            // 2: portal.user.v1.ChangeMyPasswordRequest
+	(*ListMyNotificationsRequest)(nil),         // 3: portal.user.v1.ListMyNotificationsRequest
+	(*ListMyNotificationsResponse)(nil),        // 4: portal.user.v1.ListMyNotificationsResponse
+	(*GetMyNotificationDetailRequest)(nil),     // 5: portal.user.v1.GetMyNotificationDetailRequest
+	(*MarkNotificationAsReadRequest)(nil),      // 6: portal.user.v1.MarkNotificationAsReadRequest
+	(*MarkAllNotificationsAsReadRequest)(nil),  // 7: portal.user.v1.MarkAllNotificationsAsReadRequest
+	(*GetUnreadNotificationCountRequest)(nil),  // 8: portal.user.v1.GetUnreadNotificationCountRequest
+	(*GetUnreadNotificationCountResponse)(nil), // 9: portal.user.v1.GetUnreadNotificationCountResponse
+	(*v1.UserNotification)(nil),                // 10: portal.common.v1.UserNotification
+	(*v1.PaginationMeta)(nil),                  // 11: portal.common.v1.PaginationMeta
+	(*v1.User)(nil),                            // 12: portal.common.v1.User
+	(*v1.MessageResponse)(nil),                 // 13: portal.common.v1.MessageResponse
 }
 var file_user_v1_user_proto_depIdxs = []int32{
-	0, // 0: portal.user.v1.UserService.GetMyProfile:input_type -> portal.user.v1.GetMyProfileRequest
-	1, // 1: portal.user.v1.UserService.UpdateMyProfile:input_type -> portal.user.v1.UpdateMyProfileRequest
-	2, // 2: portal.user.v1.UserService.ChangeMyPassword:input_type -> portal.user.v1.ChangeMyPasswordRequest
-	3, // 3: portal.user.v1.UserService.GetMyProfile:output_type -> portal.common.v1.User
-	3, // 4: portal.user.v1.UserService.UpdateMyProfile:output_type -> portal.common.v1.User
-	4, // 5: portal.user.v1.UserService.ChangeMyPassword:output_type -> portal.common.v1.MessageResponse
-	3, // [3:6] is the sub-list for method output_type
-	0, // [0:3] is the sub-list for method input_type
-	0, // [0:0] is the sub-list for extension type_name
-	0, // [0:0] is the sub-list for extension extendee
-	0, // [0:0] is the sub-list for field type_name
+	10, // 0: portal.user.v1.ListMyNotificationsResponse.data:type_name -> portal.common.v1.UserNotification
+	11, // 1: portal.user.v1.ListMyNotificationsResponse.meta:type_name -> portal.common.v1.PaginationMeta
+	0,  // 2: portal.user.v1.UserService.GetMyProfile:input_type -> portal.user.v1.GetMyProfileRequest
+	1,  // 3: portal.user.v1.UserService.UpdateMyProfile:input_type -> portal.user.v1.UpdateMyProfileRequest
+	2,  // 4: portal.user.v1.UserService.ChangeMyPassword:input_type -> portal.user.v1.ChangeMyPasswordRequest
+	3,  // 5: portal.user.v1.UserService.ListMyNotifications:input_type -> portal.user.v1.ListMyNotificationsRequest
+	5,  // 6: portal.user.v1.UserService.GetMyNotificationDetail:input_type -> portal.user.v1.GetMyNotificationDetailRequest
+	6,  // 7: portal.user.v1.UserService.MarkNotificationAsRead:input_type -> portal.user.v1.MarkNotificationAsReadRequest
+	7,  // 8: portal.user.v1.UserService.MarkAllNotificationsAsRead:input_type -> portal.user.v1.MarkAllNotificationsAsReadRequest
+	8,  // 9: portal.user.v1.UserService.GetUnreadNotificationCount:input_type -> portal.user.v1.GetUnreadNotificationCountRequest
+	12, // 10: portal.user.v1.UserService.GetMyProfile:output_type -> portal.common.v1.User
+	12, // 11: portal.user.v1.UserService.UpdateMyProfile:output_type -> portal.common.v1.User
+	13, // 12: portal.user.v1.UserService.ChangeMyPassword:output_type -> portal.common.v1.MessageResponse
+	4,  // 13: portal.user.v1.UserService.ListMyNotifications:output_type -> portal.user.v1.ListMyNotificationsResponse
+	10, // 14: portal.user.v1.UserService.GetMyNotificationDetail:output_type -> portal.common.v1.UserNotification
+	13, // 15: portal.user.v1.UserService.MarkNotificationAsRead:output_type -> portal.common.v1.MessageResponse
+	13, // 16: portal.user.v1.UserService.MarkAllNotificationsAsRead:output_type -> portal.common.v1.MessageResponse
+	9,  // 17: portal.user.v1.UserService.GetUnreadNotificationCount:output_type -> portal.user.v1.GetUnreadNotificationCountResponse
+	10, // [10:18] is the sub-list for method output_type
+	2,  // [2:10] is the sub-list for method input_type
+	2,  // [2:2] is the sub-list for extension type_name
+	2,  // [2:2] is the sub-list for extension extendee
+	0,  // [0:2] is the sub-list for field type_name
 }
 
 func init() { file_user_v1_user_proto_init() }
@@ -262,7 +620,7 @@ func file_user_v1_user_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_user_v1_user_proto_rawDesc), len(file_user_v1_user_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   3,
+			NumMessages:   10,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

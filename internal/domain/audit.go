@@ -35,6 +35,10 @@ const (
 	ActionRemovePermission ActionName = "ADMIN_REMOVE_PERMISSION_FROM_ROLE"
 
 	ActionListPermissions ActionName = "ADMIN_LIST_PERMISSIONS"
+
+	ActionAdminCreateAnnouncement ActionName = "ADMIN_CREATE_ANNOUNCEMENT"
+	ActionAdminSearchAnnouncement ActionName = "ADMIN_SEARCH_ANNOUNCEMENT"
+	ActionAdminViewAnnouncement   ActionName = "ADMIN_VIEW_ANNOUNCEMENT"
 )
 
 func (a ActionName) IsValid() bool {
@@ -58,7 +62,10 @@ func (a ActionName) IsValid() bool {
 		ActionAdminUpdateUser,
 		ActionAdminDeleteUser,
 		ActionAdminRestoreUser,
-		ActionAdminAssignRole:
+		ActionAdminAssignRole,
+		ActionAdminCreateAnnouncement,
+		ActionAdminSearchAnnouncement,
+		ActionAdminViewAnnouncement:
 		return true
 	default:
 		return false

@@ -11,7 +11,7 @@ type GRPCServers struct {
 func newGRPCServers(svcs *Services) *GRPCServers {
 	return &GRPCServers{
 		Auth:  grpcserver.NewAuthServer(svcs.Auth),
-		User:  grpcserver.NewUserServer(svcs.User),
-		Admin: grpcserver.NewAdminServer(svcs.Admin, svcs.User, svcs.Role, svcs.Permission),
+		User:  grpcserver.NewUserServer(svcs.User, svcs.UserNotification),
+		Admin: grpcserver.NewAdminServer(svcs.Admin, svcs.User, svcs.Role, svcs.Permission, svcs.Announcement),
 	}
 }

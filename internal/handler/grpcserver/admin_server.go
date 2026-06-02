@@ -24,10 +24,11 @@ const (
 
 type AdminServer struct {
 	adminv1.UnimplementedAdminServiceServer
-	adminService      service.AdminService
-	userService       service.UserService
-	roleService       service.RoleService
-	permissionService service.PermissionService
+	adminService        service.AdminService
+	userService         service.UserService
+	roleService         service.RoleService
+	permissionService   service.PermissionService
+	announcementService service.AnnouncementService
 }
 
 func NewAdminServer(
@@ -35,12 +36,14 @@ func NewAdminServer(
 	userService service.UserService,
 	roleService service.RoleService,
 	permissionService service.PermissionService,
+	announcementService service.AnnouncementService,
 ) *AdminServer {
 	return &AdminServer{
-		adminService:      adminService,
-		userService:       userService,
-		roleService:       roleService,
-		permissionService: permissionService,
+		adminService:        adminService,
+		userService:         userService,
+		roleService:         roleService,
+		permissionService:   permissionService,
+		announcementService: announcementService,
 	}
 }
 
@@ -446,4 +449,107 @@ func parseUUIDField(id string, field string) (uuid.UUID, error) {
 	}
 
 	return parsedID, nil
+}
+
+func (s *AdminServer) CreateAnnouncement(ctx context.Context, req *adminv1.CreateAnnouncementRequest) (*commonv1.Announcement, error) {
+	if req == nil {
+		return nil, gstatus.Error(codes.InvalidArgument, "request is required")
+	}
+
+	actor, err := getActorFromCtx(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	targetRoles := make([]domain.RoleCode, len(req.GetTargetRoles()))
+	for i, r := range req.GetTargetRoles() {
+		targetRoles[i] = domain.RoleCode(r)
+	}
+
+	input := service.CreateAnnouncementInput{
+		Title:       req.GetTitle(),
+		Content:     req.GetContent(),
+		Type:        req.GetType(),
+		TargetRoles: targetRoles,
+	}
+
+	meta := getAuditFromCtx(ctx)
+
+	announcement, err := s.announcementService.CreateAnnouncement(ctx, meta, actor, input)
+	if err != nil {
+		return nil, mapper.MapError(err)
+	}
+
+	return mapper.AnnouncementModelToPB(announcement), nil
+}
+
+func (s *AdminServer) ListAnnouncements(ctx context.Context, req *adminv1.ListAnnouncementsRequest) (*adminv1.ListAnnouncementsResponse, error) {
+	if req == nil {
+		return nil, gstatus.Error(codes.InvalidArgument, "request is required")
+	}
+
+	actor, err := getActorFromCtx(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	page := int(req.GetPage())
+	if page == 0 {
+		page = defaultPage
+	}
+
+	pageSize := int(req.GetPageSize())
+	if pageSize == 0 {
+		pageSize = defaultPageSize
+	}
+
+	filter := service.AnnouncementListFilter{
+		Page:     page,
+		PageSize: pageSize,
+	}
+
+	if req.Type != nil {
+		filter.AnnouncementType = req.GetType()
+	}
+
+	meta := getAuditFromCtx(ctx)
+
+	result, err := s.announcementService.ListAnnouncements(ctx, meta, actor, filter)
+	if err != nil {
+		return nil, mapper.MapError(err)
+	}
+
+	return &adminv1.ListAnnouncementsResponse{
+		Data: mapper.ListAnnouncementsResultToPB(result),
+		Meta: &commonv1.PaginationMeta{
+			Page:     int32(result.Page),
+			PageSize: int32(result.PageSize),
+			Total:    result.Total,
+		},
+	}, nil
+}
+
+func (s *AdminServer) GetAnnouncementDetail(ctx context.Context, req *adminv1.GetAnnouncementDetailRequest) (*commonv1.Announcement, error) {
+	if req == nil {
+		return nil, gstatus.Error(codes.InvalidArgument, "request is required")
+	}
+
+	actor, err := getActorFromCtx(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	announcementID, err := parseUUIDField(req.GetAnnouncementId(), "announcement_id")
+	if err != nil {
+		return nil, err
+	}
+
+	meta := getAuditFromCtx(ctx)
+
+	announcement, err := s.announcementService.GetAnnouncement(ctx, meta, actor, announcementID)
+	if err != nil {
+		return nil, mapper.MapError(err)
+	}
+
+	return mapper.AnnouncementModelToPB(announcement), nil
 }

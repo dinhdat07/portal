@@ -11,6 +11,6 @@ type AnnouncementRepository interface {
 	Create(ctx context.Context, announcement *model.Announcement) error
 	FindByID(ctx context.Context, id uuid.UUID) (*model.Announcement, error)
 	FindAll(ctx context.Context, page, pageSize int, announcementType string) ([]model.Announcement, int64, error)
-	UpdateStatus(ctx context.Context, id uuid.UUID, status model.AnnouncementStatus) error
+	UpdateDispatchStatus(ctx context.Context, id uuid.UUID, status model.AnnouncementDispatchStatus) error
 	FindPending(ctx context.Context, limit int) ([]model.Announcement, error)
 }

@@ -57,13 +57,13 @@ func (r *GormAnnouncementRepository) FindAll(ctx context.Context, page, pageSize
 	return announcements, total, nil
 }
 
-func (r *GormAnnouncementRepository) UpdateStatus(ctx context.Context, id uuid.UUID, status model.AnnouncementStatus) error {
-	return r.getDB(ctx).Model(&model.Announcement{}).Where("id = ?", id).Update("status", status).Error
+func (r *GormAnnouncementRepository) UpdateDispatchStatus(ctx context.Context, id uuid.UUID, status model.AnnouncementDispatchStatus) error {
+	return r.getDB(ctx).Model(&model.Announcement{}).Where("id = ?", id).Update("dispatch_status", status).Error
 }
 
 func (r *GormAnnouncementRepository) FindPending(ctx context.Context, limit int) ([]model.Announcement, error) {
 	var announcements []model.Announcement
-	err := r.getDB(ctx).Where("status = ?", model.AnnouncementStatusPending).Order("created_at ASC").Limit(limit).Find(&announcements).Error
+	err := r.getDB(ctx).Where("dispatch_status = ?", model.AnnouncementDispatchStatusPending).Order("created_at ASC").Limit(limit).Find(&announcements).Error
 	return announcements, err
 }
 

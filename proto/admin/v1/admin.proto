@@ -92,6 +92,26 @@ service AdminService {
       get: "/api/v1/admin/permissions"
     };
   }
+
+  // Announcement APIs
+  rpc CreateAnnouncement(CreateAnnouncementRequest) returns (portal.common.v1.Announcement) {
+    option (google.api.http) = {
+      post: "/api/v1/admin/announcements"
+      body: "*"
+    };
+  }
+
+  rpc ListAnnouncements(ListAnnouncementsRequest) returns (ListAnnouncementsResponse) {
+    option (google.api.http) = {
+      get: "/api/v1/admin/announcements"
+    };
+  }
+
+  rpc GetAnnouncementDetail(GetAnnouncementDetailRequest) returns (portal.common.v1.Announcement) {
+    option (google.api.http) = {
+      get: "/api/v1/admin/announcements/{announcement_id}"
+    };
+  }
 }
 
 message ListUsersRequest {
@@ -310,4 +330,59 @@ message RemovePermissionFromRoleRequest {
 
 message ListPermissionsResponse {
   repeated portal.common.v1.Permission data = 1;
+}
+
+message CreateAnnouncementRequest {
+  string title = 1 [
+    (buf.validate.field).string = {
+      min_len: 1,
+      max_len: 255
+    }
+  ];
+
+  string content = 2 [
+    (buf.validate.field).string = {
+      min_len: 1
+    }
+  ];
+
+  string type = 3 [
+    (buf.validate.field).string = {
+      in: ["INFO", "WARNING", "ALERT"]
+    }
+  ];
+
+  repeated string target_roles = 4 [
+    (buf.validate.field).repeated = {
+      min_items: 1
+    }
+  ];
+}
+
+message ListAnnouncementsRequest {
+  int32 page = 1 [
+    (buf.validate.field).int32 = {
+      gte: 1
+    }
+  ];
+
+  int32 page_size = 2 [
+    (buf.validate.field).int32 = {
+      gte: 1,
+      lte: 100
+    }
+  ];
+
+  optional string type = 3;
+}
+
+message ListAnnouncementsResponse {
+  repeated portal.common.v1.Announcement data = 1;
+  portal.common.v1.PaginationMeta meta = 2;
+}
+
+message GetAnnouncementDetailRequest {
+  string announcement_id = 1 [
+    (buf.validate.field).string.uuid = true
+  ];
 }

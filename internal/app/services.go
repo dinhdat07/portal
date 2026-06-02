@@ -13,9 +13,11 @@ type Services struct {
 	AuditLog   service.AuditLogger
 	Auth       service.AuthService
 	User       service.UserService
-	Admin      service.AdminService
-	Role       service.RoleService
-	Permission service.PermissionService
+	Admin            service.AdminService
+	Role             service.RoleService
+	Permission       service.PermissionService
+	Announcement     service.AnnouncementService
+	UserNotification service.UserNotificationService
 
 	// auth layer
 	Authenticator *security.Authenticator
@@ -79,6 +81,9 @@ func newServices(
 
 	permissionService := service.NewPermissionService(repos.PermissionRepo)
 
+	announcementService := service.NewAnnouncementService(repos.AnnouncementRepo, repos.TxManager, auditLogService)
+	userNotificationService := service.NewUserNotificationService(repos.UserNotificationRepo, repos.TxManager)
+
 	// auth layer
 	authenticator := security.NewAuthenticator(
 		infra.TokenManager,
@@ -93,9 +98,11 @@ func newServices(
 		AuditLog:   auditLogService,
 		Auth:       authService,
 		User:       userService,
-		Admin:      adminService,
-		Role:       roleService,
-		Permission: permissionService,
+		Admin:            adminService,
+		Role:             roleService,
+		Permission:       permissionService,
+		Announcement:     announcementService,
+		UserNotification: userNotificationService,
 
 		Authenticator: authenticator,
 		Authorizer:    authorizer,

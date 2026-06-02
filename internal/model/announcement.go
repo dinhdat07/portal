@@ -19,12 +19,12 @@ const (
 	AnnouncementTypeAlert   AnnouncementType = "ALERT"
 )
 
-type AnnouncementStatus string
+type AnnouncementDispatchStatus string
 
 const (
-	AnnouncementStatusPending    AnnouncementStatus = "PENDING"
-	AnnouncementStatusProcessing AnnouncementStatus = "PROCESSING"
-	AnnouncementStatusCompleted  AnnouncementStatus = "COMPLETED"
+	AnnouncementDispatchStatusPending    AnnouncementDispatchStatus = "PENDING"
+	AnnouncementDispatchStatusProcessing AnnouncementDispatchStatus = "PROCESSING"
+	AnnouncementDispatchStatusCompleted  AnnouncementDispatchStatus = "COMPLETED"
 )
 
 // RoleCodeArray is a custom type to handle PostgreSQL string array or JSON array for RoleCode
@@ -57,10 +57,10 @@ type Announcement struct {
 	ID          uuid.UUID          `gorm:"type:uuid;primaryKey"`
 	Title       string             `gorm:"size:255;not null"`
 	Content     string             `gorm:"type:text;not null"`
-	Type        AnnouncementType   `gorm:"size:20;not null;index"`
-	TargetRoles RoleCodeArray      `gorm:"type:jsonb"`
-	Status      AnnouncementStatus `gorm:"size:20;not null;index;default:'PENDING'"`
-	CreatedBy   uuid.UUID          `gorm:"type:uuid;not null"`
+	Type           AnnouncementType           `gorm:"size:20;not null;index"`
+	TargetRoles    RoleCodeArray              `gorm:"type:jsonb"`
+	DispatchStatus AnnouncementDispatchStatus `gorm:"size:20;not null;index;default:'PENDING'"`
+	CreatedBy      uuid.UUID                  `gorm:"type:uuid;not null"`
 	CreatedAt   time.Time
 	UpdatedAt   time.Time
 
@@ -69,8 +69,8 @@ type Announcement struct {
 
 func (a *Announcement) BeforeCreate(tx *gorm.DB) error {
 	a.ID = uuid.New()
-	if a.Status == "" {
-		a.Status = AnnouncementStatusPending
+	if a.DispatchStatus == "" {
+		a.DispatchStatus = AnnouncementDispatchStatusPending
 	}
 	return nil
 }

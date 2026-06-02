@@ -28,6 +28,37 @@ service UserService {
       body: "*"
     };
   }
+
+  // Notification APIs
+  rpc ListMyNotifications(ListMyNotificationsRequest) returns (ListMyNotificationsResponse) {
+    option (google.api.http) = {
+      get: "/api/v1/users/me/notifications"
+    };
+  }
+
+  rpc GetMyNotificationDetail(GetMyNotificationDetailRequest) returns (portal.common.v1.UserNotification) {
+    option (google.api.http) = {
+      get: "/api/v1/users/me/notifications/{notification_id}"
+    };
+  }
+
+  rpc MarkNotificationAsRead(MarkNotificationAsReadRequest) returns (portal.common.v1.MessageResponse) {
+    option (google.api.http) = {
+      patch: "/api/v1/users/me/notifications/{notification_id}/read"
+    };
+  }
+
+  rpc MarkAllNotificationsAsRead(MarkAllNotificationsAsReadRequest) returns (portal.common.v1.MessageResponse) {
+    option (google.api.http) = {
+      patch: "/api/v1/users/me/notifications/read-all"
+    };
+  }
+
+  rpc GetUnreadNotificationCount(GetUnreadNotificationCountRequest) returns (GetUnreadNotificationCountResponse) {
+    option (google.api.http) = {
+      get: "/api/v1/users/me/notifications/unread-count"
+    };
+  }
 }
 
 message GetMyProfileRequest {}
@@ -81,4 +112,46 @@ message ChangeMyPasswordRequest {
       max_len: 255
     }
   ];
+}
+
+message ListMyNotificationsRequest {
+  int32 page = 1 [
+    (buf.validate.field).int32 = {
+      gte: 1
+    }
+  ];
+
+  int32 page_size = 2 [
+    (buf.validate.field).int32 = {
+      gte: 1,
+      lte: 100
+    }
+  ];
+
+  bool unread_only = 3;
+}
+
+message ListMyNotificationsResponse {
+  repeated portal.common.v1.UserNotification data = 1;
+  portal.common.v1.PaginationMeta meta = 2;
+}
+
+message GetMyNotificationDetailRequest {
+  string notification_id = 1 [
+    (buf.validate.field).string.uuid = true
+  ];
+}
+
+message MarkNotificationAsReadRequest {
+  string notification_id = 1 [
+    (buf.validate.field).string.uuid = true
+  ];
+}
+
+message MarkAllNotificationsAsReadRequest {}
+
+message GetUnreadNotificationCountRequest {}
+
+message GetUnreadNotificationCountResponse {
+  int64 count = 1;
 }
