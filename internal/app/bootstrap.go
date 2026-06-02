@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log/slog"
 	"portal-system/config"
+	"portal-system/internal/infrastructure/database"
 	"portal-system/internal/infrastructure/logger"
 	metricsx "portal-system/internal/infrastructure/metrics"
 	"portal-system/internal/infrastructure/ratelimit"
@@ -17,8 +18,6 @@ import (
 
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/redis/go-redis/v9"
-	"gorm.io/driver/postgres"
-	"gorm.io/gorm"
 )
 
 func New() (*App, error) {
@@ -60,7 +59,7 @@ func New() (*App, error) {
 		return nil, fmt.Errorf("RATE_LIMIT_ENABLED=true requires REDIS_ENABLED=true")
 	}
 
-	db, err := gorm.Open(postgres.Open(cfg.DBUrl), &gorm.Config{})
+	db, err := database.GetInstance(cfg.DBUrl)
 	if err != nil {
 		return nil, err
 	}
