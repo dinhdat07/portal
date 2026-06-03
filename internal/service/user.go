@@ -9,7 +9,11 @@ import (
 	"portal-system/internal/model"
 	"portal-system/internal/repository"
 	"strings"
+	"time"
+	"fmt"
+	"encoding/json"
 
+	"github.com/redis/go-redis/v9"
 	"github.com/google/uuid"
 	"golang.org/x/crypto/bcrypt"
 )
@@ -18,20 +22,31 @@ type UserService interface {
 	GetProfile(ctx context.Context, meta *AuditMeta, actor *AuditUser, id uuid.UUID) (*model.User, error)
 	UpdateProfile(ctx context.Context, meta *AuditMeta, actor *AuditUser, id uuid.UUID, input UpdateUserInput) (*model.User, error)
 	ChangePassword(ctx context.Context, meta *AuditMeta, actor *AuditUser, current, newPassword, confirm string) error
+	RegisterFCMToken(ctx context.Context, actor *AuditUser, token string, deviceName *string) error
+	GenerateTelegramLinkToken(ctx context.Context, actor *AuditUser) (token string, link string, expiresInSeconds int, err error)
+	ProcessTelegramWebhook(ctx context.Context, chatID int64, text string) error
 }
 
 type userService struct {
-	txManager   repository.TxManager
-	auditLogger AuditLogger
-	roleRepo    repository.RoleRepository
-	userRepo    repository.UserRepository
+	txManager           repository.TxManager
+	auditLogger         AuditLogger
+	roleRepo            repository.RoleRepository
+	userRepo            repository.UserRepository
+	outboxRepo          repository.OutboxRepository
+	redisClient         redis.UniversalClient
+	frontendURL         string
+	telegramBotUsername string
 }
 
 type UserServiceDeps struct {
-	TxManager   repository.TxManager
-	AuditLogger AuditLogger
-	RoleRepo    repository.RoleRepository
-	UserRepo    repository.UserRepository
+	TxManager           repository.TxManager
+	AuditLogger         AuditLogger
+	RoleRepo            repository.RoleRepository
+	UserRepo            repository.UserRepository
+	OutboxRepo          repository.OutboxRepository
+	RedisClient         redis.UniversalClient
+	FrontendURL         string
+	TelegramBotUsername string
 }
 
 func NewUserService(deps UserServiceDeps) *userService {
@@ -40,6 +55,10 @@ func NewUserService(deps UserServiceDeps) *userService {
 		userRepo:    deps.UserRepo,
 		roleRepo:    deps.RoleRepo,
 		auditLogger: deps.AuditLogger,
+		outboxRepo:          deps.OutboxRepo,
+		redisClient:         deps.RedisClient,
+		frontendURL:         deps.FrontendURL,
+		telegramBotUsername: deps.TelegramBotUsername,
 	}
 }
 
@@ -207,3 +226,103 @@ func (svc *userService) UpdateProfile(ctx context.Context, meta *AuditMeta, acto
 
 	return user, nil
 }
+
+type NotificationEndpointRegisteredPayload struct {
+	UserID     string  `json:"user_id"`
+	Provider   string  `json:"provider"`
+	Endpoint   string  `json:"endpoint"`
+	DeviceName *string `json:"device_name,omitempty"`
+}
+
+func (svc *userService) RegisterFCMToken(ctx context.Context, actor *AuditUser, token string, deviceName *string) error {
+	payload := NotificationEndpointRegisteredPayload{
+		UserID:     actor.ID.String(),
+		Provider:   "FIREBASE",
+		Endpoint:   token,
+		DeviceName: deviceName,
+	}
+
+	payloadBytes, err := json.Marshal(payload)
+	if err != nil {
+		return ErrInternalServer
+	}
+
+	outboxEvent := &model.OutboxEvent{
+		ID:         uuid.New(),
+		Topic:      "notification.endpoint.registered",
+		MessageKey: actor.ID.String(),
+		Payload:    payloadBytes,
+		Status:     model.OutboxStatusPending,
+		RetryCount: 0,
+		MaxRetry:   10,
+		CreatedAt:  time.Now().UTC(),
+		UpdatedAt:  time.Now().UTC(),
+	}
+
+	return svc.txManager.WithTx(ctx, func(txCtx context.Context) error {
+		return svc.outboxRepo.Create(txCtx, outboxEvent)
+	})
+}
+
+func (svc *userService) GenerateTelegramLinkToken(ctx context.Context, actor *AuditUser) (string, string, int, error) {
+	token := "link_" + uuid.NewString()[:8]
+	expiresIn := 300 // 5 mins
+
+	key := fmt.Sprintf("telegram_link:%s", token)
+	if err := svc.redisClient.Set(ctx, key, actor.ID.String(), time.Duration(expiresIn)*time.Second).Err(); err != nil {
+		return "", "", 0, ErrInternalServer
+	}
+
+	// Generate telegram deep link using bot username from config
+	link := fmt.Sprintf("https://t.me/%s?start=%s", svc.telegramBotUsername, token)
+
+	return token, link, expiresIn, nil
+}
+
+func (svc *userService) ProcessTelegramWebhook(ctx context.Context, chatID int64, text string) error {
+	if !strings.HasPrefix(text, "/start ") {
+		return nil // Not a link token command, ignore
+	}
+
+	token := strings.TrimPrefix(text, "/start ")
+	key := fmt.Sprintf("telegram_link:%s", token)
+
+	userID, err := svc.redisClient.Get(ctx, key).Result()
+	if err != nil {
+		if err == redis.Nil {
+			return errors.New("invalid or expired link token")
+		}
+		return err
+	}
+
+	// Token is valid, let's delete it so it can't be reused
+	svc.redisClient.Del(ctx, key)
+
+	payload := NotificationEndpointRegisteredPayload{
+		UserID:   userID,
+		Provider: "TELEGRAM",
+		Endpoint: fmt.Sprintf("%d", chatID),
+	}
+
+	payloadBytes, err := json.Marshal(payload)
+	if err != nil {
+		return ErrInternalServer
+	}
+
+	outboxEvent := &model.OutboxEvent{
+		ID:         uuid.New(),
+		Topic:      "notification.endpoint.registered",
+		MessageKey: userID,
+		Payload:    payloadBytes,
+		Status:     model.OutboxStatusPending,
+		RetryCount: 0,
+		MaxRetry:   10,
+		CreatedAt:  time.Now().UTC(),
+		UpdatedAt:  time.Now().UTC(),
+	}
+
+	return svc.txManager.WithTx(ctx, func(txCtx context.Context) error {
+		return svc.outboxRepo.Create(txCtx, outboxEvent)
+	})
+}
+

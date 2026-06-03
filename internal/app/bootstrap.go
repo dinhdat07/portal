@@ -153,6 +153,7 @@ func New() (*App, error) {
 		AuthGRPC:            grpcServers.Auth,
 		UserGRPC:            grpcServers.User,
 		AdminGRPC:           grpcServers.Admin,
+		UserService:         svcs.User,
 		OutboxPublisher:     outboxPublisher,
 		AnnouncementWorker:  announcementWorker,
 		RateLimiter:         rateLimiter,

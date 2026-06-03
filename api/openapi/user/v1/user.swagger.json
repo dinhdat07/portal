@@ -100,6 +100,39 @@
         ]
       }
     },
+    "/api/v1/users/me/fcm-token": {
+      "post": {
+        "summary": "Endpoint Registration",
+        "operationId": "UserService_RegisterFCMToken",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1MessageResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v1RegisterFCMTokenRequest"
+            }
+          }
+        ],
+        "tags": [
+          "UserService"
+        ]
+      }
+    },
     "/api/v1/users/me/notifications": {
       "get": {
         "summary": "Notification APIs",
@@ -248,6 +281,38 @@
           "UserService"
         ]
       }
+    },
+    "/api/v1/users/me/telegram-link-token": {
+      "post": {
+        "operationId": "UserService_GenerateTelegramLinkToken",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1GenerateTelegramLinkTokenResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v1GenerateTelegramLinkTokenRequest"
+            }
+          }
+        ],
+        "tags": [
+          "UserService"
+        ]
+      }
     }
   },
   "definitions": {
@@ -330,6 +395,24 @@
         }
       }
     },
+    "v1GenerateTelegramLinkTokenRequest": {
+      "type": "object"
+    },
+    "v1GenerateTelegramLinkTokenResponse": {
+      "type": "object",
+      "properties": {
+        "token": {
+          "type": "string"
+        },
+        "link": {
+          "type": "string"
+        },
+        "expiresInSeconds": {
+          "type": "integer",
+          "format": "int32"
+        }
+      }
+    },
     "v1GetUnreadNotificationCountResponse": {
       "type": "object",
       "properties": {
@@ -376,6 +459,17 @@
         "total": {
           "type": "string",
           "format": "int64"
+        }
+      }
+    },
+    "v1RegisterFCMTokenRequest": {
+      "type": "object",
+      "properties": {
+        "fcmToken": {
+          "type": "string"
+        },
+        "deviceName": {
+          "type": "string"
         }
       }
     },

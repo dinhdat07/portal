@@ -22,6 +22,7 @@ type Infra struct {
 	NotificationTopic string
 	TokenManager      service.TokenIssuer
 	RevocationStore   service.SessionRevocationStore
+	RedisClient       redis.UniversalClient
 }
 
 func newInfra(cfg *config.Config, kafkaWriter *kafka.Writer, kafkaCfg config.KafkaConfig, rdb redis.UniversalClient) *Infra {
@@ -30,5 +31,6 @@ func newInfra(cfg *config.Config, kafkaWriter *kafka.Writer, kafkaCfg config.Kaf
 		NotificationTopic: kafkaCfg.NotificationRequestedTopic,
 		TokenManager:      security.New(cfg.JWTSecret, cfg.JWTAccessTTL),
 		RevocationStore:   redisx.NewRedisSessionRevocationStore(rdb),
+		RedisClient:       rdb,
 	}
 }

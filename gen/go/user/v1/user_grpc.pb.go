@@ -28,6 +28,8 @@ const (
 	UserService_MarkNotificationAsRead_FullMethodName     = "/portal.user.v1.UserService/MarkNotificationAsRead"
 	UserService_MarkAllNotificationsAsRead_FullMethodName = "/portal.user.v1.UserService/MarkAllNotificationsAsRead"
 	UserService_GetUnreadNotificationCount_FullMethodName = "/portal.user.v1.UserService/GetUnreadNotificationCount"
+	UserService_RegisterFCMToken_FullMethodName           = "/portal.user.v1.UserService/RegisterFCMToken"
+	UserService_GenerateTelegramLinkToken_FullMethodName  = "/portal.user.v1.UserService/GenerateTelegramLinkToken"
 )
 
 // UserServiceClient is the client API for UserService service.
@@ -43,6 +45,9 @@ type UserServiceClient interface {
 	MarkNotificationAsRead(ctx context.Context, in *MarkNotificationAsReadRequest, opts ...grpc.CallOption) (*v1.MessageResponse, error)
 	MarkAllNotificationsAsRead(ctx context.Context, in *MarkAllNotificationsAsReadRequest, opts ...grpc.CallOption) (*v1.MessageResponse, error)
 	GetUnreadNotificationCount(ctx context.Context, in *GetUnreadNotificationCountRequest, opts ...grpc.CallOption) (*GetUnreadNotificationCountResponse, error)
+	// Endpoint Registration
+	RegisterFCMToken(ctx context.Context, in *RegisterFCMTokenRequest, opts ...grpc.CallOption) (*v1.MessageResponse, error)
+	GenerateTelegramLinkToken(ctx context.Context, in *GenerateTelegramLinkTokenRequest, opts ...grpc.CallOption) (*GenerateTelegramLinkTokenResponse, error)
 }
 
 type userServiceClient struct {
@@ -133,6 +138,26 @@ func (c *userServiceClient) GetUnreadNotificationCount(ctx context.Context, in *
 	return out, nil
 }
 
+func (c *userServiceClient) RegisterFCMToken(ctx context.Context, in *RegisterFCMTokenRequest, opts ...grpc.CallOption) (*v1.MessageResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(v1.MessageResponse)
+	err := c.cc.Invoke(ctx, UserService_RegisterFCMToken_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *userServiceClient) GenerateTelegramLinkToken(ctx context.Context, in *GenerateTelegramLinkTokenRequest, opts ...grpc.CallOption) (*GenerateTelegramLinkTokenResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GenerateTelegramLinkTokenResponse)
+	err := c.cc.Invoke(ctx, UserService_GenerateTelegramLinkToken_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // UserServiceServer is the server API for UserService service.
 // All implementations must embed UnimplementedUserServiceServer
 // for forward compatibility.
@@ -146,6 +171,9 @@ type UserServiceServer interface {
 	MarkNotificationAsRead(context.Context, *MarkNotificationAsReadRequest) (*v1.MessageResponse, error)
 	MarkAllNotificationsAsRead(context.Context, *MarkAllNotificationsAsReadRequest) (*v1.MessageResponse, error)
 	GetUnreadNotificationCount(context.Context, *GetUnreadNotificationCountRequest) (*GetUnreadNotificationCountResponse, error)
+	// Endpoint Registration
+	RegisterFCMToken(context.Context, *RegisterFCMTokenRequest) (*v1.MessageResponse, error)
+	GenerateTelegramLinkToken(context.Context, *GenerateTelegramLinkTokenRequest) (*GenerateTelegramLinkTokenResponse, error)
 	mustEmbedUnimplementedUserServiceServer()
 }
 
@@ -179,6 +207,12 @@ func (UnimplementedUserServiceServer) MarkAllNotificationsAsRead(context.Context
 }
 func (UnimplementedUserServiceServer) GetUnreadNotificationCount(context.Context, *GetUnreadNotificationCountRequest) (*GetUnreadNotificationCountResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method GetUnreadNotificationCount not implemented")
+}
+func (UnimplementedUserServiceServer) RegisterFCMToken(context.Context, *RegisterFCMTokenRequest) (*v1.MessageResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method RegisterFCMToken not implemented")
+}
+func (UnimplementedUserServiceServer) GenerateTelegramLinkToken(context.Context, *GenerateTelegramLinkTokenRequest) (*GenerateTelegramLinkTokenResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method GenerateTelegramLinkToken not implemented")
 }
 func (UnimplementedUserServiceServer) mustEmbedUnimplementedUserServiceServer() {}
 func (UnimplementedUserServiceServer) testEmbeddedByValue()                     {}
@@ -345,6 +379,42 @@ func _UserService_GetUnreadNotificationCount_Handler(srv interface{}, ctx contex
 	return interceptor(ctx, in, info, handler)
 }
 
+func _UserService_RegisterFCMToken_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(RegisterFCMTokenRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(UserServiceServer).RegisterFCMToken(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: UserService_RegisterFCMToken_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(UserServiceServer).RegisterFCMToken(ctx, req.(*RegisterFCMTokenRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _UserService_GenerateTelegramLinkToken_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GenerateTelegramLinkTokenRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(UserServiceServer).GenerateTelegramLinkToken(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: UserService_GenerateTelegramLinkToken_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(UserServiceServer).GenerateTelegramLinkToken(ctx, req.(*GenerateTelegramLinkTokenRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // UserService_ServiceDesc is the grpc.ServiceDesc for UserService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -383,6 +453,14 @@ var UserService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetUnreadNotificationCount",
 			Handler:    _UserService_GetUnreadNotificationCount_Handler,
+		},
+		{
+			MethodName: "RegisterFCMToken",
+			Handler:    _UserService_RegisterFCMToken_Handler,
+		},
+		{
+			MethodName: "GenerateTelegramLinkToken",
+			Handler:    _UserService_GenerateTelegramLinkToken_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

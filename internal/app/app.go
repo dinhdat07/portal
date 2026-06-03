@@ -6,6 +6,7 @@ import (
 	"portal-system/internal/handler/grpcserver"
 	"portal-system/internal/infrastructure/ratelimit"
 	"portal-system/internal/infrastructure/security"
+	"portal-system/internal/service"
 	"portal-system/internal/worker"
 
 	"buf.build/go/protovalidate"
@@ -28,6 +29,8 @@ type App struct {
 	AuthGRPC  *grpcserver.AuthServer
 	UserGRPC  *grpcserver.UserServer
 	AdminGRPC *grpcserver.AdminServer
+
+	UserService service.UserService
 
 	OutboxPublisher    *worker.OutboxPublisher
 	AnnouncementWorker *worker.AnnouncementWorker

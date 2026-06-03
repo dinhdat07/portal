@@ -44,7 +44,7 @@ func (a *App) Run() error {
 
 	a.HTTPServer = &http.Server{
 		Addr:    httpAddr,
-		Handler: gateway.NewRootMux(gatewayHandler, a.readinessReport),
+		Handler: gateway.NewRootMux(gatewayHandler, a.readinessReport, a.UserService),
 	}
 
 	errCh := make(chan error, 3)

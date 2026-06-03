@@ -218,3 +218,48 @@ func (s *UserServer) GetUnreadNotificationCount(ctx context.Context, req *userv1
 
 	return &userv1.GetUnreadNotificationCountResponse{Count: count}, nil
 }
+
+func (s *UserServer) RegisterFCMToken(ctx context.Context, req *userv1.RegisterFCMTokenRequest) (*commonv1.MessageResponse, error) {
+	if req == nil {
+		return nil, gstatus.Error(codes.InvalidArgument, "request is required")
+	}
+
+	actor, err := getActorFromCtx(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	var deviceName *string
+	if req.DeviceName != nil {
+		v := req.GetDeviceName()
+		deviceName = &v
+	}
+
+	if err := s.userService.RegisterFCMToken(ctx, actor, req.GetFcmToken(), deviceName); err != nil {
+		return nil, mapper.MapError(err)
+	}
+
+	return &commonv1.MessageResponse{Message: "fcm token registered"}, nil
+}
+
+func (s *UserServer) GenerateTelegramLinkToken(ctx context.Context, req *userv1.GenerateTelegramLinkTokenRequest) (*userv1.GenerateTelegramLinkTokenResponse, error) {
+	if req == nil {
+		return nil, gstatus.Error(codes.InvalidArgument, "request is required")
+	}
+
+	actor, err := getActorFromCtx(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	token, link, expiresIn, err := s.userService.GenerateTelegramLinkToken(ctx, actor)
+	if err != nil {
+		return nil, mapper.MapError(err)
+	}
+
+	return &userv1.GenerateTelegramLinkTokenResponse{
+		Token:            token,
+		Link:             link,
+		ExpiresInSeconds: int32(expiresIn),
+	}, nil
+}

@@ -56,6 +56,10 @@ func newServices(
 		AuditLogger: auditLogService,
 		UserRepo:    repos.UserRepo,
 		RoleRepo:    repos.RoleRepo,
+		OutboxRepo:          repos.OutboxRepo,
+		RedisClient:         infra.RedisClient,
+		FrontendURL:         cfg.FrontEndUrl,
+		TelegramBotUsername: cfg.TelegramBotUsername,
 	})
 
 	// admin service

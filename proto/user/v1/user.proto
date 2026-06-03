@@ -59,6 +59,21 @@ service UserService {
       get: "/api/v1/users/me/notifications/unread-count"
     };
   }
+
+  // Endpoint Registration
+  rpc RegisterFCMToken(RegisterFCMTokenRequest) returns (portal.common.v1.MessageResponse) {
+    option (google.api.http) = {
+      post: "/api/v1/users/me/fcm-token"
+      body: "*"
+    };
+  }
+
+  rpc GenerateTelegramLinkToken(GenerateTelegramLinkTokenRequest) returns (GenerateTelegramLinkTokenResponse) {
+    option (google.api.http) = {
+      post: "/api/v1/users/me/telegram-link-token"
+      body: "*"
+    };
+  }
 }
 
 message GetMyProfileRequest {}
@@ -155,3 +170,18 @@ message GetUnreadNotificationCountRequest {}
 message GetUnreadNotificationCountResponse {
   int64 count = 1;
 }
+
+message RegisterFCMTokenRequest {
+  string fcm_token = 1 [
+    (buf.validate.field).string.min_len = 1
+  ];
+  optional string device_name = 2;
+}
+
+message GenerateTelegramLinkTokenRequest {}
+
+message GenerateTelegramLinkTokenResponse {
+  string token = 1;
+  string link = 2;
+  int32 expires_in_seconds = 3;
+}

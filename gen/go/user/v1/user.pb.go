@@ -504,6 +504,154 @@ func (x *GetUnreadNotificationCountResponse) GetCount() int64 {
 	return 0
 }
 
+type RegisterFCMTokenRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	FcmToken      string                 `protobuf:"bytes,1,opt,name=fcm_token,json=fcmToken,proto3" json:"fcm_token,omitempty"`
+	DeviceName    *string                `protobuf:"bytes,2,opt,name=device_name,json=deviceName,proto3,oneof" json:"device_name,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *RegisterFCMTokenRequest) Reset() {
+	*x = RegisterFCMTokenRequest{}
+	mi := &file_user_v1_user_proto_msgTypes[10]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *RegisterFCMTokenRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*RegisterFCMTokenRequest) ProtoMessage() {}
+
+func (x *RegisterFCMTokenRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_user_v1_user_proto_msgTypes[10]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use RegisterFCMTokenRequest.ProtoReflect.Descriptor instead.
+func (*RegisterFCMTokenRequest) Descriptor() ([]byte, []int) {
+	return file_user_v1_user_proto_rawDescGZIP(), []int{10}
+}
+
+func (x *RegisterFCMTokenRequest) GetFcmToken() string {
+	if x != nil {
+		return x.FcmToken
+	}
+	return ""
+}
+
+func (x *RegisterFCMTokenRequest) GetDeviceName() string {
+	if x != nil && x.DeviceName != nil {
+		return *x.DeviceName
+	}
+	return ""
+}
+
+type GenerateTelegramLinkTokenRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GenerateTelegramLinkTokenRequest) Reset() {
+	*x = GenerateTelegramLinkTokenRequest{}
+	mi := &file_user_v1_user_proto_msgTypes[11]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GenerateTelegramLinkTokenRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GenerateTelegramLinkTokenRequest) ProtoMessage() {}
+
+func (x *GenerateTelegramLinkTokenRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_user_v1_user_proto_msgTypes[11]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GenerateTelegramLinkTokenRequest.ProtoReflect.Descriptor instead.
+func (*GenerateTelegramLinkTokenRequest) Descriptor() ([]byte, []int) {
+	return file_user_v1_user_proto_rawDescGZIP(), []int{11}
+}
+
+type GenerateTelegramLinkTokenResponse struct {
+	state            protoimpl.MessageState `protogen:"open.v1"`
+	Token            string                 `protobuf:"bytes,1,opt,name=token,proto3" json:"token,omitempty"`
+	Link             string                 `protobuf:"bytes,2,opt,name=link,proto3" json:"link,omitempty"`
+	ExpiresInSeconds int32                  `protobuf:"varint,3,opt,name=expires_in_seconds,json=expiresInSeconds,proto3" json:"expires_in_seconds,omitempty"`
+	unknownFields    protoimpl.UnknownFields
+	sizeCache        protoimpl.SizeCache
+}
+
+func (x *GenerateTelegramLinkTokenResponse) Reset() {
+	*x = GenerateTelegramLinkTokenResponse{}
+	mi := &file_user_v1_user_proto_msgTypes[12]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GenerateTelegramLinkTokenResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GenerateTelegramLinkTokenResponse) ProtoMessage() {}
+
+func (x *GenerateTelegramLinkTokenResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_user_v1_user_proto_msgTypes[12]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GenerateTelegramLinkTokenResponse.ProtoReflect.Descriptor instead.
+func (*GenerateTelegramLinkTokenResponse) Descriptor() ([]byte, []int) {
+	return file_user_v1_user_proto_rawDescGZIP(), []int{12}
+}
+
+func (x *GenerateTelegramLinkTokenResponse) GetToken() string {
+	if x != nil {
+		return x.Token
+	}
+	return ""
+}
+
+func (x *GenerateTelegramLinkTokenResponse) GetLink() string {
+	if x != nil {
+		return x.Link
+	}
+	return ""
+}
+
+func (x *GenerateTelegramLinkTokenResponse) GetExpiresInSeconds() int32 {
+	if x != nil {
+		return x.ExpiresInSeconds
+	}
+	return 0
+}
+
 var File_user_v1_user_proto protoreflect.FileDescriptor
 
 const file_user_v1_user_proto_rawDesc = "" +
@@ -542,7 +690,17 @@ const file_user_v1_user_proto_rawDesc = "" +
 	"!MarkAllNotificationsAsReadRequest\"#\n" +
 	"!GetUnreadNotificationCountRequest\":\n" +
 	"\"GetUnreadNotificationCountResponse\x12\x14\n" +
-	"\x05count\x18\x01 \x01(\x03R\x05count2\xc2\t\n" +
+	"\x05count\x18\x01 \x01(\x03R\x05count\"u\n" +
+	"\x17RegisterFCMTokenRequest\x12$\n" +
+	"\tfcm_token\x18\x01 \x01(\tB\a\xbaH\x04r\x02\x10\x01R\bfcmToken\x12$\n" +
+	"\vdevice_name\x18\x02 \x01(\tH\x00R\n" +
+	"deviceName\x88\x01\x01B\x0e\n" +
+	"\f_device_name\"\"\n" +
+	" GenerateTelegramLinkTokenRequest\"{\n" +
+	"!GenerateTelegramLinkTokenResponse\x12\x14\n" +
+	"\x05token\x18\x01 \x01(\tR\x05token\x12\x12\n" +
+	"\x04link\x18\x02 \x01(\tR\x04link\x12,\n" +
+	"\x12expires_in_seconds\x18\x03 \x01(\x05R\x10expiresInSeconds2\xfe\v\n" +
 	"\vUserService\x12e\n" +
 	"\fGetMyProfile\x12#.portal.user.v1.GetMyProfileRequest\x1a\x16.portal.common.v1.User\"\x18\x82\xd3\xe4\x93\x02\x12\x12\x10/api/v1/users/me\x12n\n" +
 	"\x0fUpdateMyProfile\x12&.portal.user.v1.UpdateMyProfileRequest\x1a\x16.portal.common.v1.User\"\x1b\x82\xd3\xe4\x93\x02\x15:\x01*\x1a\x10/api/v1/users/me\x12\x8b\x01\n" +
@@ -551,7 +709,9 @@ const file_user_v1_user_proto_rawDesc = "" +
 	"\x17GetMyNotificationDetail\x12..portal.user.v1.GetMyNotificationDetailRequest\x1a\".portal.common.v1.UserNotification\"8\x82\xd3\xe4\x93\x022\x120/api/v1/users/me/notifications/{notification_id}\x12\xa9\x01\n" +
 	"\x16MarkNotificationAsRead\x12-.portal.user.v1.MarkNotificationAsReadRequest\x1a!.portal.common.v1.MessageResponse\"=\x82\xd3\xe4\x93\x02725/api/v1/users/me/notifications/{notification_id}/read\x12\xa3\x01\n" +
 	"\x1aMarkAllNotificationsAsRead\x121.portal.user.v1.MarkAllNotificationsAsReadRequest\x1a!.portal.common.v1.MessageResponse\"/\x82\xd3\xe4\x93\x02)2'/api/v1/users/me/notifications/read-all\x12\xb8\x01\n" +
-	"\x1aGetUnreadNotificationCount\x121.portal.user.v1.GetUnreadNotificationCountRequest\x1a2.portal.user.v1.GetUnreadNotificationCountResponse\"3\x82\xd3\xe4\x93\x02-\x12+/api/v1/users/me/notifications/unread-countB%Z#portal-system/gen/go/user/v1;userv1b\x06proto3"
+	"\x1aGetUnreadNotificationCount\x121.portal.user.v1.GetUnreadNotificationCountRequest\x1a2.portal.user.v1.GetUnreadNotificationCountResponse\"3\x82\xd3\xe4\x93\x02-\x12+/api/v1/users/me/notifications/unread-count\x12\x85\x01\n" +
+	"\x10RegisterFCMToken\x12'.portal.user.v1.RegisterFCMTokenRequest\x1a!.portal.common.v1.MessageResponse\"%\x82\xd3\xe4\x93\x02\x1f:\x01*\"\x1a/api/v1/users/me/fcm-token\x12\xb1\x01\n" +
+	"\x19GenerateTelegramLinkToken\x120.portal.user.v1.GenerateTelegramLinkTokenRequest\x1a1.portal.user.v1.GenerateTelegramLinkTokenResponse\"/\x82\xd3\xe4\x93\x02):\x01*\"$/api/v1/users/me/telegram-link-tokenB%Z#portal-system/gen/go/user/v1;userv1b\x06proto3"
 
 var (
 	file_user_v1_user_proto_rawDescOnce sync.Once
@@ -565,7 +725,7 @@ func file_user_v1_user_proto_rawDescGZIP() []byte {
 	return file_user_v1_user_proto_rawDescData
 }
 
-var file_user_v1_user_proto_msgTypes = make([]protoimpl.MessageInfo, 10)
+var file_user_v1_user_proto_msgTypes = make([]protoimpl.MessageInfo, 13)
 var file_user_v1_user_proto_goTypes = []any{
 	(*GetMyProfileRequest)(nil),                // 0: portal.user.v1.GetMyProfileRequest
 	(*UpdateMyProfileRequest)(nil),             // 1: portal.user.v1.UpdateMyProfileRequest
@@ -577,14 +737,17 @@ var file_user_v1_user_proto_goTypes = []any{
 	(*MarkAllNotificationsAsReadRequest)(nil),  // 7: portal.user.v1.MarkAllNotificationsAsReadRequest
 	(*GetUnreadNotificationCountRequest)(nil),  // 8: portal.user.v1.GetUnreadNotificationCountRequest
 	(*GetUnreadNotificationCountResponse)(nil), // 9: portal.user.v1.GetUnreadNotificationCountResponse
-	(*v1.UserNotification)(nil),                // 10: portal.common.v1.UserNotification
-	(*v1.PaginationMeta)(nil),                  // 11: portal.common.v1.PaginationMeta
-	(*v1.User)(nil),                            // 12: portal.common.v1.User
-	(*v1.MessageResponse)(nil),                 // 13: portal.common.v1.MessageResponse
+	(*RegisterFCMTokenRequest)(nil),            // 10: portal.user.v1.RegisterFCMTokenRequest
+	(*GenerateTelegramLinkTokenRequest)(nil),   // 11: portal.user.v1.GenerateTelegramLinkTokenRequest
+	(*GenerateTelegramLinkTokenResponse)(nil),  // 12: portal.user.v1.GenerateTelegramLinkTokenResponse
+	(*v1.UserNotification)(nil),                // 13: portal.common.v1.UserNotification
+	(*v1.PaginationMeta)(nil),                  // 14: portal.common.v1.PaginationMeta
+	(*v1.User)(nil),                            // 15: portal.common.v1.User
+	(*v1.MessageResponse)(nil),                 // 16: portal.common.v1.MessageResponse
 }
 var file_user_v1_user_proto_depIdxs = []int32{
-	10, // 0: portal.user.v1.ListMyNotificationsResponse.data:type_name -> portal.common.v1.UserNotification
-	11, // 1: portal.user.v1.ListMyNotificationsResponse.meta:type_name -> portal.common.v1.PaginationMeta
+	13, // 0: portal.user.v1.ListMyNotificationsResponse.data:type_name -> portal.common.v1.UserNotification
+	14, // 1: portal.user.v1.ListMyNotificationsResponse.meta:type_name -> portal.common.v1.PaginationMeta
 	0,  // 2: portal.user.v1.UserService.GetMyProfile:input_type -> portal.user.v1.GetMyProfileRequest
 	1,  // 3: portal.user.v1.UserService.UpdateMyProfile:input_type -> portal.user.v1.UpdateMyProfileRequest
 	2,  // 4: portal.user.v1.UserService.ChangeMyPassword:input_type -> portal.user.v1.ChangeMyPasswordRequest
@@ -593,16 +756,20 @@ var file_user_v1_user_proto_depIdxs = []int32{
 	6,  // 7: portal.user.v1.UserService.MarkNotificationAsRead:input_type -> portal.user.v1.MarkNotificationAsReadRequest
 	7,  // 8: portal.user.v1.UserService.MarkAllNotificationsAsRead:input_type -> portal.user.v1.MarkAllNotificationsAsReadRequest
 	8,  // 9: portal.user.v1.UserService.GetUnreadNotificationCount:input_type -> portal.user.v1.GetUnreadNotificationCountRequest
-	12, // 10: portal.user.v1.UserService.GetMyProfile:output_type -> portal.common.v1.User
-	12, // 11: portal.user.v1.UserService.UpdateMyProfile:output_type -> portal.common.v1.User
-	13, // 12: portal.user.v1.UserService.ChangeMyPassword:output_type -> portal.common.v1.MessageResponse
-	4,  // 13: portal.user.v1.UserService.ListMyNotifications:output_type -> portal.user.v1.ListMyNotificationsResponse
-	10, // 14: portal.user.v1.UserService.GetMyNotificationDetail:output_type -> portal.common.v1.UserNotification
-	13, // 15: portal.user.v1.UserService.MarkNotificationAsRead:output_type -> portal.common.v1.MessageResponse
-	13, // 16: portal.user.v1.UserService.MarkAllNotificationsAsRead:output_type -> portal.common.v1.MessageResponse
-	9,  // 17: portal.user.v1.UserService.GetUnreadNotificationCount:output_type -> portal.user.v1.GetUnreadNotificationCountResponse
-	10, // [10:18] is the sub-list for method output_type
-	2,  // [2:10] is the sub-list for method input_type
+	10, // 10: portal.user.v1.UserService.RegisterFCMToken:input_type -> portal.user.v1.RegisterFCMTokenRequest
+	11, // 11: portal.user.v1.UserService.GenerateTelegramLinkToken:input_type -> portal.user.v1.GenerateTelegramLinkTokenRequest
+	15, // 12: portal.user.v1.UserService.GetMyProfile:output_type -> portal.common.v1.User
+	15, // 13: portal.user.v1.UserService.UpdateMyProfile:output_type -> portal.common.v1.User
+	16, // 14: portal.user.v1.UserService.ChangeMyPassword:output_type -> portal.common.v1.MessageResponse
+	4,  // 15: portal.user.v1.UserService.ListMyNotifications:output_type -> portal.user.v1.ListMyNotificationsResponse
+	13, // 16: portal.user.v1.UserService.GetMyNotificationDetail:output_type -> portal.common.v1.UserNotification
+	16, // 17: portal.user.v1.UserService.MarkNotificationAsRead:output_type -> portal.common.v1.MessageResponse
+	16, // 18: portal.user.v1.UserService.MarkAllNotificationsAsRead:output_type -> portal.common.v1.MessageResponse
+	9,  // 19: portal.user.v1.UserService.GetUnreadNotificationCount:output_type -> portal.user.v1.GetUnreadNotificationCountResponse
+	16, // 20: portal.user.v1.UserService.RegisterFCMToken:output_type -> portal.common.v1.MessageResponse
+	12, // 21: portal.user.v1.UserService.GenerateTelegramLinkToken:output_type -> portal.user.v1.GenerateTelegramLinkTokenResponse
+	12, // [12:22] is the sub-list for method output_type
+	2,  // [2:12] is the sub-list for method input_type
 	2,  // [2:2] is the sub-list for extension type_name
 	2,  // [2:2] is the sub-list for extension extendee
 	0,  // [0:2] is the sub-list for field type_name
@@ -614,13 +781,14 @@ func file_user_v1_user_proto_init() {
 		return
 	}
 	file_user_v1_user_proto_msgTypes[1].OneofWrappers = []any{}
+	file_user_v1_user_proto_msgTypes[10].OneofWrappers = []any{}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_user_v1_user_proto_rawDesc), len(file_user_v1_user_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   10,
+			NumMessages:   13,
 			NumExtensions: 0,
 			NumServices:   1,
 		},
