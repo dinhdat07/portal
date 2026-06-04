@@ -29,6 +29,7 @@ func (a *App) Run() error {
 		Validator:           a.Validator,
 		Authenticator:       a.Authenticator,
 		Authorizer:          a.Authorizer,
+		CSRFManager:         a.CSRFManager,
 		Auth:                a.AuthGRPC,
 		User:                a.UserGRPC,
 		Admin:               a.AdminGRPC,
@@ -43,8 +44,12 @@ func (a *App) Run() error {
 	}
 
 	a.HTTPServer = &http.Server{
-		Addr:    httpAddr,
-		Handler: gateway.NewRootMux(gatewayHandler, a.readinessReport, a.UserService),
+		Addr: httpAddr,
+		Handler: gateway.CORSMiddleware(gateway.CORSConfig{
+			AllowedOrigins: a.Config.FrontEndUrl,
+		})(gateway.CookieWritingMiddleware(
+			gateway.NewRootMux(gatewayHandler, a.readinessReport, a.UserService),
+		)),
 	}
 
 	errCh := make(chan error, 3)

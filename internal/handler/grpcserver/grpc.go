@@ -18,6 +18,7 @@ type GRPCServerDeps struct {
 	Validator     protovalidate.Validator
 	Authenticator *security.Authenticator
 	Authorizer    *security.Authorizer
+	CSRFManager   *security.CSRFManager
 
 	Auth  *AuthServer
 	User  *UserServer
@@ -37,6 +38,7 @@ func NewGRPCServer(deps GRPCServerDeps) *grpc.Server {
 			interceptor.RecoveryInterceptor(),
 			interceptor.PreAuthRateLimitInterceptor(deps.RateLimiter, deps.RateLimitKeyBuilder, deps.RateLimitConfig),
 			interceptor.ValidationInterceptor(deps.Validator),
+			interceptor.CSRFInterceptor(deps.CSRFManager),
 			interceptor.AuthenticationInterceptor(deps.Authenticator, publicMethods),
 			interceptor.PostAuthRateLimitInterceptor(deps.RateLimiter, deps.RateLimitKeyBuilder, deps.RateLimitConfig),
 			interceptor.PermissionInterceptor(deps.Authorizer, methodPermissions),

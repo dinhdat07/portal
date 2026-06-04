@@ -25,6 +25,7 @@ type App struct {
 	Validator     protovalidate.Validator
 	Authenticator *security.Authenticator
 	Authorizer    *security.Authorizer
+	CSRFManager   *security.CSRFManager
 
 	AuthGRPC  *grpcserver.AuthServer
 	UserGRPC  *grpcserver.UserServer

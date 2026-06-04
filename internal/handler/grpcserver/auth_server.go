@@ -6,20 +6,24 @@ import (
 	commonv1 "portal-system/gen/go/common/v1"
 	"portal-system/internal/domain"
 	mapper "portal-system/internal/handler/grpcserver/mapper"
+	"portal-system/internal/infrastructure/security"
 	"portal-system/internal/service"
 	"time"
 
+	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/metadata"
 	gstatus "google.golang.org/grpc/status"
 )
 
 type AuthServer struct {
 	authv1.UnimplementedAuthServiceServer
 	authService service.AuthService
+	csrfManager *security.CSRFManager
 }
 
-func NewAuthServer(authService service.AuthService) *AuthServer {
-	return &AuthServer{authService: authService}
+func NewAuthServer(authService service.AuthService, csrfManager *security.CSRFManager) *AuthServer {
+	return &AuthServer{authService: authService, csrfManager: csrfManager}
 }
 
 func (s *AuthServer) Register(ctx context.Context, req *authv1.RegisterRequest) (*commonv1.MessageResponse, error) {
@@ -157,7 +161,27 @@ func (s *AuthServer) Login(ctx context.Context, req *authv1.LoginRequest) (*auth
 		return nil, mapper.MapError(err)
 	}
 
-	return mapper.LoginResultToPB(result), nil
+	// Generate CSRF token for Double-Submit Cookie pattern
+	csrfToken, err := s.csrfManager.GenerateCSRFToken()
+	if err != nil {
+		return nil, gstatus.Error(codes.Internal, "failed to generate CSRF token")
+	}
+
+	// Set cookies via gRPC response metadata (converted to Set-Cookie by gateway)
+	_ = grpc.SetHeader(ctx, metadata.Pairs(
+		"Set-Cookie-Access-Token", result.AccessToken,
+		"Set-Cookie-Refresh-Token", result.RefreshToken,
+		"Set-Cookie-Csrf-Token", csrfToken,
+	))
+
+	// Return response WITHOUT tokens in body — they are in HttpOnly cookies
+	return &authv1.LoginResponse{
+		AccessToken:  "",
+		RefreshToken: "",
+		TokenType:    "Bearer",
+		ExpiresIn:    int64(result.ExpiresIn),
+		User:         mapper.UserModelToPB(result.User),
+	}, nil
 }
 
 func (s *AuthServer) RefreshToken(ctx context.Context, req *authv1.RefreshRequest) (*authv1.RefreshResponse, error) {
@@ -172,7 +196,24 @@ func (s *AuthServer) RefreshToken(ctx context.Context, req *authv1.RefreshReques
 		return nil, mapper.MapError(err)
 	}
 
-	return mapper.RefreshResultToPB(result), nil
+	// Generate new CSRF token on refresh
+	csrfToken, err := s.csrfManager.GenerateCSRFToken()
+	if err != nil {
+		return nil, gstatus.Error(codes.Internal, "failed to generate CSRF token")
+	}
+
+	_ = grpc.SetHeader(ctx, metadata.Pairs(
+		"Set-Cookie-Access-Token", result.AccessToken,
+		"Set-Cookie-Refresh-Token", result.RefreshToken,
+		"Set-Cookie-Csrf-Token", csrfToken,
+	))
+
+	return &authv1.RefreshResponse{
+		AccessToken:  "",
+		RefreshToken: "",
+		TokenType:    "Bearer",
+		ExpiresIn:    int64(result.ExpiresIn),
+	}, nil
 }
 
 func (s *AuthServer) Logout(ctx context.Context, req *authv1.LogoutRequest) (*commonv1.MessageResponse, error) {
@@ -192,6 +233,13 @@ func (s *AuthServer) Logout(ctx context.Context, req *authv1.LogoutRequest) (*co
 		return nil, mapper.MapError(err)
 	}
 
+	// Clear all auth cookies
+	_ = grpc.SetHeader(ctx, metadata.Pairs(
+		"Clear-Cookie", "access_token",
+		"Clear-Cookie", "refresh_token",
+		"Clear-Cookie", "csrf_token",
+	))
+
 	return &commonv1.MessageResponse{
 		Message: "Logout successful",
 	}, nil
@@ -208,6 +256,13 @@ func (s *AuthServer) LogoutAll(ctx context.Context, req *authv1.LogoutAllRequest
 	if err := s.authService.LogoutAll(ctx, meta, actor); err != nil {
 		return nil, mapper.MapError(err)
 	}
+
+	// Clear all auth cookies
+	_ = grpc.SetHeader(ctx, metadata.Pairs(
+		"Clear-Cookie", "access_token",
+		"Clear-Cookie", "refresh_token",
+		"Clear-Cookie", "csrf_token",
+	))
 
 	return &commonv1.MessageResponse{
 		Message: "All devices has been logged out",

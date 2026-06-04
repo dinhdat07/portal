@@ -10,6 +10,7 @@ import (
 	metricsx "portal-system/internal/infrastructure/metrics"
 	"portal-system/internal/infrastructure/ratelimit"
 	redisx "portal-system/internal/infrastructure/redis"
+	"portal-system/internal/infrastructure/security"
 	"portal-system/internal/infrastructure/storage"
 	"portal-system/internal/infrastructure/validator"
 	"portal-system/internal/worker"
@@ -111,10 +112,11 @@ func New() (*App, error) {
 	}
 
 	validator := validator.NewValidator()
+	csrfManager := security.NewCSRFManager()
 	infra := newInfra(cfg, writer, kafkaCfg, rdb)
 	repos := newRepositories(db)
 	svcs := newServices(cfg, infra, repos)
-	grpcServers := newGRPCServers(svcs)
+	grpcServers := newGRPCServers(svcs, csrfManager)
 
 	outboxMetrics := metricsx.NewPrometheusOutboxMetrics(prometheus.DefaultRegisterer)
 
@@ -150,6 +152,7 @@ func New() (*App, error) {
 		Validator:           validator,
 		Authenticator:       svcs.Authenticator,
 		Authorizer:          svcs.Authorizer,
+		CSRFManager:         csrfManager,
 		AuthGRPC:            grpcServers.Auth,
 		UserGRPC:            grpcServers.User,
 		AdminGRPC:           grpcServers.Admin,

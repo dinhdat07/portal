@@ -29,9 +29,26 @@ func NewGatewayMux(ctx context.Context, grpcAddr string) (http.Handler, error) {
 		runtime.WithMetadata(func(ctx context.Context, r *http.Request) metadata.MD {
 			md := metadata.MD{}
 
+			// Authorization header (Bearer token) — legacy localStorage flow
 			if auth := r.Header.Get("Authorization"); auth != "" {
 				md.Set("authorization", auth)
 			}
+
+			// Access token from HttpOnly cookie — new primary method
+			if cookie, err := r.Cookie("access_token"); err == nil && cookie.Value != "" {
+				md.Set("cookie-access-token", cookie.Value)
+			}
+
+			// CSRF token from custom header (echoed by frontend)
+			if csrf := r.Header.Get("X-CSRF-Token"); csrf != "" {
+				md.Set("x-csrf-token", csrf)
+			}
+
+			// CSRF token from readable cookie (for Double-Submit validation)
+			if csrfCookie, err := r.Cookie("csrf_token"); err == nil && csrfCookie.Value != "" {
+				md.Set("cookie-csrf-token", csrfCookie.Value)
+			}
+
 			if ua := r.UserAgent(); ua != "" {
 				md.Set("user-agent", ua)
 			}
