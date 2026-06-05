@@ -1,33 +1,38 @@
 package app
 
 import (
-	repository "portal-system/internal/repository/impl"
+	"portal-system/internal/repository"
+	impl "portal-system/internal/repository/impl"
 
 	"gorm.io/gorm"
 )
 
 type Repositories struct {
-	UserRepo       *repository.GormUserRepository
-	AuditLog       *repository.GormAuditLogRepository
-	TokenRepo      *repository.GormUserTokenRepository
-	RoleRepo       *repository.GormRoleRepository
-	PermissionRepo *repository.GormPermissionRepository
-	SessionRepo    *repository.GormAuthSessionRepository
-	RefreshRepo    *repository.GormRefreshTokenRepository
-	OutboxRepo     *repository.GormOutboxRepository
-	TxManager      *repository.GormTxManager
+	UserRepo             *impl.GormUserRepository
+	AuditLog             *impl.GormAuditLogRepository
+	TokenRepo            *impl.GormUserTokenRepository
+	RoleRepo             *impl.GormRoleRepository
+	PermissionRepo       *impl.GormPermissionRepository
+	SessionRepo          *impl.GormAuthSessionRepository
+	RefreshRepo          *impl.GormRefreshTokenRepository
+	OutboxRepo           *impl.GormOutboxRepository
+	AnnouncementRepo     repository.AnnouncementRepository
+	UserNotificationRepo repository.UserNotificationRepository
+	TxManager            *impl.GormTxManager
 }
 
 func newRepositories(db *gorm.DB) *Repositories {
 	return &Repositories{
-		UserRepo:       repository.NewGormUserRepository(db),
-		AuditLog:       repository.NewGormAuditLogRepository(db),
-		TokenRepo:      repository.NewGormUserTokenRepository(db),
-		RoleRepo:       repository.NewGormRoleRepository(db),
-		PermissionRepo: repository.NewGormPermissionRepository(db),
-		SessionRepo:    repository.NewGormAuthSessionRepository(db),
-		RefreshRepo:    repository.NewGormRefreshTokenRepository(db),
-		OutboxRepo:     repository.NewGormOutboxRepository(db),
-		TxManager:      repository.NewGormTxManager(db),
+		UserRepo:             impl.NewGormUserRepository(db),
+		AuditLog:             impl.NewGormAuditLogRepository(db),
+		TokenRepo:            impl.NewGormUserTokenRepository(db),
+		RoleRepo:             impl.NewGormRoleRepository(db),
+		PermissionRepo:       impl.NewGormPermissionRepository(db),
+		SessionRepo:          impl.NewGormAuthSessionRepository(db),
+		RefreshRepo:          impl.NewGormRefreshTokenRepository(db),
+		OutboxRepo:           impl.NewGormOutboxRepository(db),
+		AnnouncementRepo:     impl.NewGormAnnouncementRepository(db),
+		UserNotificationRepo: impl.NewGormUserNotificationRepository(db),
+		TxManager:            impl.NewGormTxManager(db),
 	}
 }

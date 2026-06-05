@@ -31,6 +31,7 @@ type UserRepository interface {
 	FindByEmail(ctx context.Context, email string) (*model.User, error)
 	FindByUsername(ctx context.Context, username string) (*model.User, error)
 	ListUsers(ctx context.Context, filter UserListFilter) ([]model.User, int64, error)
+	FindUsersByRoleCodes(ctx context.Context, roleCodes []string, page, pageSize int) ([]model.User, error)
 
 	Update(ctx context.Context, user *model.User) error
 	UpdatePassword(ctx context.Context, id uuid.UUID, passwordHash string) error

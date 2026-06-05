@@ -825,6 +825,230 @@ func (x *ListPermissionsResponse) GetData() []*v1.Permission {
 	return nil
 }
 
+type CreateAnnouncementRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Title         string                 `protobuf:"bytes,1,opt,name=title,proto3" json:"title,omitempty"`
+	Content       string                 `protobuf:"bytes,2,opt,name=content,proto3" json:"content,omitempty"`
+	Type          string                 `protobuf:"bytes,3,opt,name=type,proto3" json:"type,omitempty"`
+	TargetRoles   []string               `protobuf:"bytes,4,rep,name=target_roles,json=targetRoles,proto3" json:"target_roles,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *CreateAnnouncementRequest) Reset() {
+	*x = CreateAnnouncementRequest{}
+	mi := &file_admin_v1_admin_proto_msgTypes[14]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *CreateAnnouncementRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*CreateAnnouncementRequest) ProtoMessage() {}
+
+func (x *CreateAnnouncementRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_admin_v1_admin_proto_msgTypes[14]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use CreateAnnouncementRequest.ProtoReflect.Descriptor instead.
+func (*CreateAnnouncementRequest) Descriptor() ([]byte, []int) {
+	return file_admin_v1_admin_proto_rawDescGZIP(), []int{14}
+}
+
+func (x *CreateAnnouncementRequest) GetTitle() string {
+	if x != nil {
+		return x.Title
+	}
+	return ""
+}
+
+func (x *CreateAnnouncementRequest) GetContent() string {
+	if x != nil {
+		return x.Content
+	}
+	return ""
+}
+
+func (x *CreateAnnouncementRequest) GetType() string {
+	if x != nil {
+		return x.Type
+	}
+	return ""
+}
+
+func (x *CreateAnnouncementRequest) GetTargetRoles() []string {
+	if x != nil {
+		return x.TargetRoles
+	}
+	return nil
+}
+
+type ListAnnouncementsRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Page          int32                  `protobuf:"varint,1,opt,name=page,proto3" json:"page,omitempty"`
+	PageSize      int32                  `protobuf:"varint,2,opt,name=page_size,json=pageSize,proto3" json:"page_size,omitempty"`
+	Type          *string                `protobuf:"bytes,3,opt,name=type,proto3,oneof" json:"type,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ListAnnouncementsRequest) Reset() {
+	*x = ListAnnouncementsRequest{}
+	mi := &file_admin_v1_admin_proto_msgTypes[15]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListAnnouncementsRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListAnnouncementsRequest) ProtoMessage() {}
+
+func (x *ListAnnouncementsRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_admin_v1_admin_proto_msgTypes[15]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListAnnouncementsRequest.ProtoReflect.Descriptor instead.
+func (*ListAnnouncementsRequest) Descriptor() ([]byte, []int) {
+	return file_admin_v1_admin_proto_rawDescGZIP(), []int{15}
+}
+
+func (x *ListAnnouncementsRequest) GetPage() int32 {
+	if x != nil {
+		return x.Page
+	}
+	return 0
+}
+
+func (x *ListAnnouncementsRequest) GetPageSize() int32 {
+	if x != nil {
+		return x.PageSize
+	}
+	return 0
+}
+
+func (x *ListAnnouncementsRequest) GetType() string {
+	if x != nil && x.Type != nil {
+		return *x.Type
+	}
+	return ""
+}
+
+type ListAnnouncementsResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Data          []*v1.Announcement     `protobuf:"bytes,1,rep,name=data,proto3" json:"data,omitempty"`
+	Meta          *v1.PaginationMeta     `protobuf:"bytes,2,opt,name=meta,proto3" json:"meta,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ListAnnouncementsResponse) Reset() {
+	*x = ListAnnouncementsResponse{}
+	mi := &file_admin_v1_admin_proto_msgTypes[16]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListAnnouncementsResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListAnnouncementsResponse) ProtoMessage() {}
+
+func (x *ListAnnouncementsResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_admin_v1_admin_proto_msgTypes[16]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListAnnouncementsResponse.ProtoReflect.Descriptor instead.
+func (*ListAnnouncementsResponse) Descriptor() ([]byte, []int) {
+	return file_admin_v1_admin_proto_rawDescGZIP(), []int{16}
+}
+
+func (x *ListAnnouncementsResponse) GetData() []*v1.Announcement {
+	if x != nil {
+		return x.Data
+	}
+	return nil
+}
+
+func (x *ListAnnouncementsResponse) GetMeta() *v1.PaginationMeta {
+	if x != nil {
+		return x.Meta
+	}
+	return nil
+}
+
+type GetAnnouncementDetailRequest struct {
+	state          protoimpl.MessageState `protogen:"open.v1"`
+	AnnouncementId string                 `protobuf:"bytes,1,opt,name=announcement_id,json=announcementId,proto3" json:"announcement_id,omitempty"`
+	unknownFields  protoimpl.UnknownFields
+	sizeCache      protoimpl.SizeCache
+}
+
+func (x *GetAnnouncementDetailRequest) Reset() {
+	*x = GetAnnouncementDetailRequest{}
+	mi := &file_admin_v1_admin_proto_msgTypes[17]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetAnnouncementDetailRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetAnnouncementDetailRequest) ProtoMessage() {}
+
+func (x *GetAnnouncementDetailRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_admin_v1_admin_proto_msgTypes[17]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetAnnouncementDetailRequest.ProtoReflect.Descriptor instead.
+func (*GetAnnouncementDetailRequest) Descriptor() ([]byte, []int) {
+	return file_admin_v1_admin_proto_rawDescGZIP(), []int{17}
+}
+
+func (x *GetAnnouncementDetailRequest) GetAnnouncementId() string {
+	if x != nil {
+		return x.AnnouncementId
+	}
+	return ""
+}
+
 var File_admin_v1_admin_proto protoreflect.FileDescriptor
 
 const file_admin_v1_admin_proto_rawDesc = "" +
@@ -898,7 +1122,23 @@ const file_admin_v1_admin_proto_rawDesc = "" +
 	"\arole_id\x18\x01 \x01(\tB\b\xbaH\x05r\x03\xb0\x01\x01R\x06roleId\x12-\n" +
 	"\rpermission_id\x18\x02 \x01(\tB\b\xbaH\x05r\x03\xb0\x01\x01R\fpermissionId\"K\n" +
 	"\x17ListPermissionsResponse\x120\n" +
-	"\x04data\x18\x01 \x03(\v2\x1c.portal.common.v1.PermissionR\x04data2\xf5\f\n" +
+	"\x04data\x18\x01 \x03(\v2\x1c.portal.common.v1.PermissionR\x04data\"\xbe\x01\n" +
+	"\x19CreateAnnouncementRequest\x12 \n" +
+	"\x05title\x18\x01 \x01(\tB\n" +
+	"\xbaH\ar\x05\x10\x01\x18\xff\x01R\x05title\x12!\n" +
+	"\acontent\x18\x02 \x01(\tB\a\xbaH\x04r\x02\x10\x01R\acontent\x12/\n" +
+	"\x04type\x18\x03 \x01(\tB\x1b\xbaH\x18r\x16R\x04INFOR\aWARNINGR\x05ALERTR\x04type\x12+\n" +
+	"\ftarget_roles\x18\x04 \x03(\tB\b\xbaH\x05\x92\x01\x02\b\x01R\vtargetRoles\"\x81\x01\n" +
+	"\x18ListAnnouncementsRequest\x12\x1b\n" +
+	"\x04page\x18\x01 \x01(\x05B\a\xbaH\x04\x1a\x02(\x01R\x04page\x12&\n" +
+	"\tpage_size\x18\x02 \x01(\x05B\t\xbaH\x06\x1a\x04\x18d(\x01R\bpageSize\x12\x17\n" +
+	"\x04type\x18\x03 \x01(\tH\x00R\x04type\x88\x01\x01B\a\n" +
+	"\x05_type\"\x85\x01\n" +
+	"\x19ListAnnouncementsResponse\x122\n" +
+	"\x04data\x18\x01 \x03(\v2\x1e.portal.common.v1.AnnouncementR\x04data\x124\n" +
+	"\x04meta\x18\x02 \x01(\v2 .portal.common.v1.PaginationMetaR\x04meta\"Q\n" +
+	"\x1cGetAnnouncementDetailRequest\x121\n" +
+	"\x0fannouncement_id\x18\x01 \x01(\tB\b\xbaH\x05r\x03\xb0\x01\x01R\x0eannouncementId2\xb2\x10\n" +
 	"\fAdminService\x12o\n" +
 	"\tListUsers\x12!.portal.admin.v1.ListUsersRequest\x1a\".portal.admin.v1.ListUsersResponse\"\x1b\x82\xd3\xe4\x93\x02\x15\x12\x13/api/v1/admin/users\x12h\n" +
 	"\n" +
@@ -917,7 +1157,10 @@ const file_admin_v1_admin_proto_rawDesc = "" +
 	"DeleteRole\x12\".portal.admin.v1.DeleteRoleRequest\x1a!.portal.common.v1.MessageResponse\"%\x82\xd3\xe4\x93\x02\x1f*\x1d/api/v1/admin/roles/{role_id}\x12\xae\x01\n" +
 	"\x16AssignPermissionToRole\x12..portal.admin.v1.AssignPermissionToRoleRequest\x1a!.portal.common.v1.MessageResponse\"A\x82\xd3\xe4\x93\x02;\x1a9/api/v1/admin/roles/{role_id}/permissions/{permission_id}\x12\xb2\x01\n" +
 	"\x18RemovePermissionFromRole\x120.portal.admin.v1.RemovePermissionFromRoleRequest\x1a!.portal.common.v1.MessageResponse\"A\x82\xd3\xe4\x93\x02;*9/api/v1/admin/roles/{role_id}/permissions/{permission_id}\x12v\n" +
-	"\x0fListPermissions\x12\x16.google.protobuf.Empty\x1a(.portal.admin.v1.ListPermissionsResponse\"!\x82\xd3\xe4\x93\x02\x1b\x12\x19/api/v1/admin/permissionsB'Z%portal-system/gen/go/admin/v1;adminv1b\x06proto3"
+	"\x0fListPermissions\x12\x16.google.protobuf.Empty\x1a(.portal.admin.v1.ListPermissionsResponse\"!\x82\xd3\xe4\x93\x02\x1b\x12\x19/api/v1/admin/permissions\x12\x88\x01\n" +
+	"\x12CreateAnnouncement\x12*.portal.admin.v1.CreateAnnouncementRequest\x1a\x1e.portal.common.v1.Announcement\"&\x82\xd3\xe4\x93\x02 :\x01*\"\x1b/api/v1/admin/announcements\x12\x8f\x01\n" +
+	"\x11ListAnnouncements\x12).portal.admin.v1.ListAnnouncementsRequest\x1a*.portal.admin.v1.ListAnnouncementsResponse\"#\x82\xd3\xe4\x93\x02\x1d\x12\x1b/api/v1/admin/announcements\x12\x9d\x01\n" +
+	"\x15GetAnnouncementDetail\x12-.portal.admin.v1.GetAnnouncementDetailRequest\x1a\x1e.portal.common.v1.Announcement\"5\x82\xd3\xe4\x93\x02/\x12-/api/v1/admin/announcements/{announcement_id}B'Z%portal-system/gen/go/admin/v1;adminv1b\x06proto3"
 
 var (
 	file_admin_v1_admin_proto_rawDescOnce sync.Once
@@ -931,7 +1174,7 @@ func file_admin_v1_admin_proto_rawDescGZIP() []byte {
 	return file_admin_v1_admin_proto_rawDescData
 }
 
-var file_admin_v1_admin_proto_msgTypes = make([]protoimpl.MessageInfo, 14)
+var file_admin_v1_admin_proto_msgTypes = make([]protoimpl.MessageInfo, 18)
 var file_admin_v1_admin_proto_goTypes = []any{
 	(*ListUsersRequest)(nil),                // 0: portal.admin.v1.ListUsersRequest
 	(*ListUsersResponse)(nil),               // 1: portal.admin.v1.ListUsersResponse
@@ -947,51 +1190,64 @@ var file_admin_v1_admin_proto_goTypes = []any{
 	(*AssignPermissionToRoleRequest)(nil),   // 11: portal.admin.v1.AssignPermissionToRoleRequest
 	(*RemovePermissionFromRoleRequest)(nil), // 12: portal.admin.v1.RemovePermissionFromRoleRequest
 	(*ListPermissionsResponse)(nil),         // 13: portal.admin.v1.ListPermissionsResponse
-	(v1.UserStatus)(0),                      // 14: portal.common.v1.UserStatus
-	(*v1.User)(nil),                         // 15: portal.common.v1.User
-	(*v1.PaginationMeta)(nil),               // 16: portal.common.v1.PaginationMeta
-	(*v1.Role)(nil),                         // 17: portal.common.v1.Role
-	(*v1.Permission)(nil),                   // 18: portal.common.v1.Permission
-	(*emptypb.Empty)(nil),                   // 19: google.protobuf.Empty
-	(*v1.MessageResponse)(nil),              // 20: portal.common.v1.MessageResponse
+	(*CreateAnnouncementRequest)(nil),       // 14: portal.admin.v1.CreateAnnouncementRequest
+	(*ListAnnouncementsRequest)(nil),        // 15: portal.admin.v1.ListAnnouncementsRequest
+	(*ListAnnouncementsResponse)(nil),       // 16: portal.admin.v1.ListAnnouncementsResponse
+	(*GetAnnouncementDetailRequest)(nil),    // 17: portal.admin.v1.GetAnnouncementDetailRequest
+	(v1.UserStatus)(0),                      // 18: portal.common.v1.UserStatus
+	(*v1.User)(nil),                         // 19: portal.common.v1.User
+	(*v1.PaginationMeta)(nil),               // 20: portal.common.v1.PaginationMeta
+	(*v1.Role)(nil),                         // 21: portal.common.v1.Role
+	(*v1.Permission)(nil),                   // 22: portal.common.v1.Permission
+	(*v1.Announcement)(nil),                 // 23: portal.common.v1.Announcement
+	(*emptypb.Empty)(nil),                   // 24: google.protobuf.Empty
+	(*v1.MessageResponse)(nil),              // 25: portal.common.v1.MessageResponse
 }
 var file_admin_v1_admin_proto_depIdxs = []int32{
-	14, // 0: portal.admin.v1.ListUsersRequest.status:type_name -> portal.common.v1.UserStatus
-	15, // 1: portal.admin.v1.ListUsersResponse.data:type_name -> portal.common.v1.User
-	16, // 2: portal.admin.v1.ListUsersResponse.meta:type_name -> portal.common.v1.PaginationMeta
-	17, // 3: portal.admin.v1.ListRolesResponse.data:type_name -> portal.common.v1.Role
-	18, // 4: portal.admin.v1.ListPermissionsResponse.data:type_name -> portal.common.v1.Permission
-	0,  // 5: portal.admin.v1.AdminService.ListUsers:input_type -> portal.admin.v1.ListUsersRequest
-	2,  // 6: portal.admin.v1.AdminService.CreateUser:input_type -> portal.admin.v1.CreateUserRequest
-	3,  // 7: portal.admin.v1.AdminService.GetUserDetail:input_type -> portal.admin.v1.GetUserDetailRequest
-	4,  // 8: portal.admin.v1.AdminService.UpdateUser:input_type -> portal.admin.v1.UpdateUserRequest
-	5,  // 9: portal.admin.v1.AdminService.DeleteUser:input_type -> portal.admin.v1.DeleteUserRequest
-	6,  // 10: portal.admin.v1.AdminService.RestoreUser:input_type -> portal.admin.v1.RestoreUserRequest
-	7,  // 11: portal.admin.v1.AdminService.UpdateUserRole:input_type -> portal.admin.v1.UpdateUserRoleRequest
-	19, // 12: portal.admin.v1.AdminService.ListRoles:input_type -> google.protobuf.Empty
-	9,  // 13: portal.admin.v1.AdminService.CreateRole:input_type -> portal.admin.v1.CreateRoleRequest
-	10, // 14: portal.admin.v1.AdminService.DeleteRole:input_type -> portal.admin.v1.DeleteRoleRequest
-	11, // 15: portal.admin.v1.AdminService.AssignPermissionToRole:input_type -> portal.admin.v1.AssignPermissionToRoleRequest
-	12, // 16: portal.admin.v1.AdminService.RemovePermissionFromRole:input_type -> portal.admin.v1.RemovePermissionFromRoleRequest
-	19, // 17: portal.admin.v1.AdminService.ListPermissions:input_type -> google.protobuf.Empty
-	1,  // 18: portal.admin.v1.AdminService.ListUsers:output_type -> portal.admin.v1.ListUsersResponse
-	15, // 19: portal.admin.v1.AdminService.CreateUser:output_type -> portal.common.v1.User
-	15, // 20: portal.admin.v1.AdminService.GetUserDetail:output_type -> portal.common.v1.User
-	15, // 21: portal.admin.v1.AdminService.UpdateUser:output_type -> portal.common.v1.User
-	15, // 22: portal.admin.v1.AdminService.DeleteUser:output_type -> portal.common.v1.User
-	15, // 23: portal.admin.v1.AdminService.RestoreUser:output_type -> portal.common.v1.User
-	15, // 24: portal.admin.v1.AdminService.UpdateUserRole:output_type -> portal.common.v1.User
-	8,  // 25: portal.admin.v1.AdminService.ListRoles:output_type -> portal.admin.v1.ListRolesResponse
-	17, // 26: portal.admin.v1.AdminService.CreateRole:output_type -> portal.common.v1.Role
-	20, // 27: portal.admin.v1.AdminService.DeleteRole:output_type -> portal.common.v1.MessageResponse
-	20, // 28: portal.admin.v1.AdminService.AssignPermissionToRole:output_type -> portal.common.v1.MessageResponse
-	20, // 29: portal.admin.v1.AdminService.RemovePermissionFromRole:output_type -> portal.common.v1.MessageResponse
-	13, // 30: portal.admin.v1.AdminService.ListPermissions:output_type -> portal.admin.v1.ListPermissionsResponse
-	18, // [18:31] is the sub-list for method output_type
-	5,  // [5:18] is the sub-list for method input_type
-	5,  // [5:5] is the sub-list for extension type_name
-	5,  // [5:5] is the sub-list for extension extendee
-	0,  // [0:5] is the sub-list for field type_name
+	18, // 0: portal.admin.v1.ListUsersRequest.status:type_name -> portal.common.v1.UserStatus
+	19, // 1: portal.admin.v1.ListUsersResponse.data:type_name -> portal.common.v1.User
+	20, // 2: portal.admin.v1.ListUsersResponse.meta:type_name -> portal.common.v1.PaginationMeta
+	21, // 3: portal.admin.v1.ListRolesResponse.data:type_name -> portal.common.v1.Role
+	22, // 4: portal.admin.v1.ListPermissionsResponse.data:type_name -> portal.common.v1.Permission
+	23, // 5: portal.admin.v1.ListAnnouncementsResponse.data:type_name -> portal.common.v1.Announcement
+	20, // 6: portal.admin.v1.ListAnnouncementsResponse.meta:type_name -> portal.common.v1.PaginationMeta
+	0,  // 7: portal.admin.v1.AdminService.ListUsers:input_type -> portal.admin.v1.ListUsersRequest
+	2,  // 8: portal.admin.v1.AdminService.CreateUser:input_type -> portal.admin.v1.CreateUserRequest
+	3,  // 9: portal.admin.v1.AdminService.GetUserDetail:input_type -> portal.admin.v1.GetUserDetailRequest
+	4,  // 10: portal.admin.v1.AdminService.UpdateUser:input_type -> portal.admin.v1.UpdateUserRequest
+	5,  // 11: portal.admin.v1.AdminService.DeleteUser:input_type -> portal.admin.v1.DeleteUserRequest
+	6,  // 12: portal.admin.v1.AdminService.RestoreUser:input_type -> portal.admin.v1.RestoreUserRequest
+	7,  // 13: portal.admin.v1.AdminService.UpdateUserRole:input_type -> portal.admin.v1.UpdateUserRoleRequest
+	24, // 14: portal.admin.v1.AdminService.ListRoles:input_type -> google.protobuf.Empty
+	9,  // 15: portal.admin.v1.AdminService.CreateRole:input_type -> portal.admin.v1.CreateRoleRequest
+	10, // 16: portal.admin.v1.AdminService.DeleteRole:input_type -> portal.admin.v1.DeleteRoleRequest
+	11, // 17: portal.admin.v1.AdminService.AssignPermissionToRole:input_type -> portal.admin.v1.AssignPermissionToRoleRequest
+	12, // 18: portal.admin.v1.AdminService.RemovePermissionFromRole:input_type -> portal.admin.v1.RemovePermissionFromRoleRequest
+	24, // 19: portal.admin.v1.AdminService.ListPermissions:input_type -> google.protobuf.Empty
+	14, // 20: portal.admin.v1.AdminService.CreateAnnouncement:input_type -> portal.admin.v1.CreateAnnouncementRequest
+	15, // 21: portal.admin.v1.AdminService.ListAnnouncements:input_type -> portal.admin.v1.ListAnnouncementsRequest
+	17, // 22: portal.admin.v1.AdminService.GetAnnouncementDetail:input_type -> portal.admin.v1.GetAnnouncementDetailRequest
+	1,  // 23: portal.admin.v1.AdminService.ListUsers:output_type -> portal.admin.v1.ListUsersResponse
+	19, // 24: portal.admin.v1.AdminService.CreateUser:output_type -> portal.common.v1.User
+	19, // 25: portal.admin.v1.AdminService.GetUserDetail:output_type -> portal.common.v1.User
+	19, // 26: portal.admin.v1.AdminService.UpdateUser:output_type -> portal.common.v1.User
+	19, // 27: portal.admin.v1.AdminService.DeleteUser:output_type -> portal.common.v1.User
+	19, // 28: portal.admin.v1.AdminService.RestoreUser:output_type -> portal.common.v1.User
+	19, // 29: portal.admin.v1.AdminService.UpdateUserRole:output_type -> portal.common.v1.User
+	8,  // 30: portal.admin.v1.AdminService.ListRoles:output_type -> portal.admin.v1.ListRolesResponse
+	21, // 31: portal.admin.v1.AdminService.CreateRole:output_type -> portal.common.v1.Role
+	25, // 32: portal.admin.v1.AdminService.DeleteRole:output_type -> portal.common.v1.MessageResponse
+	25, // 33: portal.admin.v1.AdminService.AssignPermissionToRole:output_type -> portal.common.v1.MessageResponse
+	25, // 34: portal.admin.v1.AdminService.RemovePermissionFromRole:output_type -> portal.common.v1.MessageResponse
+	13, // 35: portal.admin.v1.AdminService.ListPermissions:output_type -> portal.admin.v1.ListPermissionsResponse
+	23, // 36: portal.admin.v1.AdminService.CreateAnnouncement:output_type -> portal.common.v1.Announcement
+	16, // 37: portal.admin.v1.AdminService.ListAnnouncements:output_type -> portal.admin.v1.ListAnnouncementsResponse
+	23, // 38: portal.admin.v1.AdminService.GetAnnouncementDetail:output_type -> portal.common.v1.Announcement
+	23, // [23:39] is the sub-list for method output_type
+	7,  // [7:23] is the sub-list for method input_type
+	7,  // [7:7] is the sub-list for extension type_name
+	7,  // [7:7] is the sub-list for extension extendee
+	0,  // [0:7] is the sub-list for field type_name
 }
 
 func init() { file_admin_v1_admin_proto_init() }
@@ -1002,13 +1258,14 @@ func file_admin_v1_admin_proto_init() {
 	file_admin_v1_admin_proto_msgTypes[0].OneofWrappers = []any{}
 	file_admin_v1_admin_proto_msgTypes[4].OneofWrappers = []any{}
 	file_admin_v1_admin_proto_msgTypes[10].OneofWrappers = []any{}
+	file_admin_v1_admin_proto_msgTypes[15].OneofWrappers = []any{}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_admin_v1_admin_proto_rawDesc), len(file_admin_v1_admin_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   14,
+			NumMessages:   18,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

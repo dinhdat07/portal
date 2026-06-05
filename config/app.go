@@ -23,7 +23,8 @@ type Config struct {
 	AdminEmail    string
 	AdminPassword string
 	ApiBaseUrl    string
-	FrontEndUrl   string
+	FrontEndUrl         string
+	TelegramBotUsername string
 
 	Logger LoggerConfig
 }
@@ -63,8 +64,9 @@ func Load() (*Config, error) {
 		Env:           getEnvDefault("ENV", "development"),
 		AdminEmail:    getEnvDefault("ADMIN_EMAIL", ""),
 		AdminPassword: getEnvDefault("ADMIN_PASSWORD", ""),
-		ApiBaseUrl:    getEnvDefault("API_BASE_URL", ""),
-		FrontEndUrl:   getEnvDefault("FRONTEND_BASE_URL", ""),
+		ApiBaseUrl:          getEnvDefault("API_BASE_URL", ""),
+		FrontEndUrl:         getEnvDefault("FRONTEND_BASE_URL", ""),
+		TelegramBotUsername: getEnvDefault("TELEGRAM_BOT_USERNAME", "YourBotUsername"),
 		Logger: LoggerConfig{
 			Level:  getEnvDefault("LOG_LEVEL", "info"),
 			Format: getEnvDefault("LOG_FORMAT", "text"),

@@ -26,6 +26,14 @@ const (
 
 	// permission management
 	PermPermissionList PermissionCode = "permissions:list"
+
+	// announcement management
+	PermAnnouncementList       PermissionCode = "announcements:list"
+	PermAnnouncementCreate     PermissionCode = "announcements:create"
+	PermAnnouncementReadDetail PermissionCode = "announcements:read_detail"
+
+	// notifications (self)
+	PermNotificationReadSelf PermissionCode = "notifications:read_self"
 )
 
 var AllPermissions = []PermissionCode{
@@ -45,4 +53,8 @@ var AllPermissions = []PermissionCode{
 	PermProfileReadSelf,
 	PermProfileUpdateSelf,
 	PermProfileChangePassword,
+	PermAnnouncementList,
+	PermAnnouncementCreate,
+	PermAnnouncementReadDetail,
+	PermNotificationReadSelf,
 }

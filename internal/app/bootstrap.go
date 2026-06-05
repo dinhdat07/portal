@@ -5,20 +5,20 @@ import (
 	"fmt"
 	"log/slog"
 	"portal-system/config"
+	"portal-system/internal/infrastructure/database"
 	"portal-system/internal/infrastructure/logger"
 	metricsx "portal-system/internal/infrastructure/metrics"
 	"portal-system/internal/infrastructure/ratelimit"
 	redisx "portal-system/internal/infrastructure/redis"
+	"portal-system/internal/infrastructure/security"
 	"portal-system/internal/infrastructure/storage"
 	"portal-system/internal/infrastructure/validator"
-	outbox "portal-system/internal/worker"
+	"portal-system/internal/worker"
 
 	kafkainfra "portal-system/internal/infrastructure/kafka"
 
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/redis/go-redis/v9"
-	"gorm.io/driver/postgres"
-	"gorm.io/gorm"
 )
 
 func New() (*App, error) {
@@ -56,11 +56,16 @@ func New() (*App, error) {
 		return nil, err
 	}
 
+	announcementWorkerCfg, err := config.LoadAnnouncementWorkerConfig()
+	if err != nil {
+		return nil, err
+	}
+
 	if rateLimitCfg.Enabled && !redisCfg.Enabled {
 		return nil, fmt.Errorf("RATE_LIMIT_ENABLED=true requires REDIS_ENABLED=true")
 	}
 
-	db, err := gorm.Open(postgres.Open(cfg.DBUrl), &gorm.Config{})
+	db, err := database.GetInstance(cfg.DBUrl)
 	if err != nil {
 		return nil, err
 	}
@@ -107,14 +112,15 @@ func New() (*App, error) {
 	}
 
 	validator := validator.NewValidator()
+	csrfManager := security.NewCSRFManager()
 	infra := newInfra(cfg, writer, kafkaCfg, rdb)
 	repos := newRepositories(db)
 	svcs := newServices(cfg, infra, repos)
-	grpcServers := newGRPCServers(svcs)
+	grpcServers := newGRPCServers(svcs, csrfManager)
 
 	outboxMetrics := metricsx.NewPrometheusOutboxMetrics(prometheus.DefaultRegisterer)
 
-	outboxWorker := outbox.NewWorker(repos.TxManager, repos.OutboxRepo, infra.KafkaPublisher, slogLogger, outboxMetrics, outbox.Config{
+	outboxPublisher := worker.NewOutboxPublisher(repos.TxManager, repos.OutboxRepo, infra.KafkaPublisher, slogLogger, outboxMetrics, worker.Config{
 		Interval:            workerCfg.Interval,
 		BatchSize:           workerCfg.BatchSize,
 		MaxRetry:            workerCfg.MaxRetry,
@@ -123,16 +129,36 @@ func New() (*App, error) {
 		RetryJitterRatio:    workerCfg.RetryJitterRatio,
 	})
 
+	announcementWorker := worker.NewAnnouncementWorker(
+		repos.TxManager,
+		repos.AnnouncementRepo,
+		repos.UserRepo,
+		repos.UserNotificationRepo,
+		repos.OutboxRepo,
+		slogLogger,
+		worker.AnnouncementWorkerConfig{
+			Interval:          announcementWorkerCfg.Interval,
+			BatchSize:         announcementWorkerCfg.BatchSize,
+			MaxUsersPerBatch:  announcementWorkerCfg.MaxUsersPerBatch,
+			MaxRetry:          announcementWorkerCfg.MaxRetry,
+			EventTTL:          announcementWorkerCfg.EventTTL,
+			NotificationTopic: infra.NotificationTopic,
+		},
+	)
+
 	return &App{
 		Config:              cfg,
 		DB:                  db,
 		Validator:           validator,
 		Authenticator:       svcs.Authenticator,
 		Authorizer:          svcs.Authorizer,
+		CSRFManager:         csrfManager,
 		AuthGRPC:            grpcServers.Auth,
 		UserGRPC:            grpcServers.User,
 		AdminGRPC:           grpcServers.Admin,
-		OutboxWorker:        outboxWorker,
+		UserService:         svcs.User,
+		OutboxPublisher:     outboxPublisher,
+		AnnouncementWorker:  announcementWorker,
 		RateLimiter:         rateLimiter,
 		RateLimitKeyBuilder: rateLimitKeyBuilder,
 		RateLimitConfig:     rateLimitCfg,

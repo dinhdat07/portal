@@ -546,6 +546,198 @@ func (x *User) GetRestoredBy() string {
 	return ""
 }
 
+type Announcement struct {
+	state          protoimpl.MessageState `protogen:"open.v1"`
+	Id             string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	Title          string                 `protobuf:"bytes,2,opt,name=title,proto3" json:"title,omitempty"`
+	Content        string                 `protobuf:"bytes,3,opt,name=content,proto3" json:"content,omitempty"`
+	Type           string                 `protobuf:"bytes,4,opt,name=type,proto3" json:"type,omitempty"`
+	TargetRoles    []string               `protobuf:"bytes,5,rep,name=target_roles,json=targetRoles,proto3" json:"target_roles,omitempty"`
+	DispatchStatus string                 `protobuf:"bytes,6,opt,name=dispatch_status,json=dispatchStatus,proto3" json:"dispatch_status,omitempty"`
+	CreatedBy      string                 `protobuf:"bytes,7,opt,name=created_by,json=createdBy,proto3" json:"created_by,omitempty"`
+	CreatedAt      *timestamppb.Timestamp `protobuf:"bytes,8,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
+	UpdatedAt      *timestamppb.Timestamp `protobuf:"bytes,9,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
+	unknownFields  protoimpl.UnknownFields
+	sizeCache      protoimpl.SizeCache
+}
+
+func (x *Announcement) Reset() {
+	*x = Announcement{}
+	mi := &file_common_v1_common_proto_msgTypes[6]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *Announcement) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*Announcement) ProtoMessage() {}
+
+func (x *Announcement) ProtoReflect() protoreflect.Message {
+	mi := &file_common_v1_common_proto_msgTypes[6]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use Announcement.ProtoReflect.Descriptor instead.
+func (*Announcement) Descriptor() ([]byte, []int) {
+	return file_common_v1_common_proto_rawDescGZIP(), []int{6}
+}
+
+func (x *Announcement) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+func (x *Announcement) GetTitle() string {
+	if x != nil {
+		return x.Title
+	}
+	return ""
+}
+
+func (x *Announcement) GetContent() string {
+	if x != nil {
+		return x.Content
+	}
+	return ""
+}
+
+func (x *Announcement) GetType() string {
+	if x != nil {
+		return x.Type
+	}
+	return ""
+}
+
+func (x *Announcement) GetTargetRoles() []string {
+	if x != nil {
+		return x.TargetRoles
+	}
+	return nil
+}
+
+func (x *Announcement) GetDispatchStatus() string {
+	if x != nil {
+		return x.DispatchStatus
+	}
+	return ""
+}
+
+func (x *Announcement) GetCreatedBy() string {
+	if x != nil {
+		return x.CreatedBy
+	}
+	return ""
+}
+
+func (x *Announcement) GetCreatedAt() *timestamppb.Timestamp {
+	if x != nil {
+		return x.CreatedAt
+	}
+	return nil
+}
+
+func (x *Announcement) GetUpdatedAt() *timestamppb.Timestamp {
+	if x != nil {
+		return x.UpdatedAt
+	}
+	return nil
+}
+
+type UserNotification struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	UserId        string                 `protobuf:"bytes,2,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
+	Announcement  *Announcement          `protobuf:"bytes,3,opt,name=announcement,proto3" json:"announcement,omitempty"`
+	IsRead        bool                   `protobuf:"varint,4,opt,name=is_read,json=isRead,proto3" json:"is_read,omitempty"`
+	ReadAt        *timestamppb.Timestamp `protobuf:"bytes,5,opt,name=read_at,json=readAt,proto3,oneof" json:"read_at,omitempty"`
+	CreatedAt     *timestamppb.Timestamp `protobuf:"bytes,6,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *UserNotification) Reset() {
+	*x = UserNotification{}
+	mi := &file_common_v1_common_proto_msgTypes[7]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *UserNotification) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*UserNotification) ProtoMessage() {}
+
+func (x *UserNotification) ProtoReflect() protoreflect.Message {
+	mi := &file_common_v1_common_proto_msgTypes[7]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use UserNotification.ProtoReflect.Descriptor instead.
+func (*UserNotification) Descriptor() ([]byte, []int) {
+	return file_common_v1_common_proto_rawDescGZIP(), []int{7}
+}
+
+func (x *UserNotification) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+func (x *UserNotification) GetUserId() string {
+	if x != nil {
+		return x.UserId
+	}
+	return ""
+}
+
+func (x *UserNotification) GetAnnouncement() *Announcement {
+	if x != nil {
+		return x.Announcement
+	}
+	return nil
+}
+
+func (x *UserNotification) GetIsRead() bool {
+	if x != nil {
+		return x.IsRead
+	}
+	return false
+}
+
+func (x *UserNotification) GetReadAt() *timestamppb.Timestamp {
+	if x != nil {
+		return x.ReadAt
+	}
+	return nil
+}
+
+func (x *UserNotification) GetCreatedAt() *timestamppb.Timestamp {
+	if x != nil {
+		return x.CreatedAt
+	}
+	return nil
+}
+
 var File_common_v1_common_proto protoreflect.FileDescriptor
 
 const file_common_v1_common_proto_rawDesc = "" +
@@ -604,7 +796,30 @@ const file_common_v1_common_proto_rawDesc = "" +
 	"\v_deleted_atB\r\n" +
 	"\v_deleted_byB\x0e\n" +
 	"\f_restored_atB\x0e\n" +
-	"\f_restored_by*\x80\x01\n" +
+	"\f_restored_by\"\xc3\x02\n" +
+	"\fAnnouncement\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\x12\x14\n" +
+	"\x05title\x18\x02 \x01(\tR\x05title\x12\x18\n" +
+	"\acontent\x18\x03 \x01(\tR\acontent\x12\x12\n" +
+	"\x04type\x18\x04 \x01(\tR\x04type\x12!\n" +
+	"\ftarget_roles\x18\x05 \x03(\tR\vtargetRoles\x12'\n" +
+	"\x0fdispatch_status\x18\x06 \x01(\tR\x0edispatchStatus\x12\x1d\n" +
+	"\n" +
+	"created_by\x18\a \x01(\tR\tcreatedBy\x129\n" +
+	"\n" +
+	"created_at\x18\b \x01(\v2\x1a.google.protobuf.TimestampR\tcreatedAt\x129\n" +
+	"\n" +
+	"updated_at\x18\t \x01(\v2\x1a.google.protobuf.TimestampR\tupdatedAt\"\x99\x02\n" +
+	"\x10UserNotification\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\x12\x17\n" +
+	"\auser_id\x18\x02 \x01(\tR\x06userId\x12B\n" +
+	"\fannouncement\x18\x03 \x01(\v2\x1e.portal.common.v1.AnnouncementR\fannouncement\x12\x17\n" +
+	"\ais_read\x18\x04 \x01(\bR\x06isRead\x128\n" +
+	"\aread_at\x18\x05 \x01(\v2\x1a.google.protobuf.TimestampH\x00R\x06readAt\x88\x01\x01\x129\n" +
+	"\n" +
+	"created_at\x18\x06 \x01(\v2\x1a.google.protobuf.TimestampR\tcreatedAtB\n" +
+	"\n" +
+	"\b_read_at*\x80\x01\n" +
 	"\n" +
 	"UserStatus\x12\x1b\n" +
 	"\x17USER_STATUS_UNSPECIFIED\x10\x00\x12$\n" +
@@ -625,7 +840,7 @@ func file_common_v1_common_proto_rawDescGZIP() []byte {
 }
 
 var file_common_v1_common_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
-var file_common_v1_common_proto_msgTypes = make([]protoimpl.MessageInfo, 6)
+var file_common_v1_common_proto_msgTypes = make([]protoimpl.MessageInfo, 8)
 var file_common_v1_common_proto_goTypes = []any{
 	(UserStatus)(0),               // 0: portal.common.v1.UserStatus
 	(*Permission)(nil),            // 1: portal.common.v1.Permission
@@ -634,23 +849,30 @@ var file_common_v1_common_proto_goTypes = []any{
 	(*MessageResponse)(nil),       // 4: portal.common.v1.MessageResponse
 	(*PaginationMeta)(nil),        // 5: portal.common.v1.PaginationMeta
 	(*User)(nil),                  // 6: portal.common.v1.User
-	(*timestamppb.Timestamp)(nil), // 7: google.protobuf.Timestamp
+	(*Announcement)(nil),          // 7: portal.common.v1.Announcement
+	(*UserNotification)(nil),      // 8: portal.common.v1.UserNotification
+	(*timestamppb.Timestamp)(nil), // 9: google.protobuf.Timestamp
 }
 var file_common_v1_common_proto_depIdxs = []int32{
-	1, // 0: portal.common.v1.Role.permissions:type_name -> portal.common.v1.Permission
-	3, // 1: portal.common.v1.User.role:type_name -> portal.common.v1.RoleSummary
-	0, // 2: portal.common.v1.User.status:type_name -> portal.common.v1.UserStatus
-	7, // 3: portal.common.v1.User.email_verified_at:type_name -> google.protobuf.Timestamp
-	7, // 4: portal.common.v1.User.last_login_at:type_name -> google.protobuf.Timestamp
-	7, // 5: portal.common.v1.User.created_at:type_name -> google.protobuf.Timestamp
-	7, // 6: portal.common.v1.User.updated_at:type_name -> google.protobuf.Timestamp
-	7, // 7: portal.common.v1.User.deleted_at:type_name -> google.protobuf.Timestamp
-	7, // 8: portal.common.v1.User.restored_at:type_name -> google.protobuf.Timestamp
-	9, // [9:9] is the sub-list for method output_type
-	9, // [9:9] is the sub-list for method input_type
-	9, // [9:9] is the sub-list for extension type_name
-	9, // [9:9] is the sub-list for extension extendee
-	0, // [0:9] is the sub-list for field type_name
+	1,  // 0: portal.common.v1.Role.permissions:type_name -> portal.common.v1.Permission
+	3,  // 1: portal.common.v1.User.role:type_name -> portal.common.v1.RoleSummary
+	0,  // 2: portal.common.v1.User.status:type_name -> portal.common.v1.UserStatus
+	9,  // 3: portal.common.v1.User.email_verified_at:type_name -> google.protobuf.Timestamp
+	9,  // 4: portal.common.v1.User.last_login_at:type_name -> google.protobuf.Timestamp
+	9,  // 5: portal.common.v1.User.created_at:type_name -> google.protobuf.Timestamp
+	9,  // 6: portal.common.v1.User.updated_at:type_name -> google.protobuf.Timestamp
+	9,  // 7: portal.common.v1.User.deleted_at:type_name -> google.protobuf.Timestamp
+	9,  // 8: portal.common.v1.User.restored_at:type_name -> google.protobuf.Timestamp
+	9,  // 9: portal.common.v1.Announcement.created_at:type_name -> google.protobuf.Timestamp
+	9,  // 10: portal.common.v1.Announcement.updated_at:type_name -> google.protobuf.Timestamp
+	7,  // 11: portal.common.v1.UserNotification.announcement:type_name -> portal.common.v1.Announcement
+	9,  // 12: portal.common.v1.UserNotification.read_at:type_name -> google.protobuf.Timestamp
+	9,  // 13: portal.common.v1.UserNotification.created_at:type_name -> google.protobuf.Timestamp
+	14, // [14:14] is the sub-list for method output_type
+	14, // [14:14] is the sub-list for method input_type
+	14, // [14:14] is the sub-list for extension type_name
+	14, // [14:14] is the sub-list for extension extendee
+	0,  // [0:14] is the sub-list for field type_name
 }
 
 func init() { file_common_v1_common_proto_init() }
@@ -659,13 +881,14 @@ func file_common_v1_common_proto_init() {
 		return
 	}
 	file_common_v1_common_proto_msgTypes[5].OneofWrappers = []any{}
+	file_common_v1_common_proto_msgTypes[7].OneofWrappers = []any{}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_common_v1_common_proto_rawDesc), len(file_common_v1_common_proto_rawDesc)),
 			NumEnums:      1,
-			NumMessages:   6,
+			NumMessages:   8,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

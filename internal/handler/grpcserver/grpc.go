@@ -18,6 +18,7 @@ type GRPCServerDeps struct {
 	Validator     protovalidate.Validator
 	Authenticator *security.Authenticator
 	Authorizer    *security.Authorizer
+	CSRFManager   *security.CSRFManager
 
 	Auth  *AuthServer
 	User  *UserServer
@@ -37,6 +38,7 @@ func NewGRPCServer(deps GRPCServerDeps) *grpc.Server {
 			interceptor.RecoveryInterceptor(),
 			interceptor.PreAuthRateLimitInterceptor(deps.RateLimiter, deps.RateLimitKeyBuilder, deps.RateLimitConfig),
 			interceptor.ValidationInterceptor(deps.Validator),
+			interceptor.CSRFInterceptor(deps.CSRFManager),
 			interceptor.AuthenticationInterceptor(deps.Authenticator, publicMethods),
 			interceptor.PostAuthRateLimitInterceptor(deps.RateLimiter, deps.RateLimitKeyBuilder, deps.RateLimitConfig),
 			interceptor.PermissionInterceptor(deps.Authorizer, methodPermissions),
@@ -67,9 +69,14 @@ func buildGRPCPublicMethods() map[string]bool {
 func buildGRPCMethodPermissions() map[string]domain.PermissionCode {
 	return map[string]domain.PermissionCode{
 		// user self-service
-		userv1.UserService_GetMyProfile_FullMethodName:     domain.PermProfileReadSelf,
-		userv1.UserService_UpdateMyProfile_FullMethodName:  domain.PermProfileUpdateSelf,
-		userv1.UserService_ChangeMyPassword_FullMethodName: domain.PermProfileChangePassword,
+		userv1.UserService_GetMyProfile_FullMethodName:               domain.PermProfileReadSelf,
+		userv1.UserService_UpdateMyProfile_FullMethodName:            domain.PermProfileUpdateSelf,
+		userv1.UserService_ChangeMyPassword_FullMethodName:           domain.PermProfileChangePassword,
+		userv1.UserService_ListMyNotifications_FullMethodName:        domain.PermNotificationReadSelf,
+		userv1.UserService_GetMyNotificationDetail_FullMethodName:    domain.PermNotificationReadSelf,
+		userv1.UserService_MarkNotificationAsRead_FullMethodName:     domain.PermNotificationReadSelf,
+		userv1.UserService_MarkAllNotificationsAsRead_FullMethodName: domain.PermNotificationReadSelf,
+		userv1.UserService_GetUnreadNotificationCount_FullMethodName: domain.PermNotificationReadSelf,
 
 		// admin user management
 		adminv1.AdminService_ListUsers_FullMethodName:                domain.PermUserList,
@@ -85,5 +92,9 @@ func buildGRPCMethodPermissions() map[string]domain.PermissionCode {
 		adminv1.AdminService_AssignPermissionToRole_FullMethodName:   domain.PermRoleAssignPermission,
 		adminv1.AdminService_RemovePermissionFromRole_FullMethodName: domain.PermRoleRemovePermission,
 		adminv1.AdminService_ListPermissions_FullMethodName:          domain.PermPermissionList,
+
+		adminv1.AdminService_CreateAnnouncement_FullMethodName:    domain.PermAnnouncementCreate,
+		adminv1.AdminService_ListAnnouncements_FullMethodName:     domain.PermAnnouncementList,
+		adminv1.AdminService_GetAnnouncementDetail_FullMethodName: domain.PermAnnouncementReadDetail,
 	}
 }

@@ -62,3 +62,24 @@ message User {
   optional google.protobuf.Timestamp restored_at = 15;
   optional string restored_by = 16;
 }
+
+message Announcement {
+  string id = 1;
+  string title = 2;
+  string content = 3;
+  string type = 4;
+  repeated string target_roles = 5;
+  string dispatch_status = 6;
+  string created_by = 7;
+  google.protobuf.Timestamp created_at = 8;
+  google.protobuf.Timestamp updated_at = 9;
+}
+
+message UserNotification {
+  string id = 1;
+  string user_id = 2;
+  Announcement announcement = 3;
+  bool is_read = 4;
+  optional google.protobuf.Timestamp read_at = 5;
+  google.protobuf.Timestamp created_at = 6;
+}

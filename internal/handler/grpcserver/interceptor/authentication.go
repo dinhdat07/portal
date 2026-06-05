@@ -42,19 +42,25 @@ func AuthenticationInterceptor(authenticator *security.Authenticator, publicMeth
 func extractBearerTokenFromMetadata(ctx context.Context) (string, error) {
 	md, ok := metadata.FromIncomingContext(ctx)
 	if !ok {
-		return "", errors.New("missing token")
+		return "", errors.New("missing metadata")
 	}
 
-	values := md.Get("authorization")
-	if len(values) == 0 {
-		return "", errors.New("missing token")
+	// Priority 1: Authorization header (legacy localStorage flow)
+	if authValues := md.Get("authorization"); len(authValues) > 0 {
+		authHeader := strings.TrimSpace(authValues[0])
+		parts := strings.SplitN(authHeader, " ", 2)
+		if len(parts) == 2 && strings.EqualFold(parts[0], "Bearer") && strings.TrimSpace(parts[1]) != "" {
+			return strings.TrimSpace(parts[1]), nil
+		}
 	}
 
-	authHeader := strings.TrimSpace(values[0])
-	parts := strings.SplitN(authHeader, " ", 2)
-	if len(parts) != 2 || parts[0] != "Bearer" || strings.TrimSpace(parts[1]) == "" {
-		return "", errors.New("invalid token")
+	// Priority 2: Cookie-based access token (new HttpOnly flow)
+	if cookieValues := md.Get("cookie-access-token"); len(cookieValues) > 0 {
+		token := strings.TrimSpace(cookieValues[0])
+		if token != "" {
+			return token, nil
+		}
 	}
 
-	return strings.TrimSpace(parts[1]), nil
+	return "", errors.New("missing token")
 }

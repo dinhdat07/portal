@@ -34,6 +34,9 @@ const (
 	AdminService_AssignPermissionToRole_FullMethodName   = "/portal.admin.v1.AdminService/AssignPermissionToRole"
 	AdminService_RemovePermissionFromRole_FullMethodName = "/portal.admin.v1.AdminService/RemovePermissionFromRole"
 	AdminService_ListPermissions_FullMethodName          = "/portal.admin.v1.AdminService/ListPermissions"
+	AdminService_CreateAnnouncement_FullMethodName       = "/portal.admin.v1.AdminService/CreateAnnouncement"
+	AdminService_ListAnnouncements_FullMethodName        = "/portal.admin.v1.AdminService/ListAnnouncements"
+	AdminService_GetAnnouncementDetail_FullMethodName    = "/portal.admin.v1.AdminService/GetAnnouncementDetail"
 )
 
 // AdminServiceClient is the client API for AdminService service.
@@ -53,6 +56,10 @@ type AdminServiceClient interface {
 	AssignPermissionToRole(ctx context.Context, in *AssignPermissionToRoleRequest, opts ...grpc.CallOption) (*v1.MessageResponse, error)
 	RemovePermissionFromRole(ctx context.Context, in *RemovePermissionFromRoleRequest, opts ...grpc.CallOption) (*v1.MessageResponse, error)
 	ListPermissions(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*ListPermissionsResponse, error)
+	// Announcement APIs
+	CreateAnnouncement(ctx context.Context, in *CreateAnnouncementRequest, opts ...grpc.CallOption) (*v1.Announcement, error)
+	ListAnnouncements(ctx context.Context, in *ListAnnouncementsRequest, opts ...grpc.CallOption) (*ListAnnouncementsResponse, error)
+	GetAnnouncementDetail(ctx context.Context, in *GetAnnouncementDetailRequest, opts ...grpc.CallOption) (*v1.Announcement, error)
 }
 
 type adminServiceClient struct {
@@ -193,6 +200,36 @@ func (c *adminServiceClient) ListPermissions(ctx context.Context, in *emptypb.Em
 	return out, nil
 }
 
+func (c *adminServiceClient) CreateAnnouncement(ctx context.Context, in *CreateAnnouncementRequest, opts ...grpc.CallOption) (*v1.Announcement, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(v1.Announcement)
+	err := c.cc.Invoke(ctx, AdminService_CreateAnnouncement_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *adminServiceClient) ListAnnouncements(ctx context.Context, in *ListAnnouncementsRequest, opts ...grpc.CallOption) (*ListAnnouncementsResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ListAnnouncementsResponse)
+	err := c.cc.Invoke(ctx, AdminService_ListAnnouncements_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *adminServiceClient) GetAnnouncementDetail(ctx context.Context, in *GetAnnouncementDetailRequest, opts ...grpc.CallOption) (*v1.Announcement, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(v1.Announcement)
+	err := c.cc.Invoke(ctx, AdminService_GetAnnouncementDetail_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // AdminServiceServer is the server API for AdminService service.
 // All implementations must embed UnimplementedAdminServiceServer
 // for forward compatibility.
@@ -210,6 +247,10 @@ type AdminServiceServer interface {
 	AssignPermissionToRole(context.Context, *AssignPermissionToRoleRequest) (*v1.MessageResponse, error)
 	RemovePermissionFromRole(context.Context, *RemovePermissionFromRoleRequest) (*v1.MessageResponse, error)
 	ListPermissions(context.Context, *emptypb.Empty) (*ListPermissionsResponse, error)
+	// Announcement APIs
+	CreateAnnouncement(context.Context, *CreateAnnouncementRequest) (*v1.Announcement, error)
+	ListAnnouncements(context.Context, *ListAnnouncementsRequest) (*ListAnnouncementsResponse, error)
+	GetAnnouncementDetail(context.Context, *GetAnnouncementDetailRequest) (*v1.Announcement, error)
 	mustEmbedUnimplementedAdminServiceServer()
 }
 
@@ -258,6 +299,15 @@ func (UnimplementedAdminServiceServer) RemovePermissionFromRole(context.Context,
 }
 func (UnimplementedAdminServiceServer) ListPermissions(context.Context, *emptypb.Empty) (*ListPermissionsResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method ListPermissions not implemented")
+}
+func (UnimplementedAdminServiceServer) CreateAnnouncement(context.Context, *CreateAnnouncementRequest) (*v1.Announcement, error) {
+	return nil, status.Error(codes.Unimplemented, "method CreateAnnouncement not implemented")
+}
+func (UnimplementedAdminServiceServer) ListAnnouncements(context.Context, *ListAnnouncementsRequest) (*ListAnnouncementsResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method ListAnnouncements not implemented")
+}
+func (UnimplementedAdminServiceServer) GetAnnouncementDetail(context.Context, *GetAnnouncementDetailRequest) (*v1.Announcement, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetAnnouncementDetail not implemented")
 }
 func (UnimplementedAdminServiceServer) mustEmbedUnimplementedAdminServiceServer() {}
 func (UnimplementedAdminServiceServer) testEmbeddedByValue()                      {}
@@ -514,6 +564,60 @@ func _AdminService_ListPermissions_Handler(srv interface{}, ctx context.Context,
 	return interceptor(ctx, in, info, handler)
 }
 
+func _AdminService_CreateAnnouncement_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CreateAnnouncementRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AdminServiceServer).CreateAnnouncement(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AdminService_CreateAnnouncement_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AdminServiceServer).CreateAnnouncement(ctx, req.(*CreateAnnouncementRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _AdminService_ListAnnouncements_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListAnnouncementsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AdminServiceServer).ListAnnouncements(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AdminService_ListAnnouncements_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AdminServiceServer).ListAnnouncements(ctx, req.(*ListAnnouncementsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _AdminService_GetAnnouncementDetail_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetAnnouncementDetailRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AdminServiceServer).GetAnnouncementDetail(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AdminService_GetAnnouncementDetail_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AdminServiceServer).GetAnnouncementDetail(ctx, req.(*GetAnnouncementDetailRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // AdminService_ServiceDesc is the grpc.ServiceDesc for AdminService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -572,6 +676,18 @@ var AdminService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ListPermissions",
 			Handler:    _AdminService_ListPermissions_Handler,
+		},
+		{
+			MethodName: "CreateAnnouncement",
+			Handler:    _AdminService_CreateAnnouncement_Handler,
+		},
+		{
+			MethodName: "ListAnnouncements",
+			Handler:    _AdminService_ListAnnouncements_Handler,
+		},
+		{
+			MethodName: "GetAnnouncementDetail",
+			Handler:    _AdminService_GetAnnouncementDetail_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

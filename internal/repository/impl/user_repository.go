@@ -268,6 +268,23 @@ func (r *GormUserRepository) ListUsers(ctx context.Context, filter repository.Us
 	return users, total, nil
 }
 
+func (r *GormUserRepository) FindUsersByRoleCodes(ctx context.Context, roleCodes []string, page, pageSize int) ([]model.User, error) {
+	var users []model.User
+
+	db := r.getDB(ctx).Model(&model.User{}).
+		Joins("JOIN roles ON roles.id = users.role_id").
+		Where("roles.code IN ?", roleCodes).
+		Where("users.status = ?", domain.StatusActive)
+
+	offset := (page - 1) * pageSize
+	err := db.Preload("Role").Offset(offset).Limit(pageSize).Find(&users).Error
+	if err != nil {
+		return nil, err
+	}
+
+	return users, nil
+}
+
 func (r *GormUserRepository) getDB(ctx context.Context) *gorm.DB {
 	if tx, ok := ctx.Value(txKey{}).(*gorm.DB); ok {
 		return tx.WithContext(ctx)

@@ -1,4 +1,4 @@
-package outbox
+package worker
 
 import (
 	"math/rand/v2"
